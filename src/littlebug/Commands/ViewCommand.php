@@ -7,10 +7,10 @@
  * Editor: created by PhpStorm
  */
 
-namespace LittleBug\Commands;
+namespace Littlebug\Commands;
 
 
-use App\Traits\Command\CommandTrait;
+use Littlebug\Traits\Command\CommandTrait;
 use Illuminate\Support\Str;
 
 class ViewCommand extends CoreCommand

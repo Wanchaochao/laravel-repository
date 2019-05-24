@@ -8,10 +8,10 @@
  * file that was distributed with this source code.
  */
 
-namespace LittleBug\Repository;
+namespace Littlebug\Repository;
 
-use LittleBug\Traits\Repository\CacheTrait;
-use LittleBug\Traits\Repository\RepositoryResponseTrait;
+use Littlebug\Traits\Repository\CacheTrait;
+use Littlebug\Traits\Repository\RepositoryResponseTrait;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;

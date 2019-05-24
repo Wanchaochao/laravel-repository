@@ -7,7 +7,7 @@
  * Editor: created by PhpStorm
  */
 
-namespace LittleBug\Traits\Controller;
+namespace Littlebug\Traits\Controller;
 
 trait AjaxResponseTrait
 {

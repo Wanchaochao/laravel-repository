@@ -7,9 +7,9 @@
  * Editor: created by PhpStorm
  */
 
-namespace LittleBug\Commands;
+namespace Littlebug\Commands;
 
-use LittleBug\Traits\Command\CommandTrait;
+use Littlebug\Traits\Command\CommandTrait;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 

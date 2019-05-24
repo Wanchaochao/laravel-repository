@@ -7,7 +7,7 @@
  * Editor: created by PhpStorm
  */
 
-namespace LittleBug\Traits\Repository;
+namespace Littlebug\Traits\Repository;
 
 use Closure;
 

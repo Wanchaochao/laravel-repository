@@ -7,13 +7,13 @@
  * Editor: created by PhpStorm
  */
 
-namespace LittleBug\Commands;
+namespace Littlebug\Commands;
 
 use Illuminate\Support\Str;
 
 /**
  * Class ControllerCommand 生成 Controller 信息
- * @package App\Commands
+ * @package Littlebug\Commands
  */
 class ControllerCommand extends CoreCommand
 {

@@ -1,12 +1,12 @@
 <?php
 
-namespace LittleBug\Traits\Command;
+namespace Littlebug\Traits\Command;
 
 use Illuminate\Support\Facades\DB;
 
 /**
  * Trait CommandTrait 命名行 trait
- * @package App\Traits
+ * @package Littlebug\Traits
  */
 trait CommandTrait
 {

@@ -6,7 +6,7 @@
  * Time: 上午 9:56
  */
 
-namespace LittleBug\Commands;
+namespace Littlebug\Commands;
 
 use \Illuminate\Console\Command;
 use Illuminate\Support\Str;
@@ -14,7 +14,7 @@ use Throwable;
 /**
  * Class CoreCommand core 基础命令
  *
- * @package App\Commands
+ * @package Littlebug\Commands
  */
 abstract class CoreCommand extends Command
 {

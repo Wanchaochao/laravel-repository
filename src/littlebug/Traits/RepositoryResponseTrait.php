@@ -6,7 +6,7 @@
  * Create: 16-9-9 10:30
  * Editor: created by PhpStorm
  */
-namespace LittleBug\Traits\Repository;
+namespace Littlebug\Traits\Repository;
 
 trait RepositoryResponseTrait
 {

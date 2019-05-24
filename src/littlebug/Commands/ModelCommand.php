@@ -7,16 +7,16 @@
  * Editor: created by PhpStorm
  */
 
-namespace LittleBug\Commands;
+namespace Littlebug\Commands;
 
-use App\Traits\Command\CommandTrait;
+use Littlebug\Traits\Command\CommandTrait;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
 /**
  * Class Model 用来生成model
  *
- * @package App\Commands
+ * @package Littlebug\Commands
  */
 class ModelCommand extends CoreCommand
 {
@@ -77,7 +77,7 @@ class ModelCommand extends CoreCommand
             'connection' => $connection ?: '',
             'class_name' => $class_name,
             'namespace'  => $namespace,
-            'use_base'   => $namespace ? 'use LittleBug\Model;' : ''
+            'use_base'   => $namespace ? 'use Littlebug\Model;' : ''
         ]);
 
         // 生成 repository

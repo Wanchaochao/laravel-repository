@@ -8,14 +8,14 @@
  * Editor: created by PhpStorm
  */
 
-namespace LittleBug\Commands;
+namespace Littlebug\Commands;
 
-use App\Traits\Command\CommandTrait;
+use Littlebug\Traits\Command\CommandTrait;
 use Illuminate\Support\Arr;
 
 /**
  * Class RequestCommand 生成 Request 文件
- * @package App\Commands
+ * @package Littlebug\Commands
  */
 class RequestCommand extends CoreCommand
 {

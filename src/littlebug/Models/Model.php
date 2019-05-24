@@ -5,7 +5,7 @@
  * Date: 2018/6/20 下午3:12
  */
 
-namespace LittleBug\Models;
+namespace Littlebug\Models;
 
 
 use Illuminate\Database\Eloquent\Model as LaravelModel;
