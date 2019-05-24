@@ -1,0 +1,13 @@
+{
+    "name": "wanchao/laravel-repository",
+    "description": "The repository mode for laravel!",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Chao Wan",
+            "email": "wanchao@littlebug.vip"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {}
+}
