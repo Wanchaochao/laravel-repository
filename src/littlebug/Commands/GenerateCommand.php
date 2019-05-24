@@ -9,7 +9,7 @@
 
 namespace LittleBug\Commands;
 
-use App\Traits\Command\CommandTrait;
+use LittleBug\Traits\Command\CommandTrait;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 
