@@ -2,7 +2,9 @@
 
 namespace Littlebug\Traits\Command;
 
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * Trait CommandTrait 命名行 trait
@@ -10,6 +12,7 @@ use Illuminate\Support\Facades\DB;
  */
 trait CommandTrait
 {
+
     /**
      * @param $table
      *
@@ -33,8 +36,9 @@ trait CommandTrait
     protected function findTableExist($table)
     {
         $array = $this->getTableAndConnection($table);
-        $table = array_get($array, 'table');
-        return DB::connection(array_get($array, 'connection'))->select("SHOW TABLES like '{$table}'");
+        $table = Arr::get($array, 'table');
+        $prefix = config('database.connections.mysql.prefix');
+        return DB::connection(Arr::get($array, 'connection'))->select("SHOW TABLES like '{$prefix}{$table}'");
     }
 
     /**
@@ -47,8 +51,10 @@ trait CommandTrait
     protected function findTableStructure($table)
     {
         $array = $this->getTableAndConnection($table);
-        $table = array_get($array, 'table');
-        return DB::connection(array_get($array, 'connection'))->select('SHOW FULL COLUMNS FROM `' . $table . '`');
+        $table = Arr::get($array, 'table');
+        $prefix = config('database.connections.mysql.prefix');
+        $structure = DB::connection(Arr::get($array, 'connection'))->select('SHOW FULL COLUMNS FROM `'. $prefix . $table . '`');
+        return json_decode(json_encode($structure), true);
     }
 
     /**
@@ -63,7 +69,7 @@ trait CommandTrait
     protected function findPrimaryKey($table, $default = 'id')
     {
         if ($structure = $this->findTableStructure($table)) {
-            $default = array_get(array_pluck($structure, 'Field', 'Key'), 'PRI', $default);
+            $default = Arr::get(Arr::pluck($structure, 'Field', 'Key'), 'PRI', $default);
         }
 
         return $default;
@@ -94,7 +100,7 @@ trait CommandTrait
             preg_match('/\d+/', $type, $array);
             $return = ['min' => 2];
             if ($array) {
-                $return['max'] = array_get($array, 0);
+                $return['max'] = Arr::get($array, 0);
             }
 
             return $return;
@@ -115,7 +121,7 @@ trait CommandTrait
     {
         $is_start_with = false;
         foreach ($array as $start) {
-            if (starts_with($type, $start)) {
+            if (Str::startsWith($type, $start)) {
                 $is_start_with = true;
                 break;
             }
