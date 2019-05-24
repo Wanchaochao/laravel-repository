@@ -1,6 +1,8 @@
 {
-    "name": "wanchao/laravel-repository",
+    "name": "littlebug/laravel-repository",
     "description": "The repository mode for laravel!",
+    "homepage": "https://littlebug.vip",
+    "keywords": ["laravel", "repository", "repositories", "eloquent", "database"],
     "license": "MIT",
     "authors": [
         {
@@ -9,5 +11,10 @@
         }
     ],
     "minimum-stability": "dev",
+    "autoload": {
+        "psr-4": {
+            "LittleBug\\": "src/littlebug"
+        }
+    },
     "require": {}
 }
