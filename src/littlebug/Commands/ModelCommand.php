@@ -77,7 +77,7 @@ class ModelCommand extends CoreCommand
             'connection' => $connection ?: '',
             'class_name' => $class_name,
             'namespace'  => $namespace,
-            'use_base'   => $namespace ? 'use Littlebug\Model;' : ''
+            'use_base'   => $namespace ? 'use Littlebug\Models\Model;' : ''
         ]);
 
         // 生成 repository

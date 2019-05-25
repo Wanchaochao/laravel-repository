@@ -165,7 +165,7 @@ class RequestCommand extends CoreCommand
 
 namespace App\Http\Requests{namespace};
 
-use Littlebug\Requests;
+use App\Http\Requests\Request;
 
 class {class_name} extends Request
 {

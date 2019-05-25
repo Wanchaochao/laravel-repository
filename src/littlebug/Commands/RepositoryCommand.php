@@ -54,7 +54,7 @@ class RepositoryCommand extends CoreCommand
         $model_namespace = $arr_model ? '\\' . implode('\\', $arr_model) : '';
         $file_name       = $this->getPath($this->handleOptionName($name, 'Repository') . '.php');
         list($namespace, $class_name) = $this->getNamespaceAndClassName($file_name, 'Repositories');
-        $use_base        = $namespace ? 'use Littlebug\Repository;' : '';
+        $use_base        = $namespace ? 'use Littlebug\Repository\Repository;' : '';
         $this->render($file_name, compact('namespace', 'class_name', 'model_namespace', 'model_name', 'use_base'));
     }
 
