@@ -35,7 +35,7 @@ abstract class Request extends FormRequest
         ];
 
         if (request()->isMethod('get')) {
-            $data['type'] = 'modal_alert';
+            $data['type'] = 'ajax_alert';
         }
 
         return $data;
@@ -51,7 +51,7 @@ abstract class Request extends FormRequest
         ];
 
         if (request()->ajax()) {
-            $data['type'] = 'modal_alert';
+            $data['type'] = 'ajax_alert';
         }
 
         exit(json_encode($data));
