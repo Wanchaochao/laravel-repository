@@ -147,7 +147,7 @@ use App\Http\Requests{request_namespace}\DestroyRequest;
 use App\Http\Requests{request_namespace}\StoreRequest;
 use App\Http\Requests{request_namespace}\UpdateRequest;
 use App\Repositories{repository_namespace}\{repository};
-use Littlebug\Helpers
+use Littlebug\Helpers\Helper;
 
 class {class_name} extends BaseController
 {
@@ -168,10 +168,9 @@ class {class_name} extends BaseController
      */
     public function indexAction()
     {
-        \$filters = filter_array(request()->all());
+        \$filters = Helper::filter_array(request()->all());
         \$filters['order'] = '{primary_key} desc';
         \$list = \$this->{repository_name}->getList(\$filters);
-        array_forget(\$filters, 'order');
         return view('{view}.index', compact('list', 'filters'));
     }
     
