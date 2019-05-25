@@ -10,6 +10,7 @@ namespace Littlebug\Commands;
 
 use \Illuminate\Console\Command;
 use Illuminate\Support\Str;
+use Littlebug\Helpers\Helper;
 use Throwable;
 /**
  * Class CoreCommand core 基础命令
@@ -39,10 +40,10 @@ abstract class CoreCommand extends Command
         // 处理路径
         $path = $use_path ? $this->option('path') : '';
         $path = str_replace('\\', '/', $path);
-        if (is_empty($path) || !Str::startsWith($path, '/')) {
+        if (Helper::is_empty($path) || !Str::startsWith($path, '/')) {
             $array = explode('/', $path);
             if ($studly_case) {
-                array_studly_case($array);
+                Helper::array_studly_case($array);
             }
 
             $path = base_path(rtrim($this->basePath, '/') . '/' . implode('/', $array));
@@ -89,9 +90,9 @@ abstract class CoreCommand extends Command
     {
         $input_name = str_replace('\\', '/', $this->option($option) ?: $default_name);
         $array      = explode('/', $input_name);
-        array_studly_case($array);
+        Helper::array_studly_case($array);
         $name = implode('/', $array);
-        if ($suffix && !ends_with($name, $suffix)) {
+        if ($suffix && !Str::endsWith($name, $suffix)) {
             $name .= $suffix;
         }
 

@@ -9,6 +9,7 @@
 
 namespace Littlebug\Commands;
 
+use Littlebug\Helpers\Helper;
 use Littlebug\Traits\Command\CommandTrait;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
@@ -56,7 +57,7 @@ class GenerateCommand extends Command
         }
 
         // 生成model 和 repository
-        $this->call('core:model', filter_array([
+        $this->call('core:model', Helper::filter_array([
             '--table' => $table,
             '--name'  => $this->option('model'),
             '--path'  => $this->option('path')
@@ -101,7 +102,7 @@ class GenerateCommand extends Command
         }
 
         $repositories = explode('/', $repository);
-        array_studly_case($repositories);
+        Helper::array_studly_case($repositories);
         return implode('/', $repositories);
     }
 }

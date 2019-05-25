@@ -118,7 +118,7 @@ class ControllerCommand extends CoreCommand
         }
 
         // 是否Repository 结尾，不是加上
-        if (!ends_with($repository, 'Repository')) {
+        if (!Str::endsWith($repository, 'Repository')) {
             $repository .= 'Repository';
         }
 
@@ -147,6 +147,7 @@ use App\Http\Requests{request_namespace}\DestroyRequest;
 use App\Http\Requests{request_namespace}\StoreRequest;
 use App\Http\Requests{request_namespace}\UpdateRequest;
 use App\Repositories{repository_namespace}\{repository};
+use Littlebug\Helpers
 
 class {class_name} extends BaseController
 {
