@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Str;
+use \Illuminate\Support\Arr;
 
 if (!function_exists('is_cli')) {
     function is_cli()
@@ -14,7 +15,7 @@ if (!function_exists('t')) {
     /**
      * @param $key
      * @param string $file
-     * @return array|\Illuminate\Contracts\Translation\Translator|mixed|string|null
+     * @return array|mixed|string|null
      * @throws Exception
      */
     function t($key, $file = 'pay')
@@ -32,7 +33,7 @@ if (!function_exists('t')) {
                 if (!$langs) {
                     $langs = include $file_path;
                 }
-                \Illuminate\Support\Arr::set($langs, $tmp, $value);
+                Arr::set($langs, $tmp, $value);
                 cache(['langs' => $langs], 3600);
             }
             return $value;
