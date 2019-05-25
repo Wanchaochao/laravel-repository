@@ -50,7 +50,7 @@ class Helper
     public static function filter_array($array)
     {
         return array_filter($array, function ($value) {
-            return self::is_empty($value);
+            return !self::is_empty($value);
         });
     }
 
