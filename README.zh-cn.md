@@ -124,18 +124,14 @@ php artisan core:generate --table=member_message --path=Member --controller=Memb
 文件 [ /Users/wanchao/www/lara-test/app/Http/Requests/Member/MemberMessage/DestroyRequest.php ] 生成成功
 文件 [ /Users/wanchao/www/lara-test/app/Http/Requests/Member/MemberMessage/StoreRequest.php ] 生成成功
 
-# 也许你的基类controller不是BaseController，请动动小手手动去改一下controller里的继承~
-
-# 修改MemberMessageController
-
-# 如果没有 BaseController 可以继承 app\Http\Controllers\Controller
-
 # 添加路由 routes/web.php
 
 Route::group(['namespace' => 'Member','prefix' => 'member'], function ($route) {
     $route->get('index', 'MemberController@indexAction');
     $route->get('message', 'MemberMessageController@indexAction');
 });
+
+# 修改MemberMessageController
 
 # 在MemberMessageController中dd打印数据
 

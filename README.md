@@ -124,11 +124,7 @@ php artisan core:generate --table=member_message --path=Member --controller=Memb
 文件 [ /Users/wanchao/www/lara-test/app/Http/Requests/Member/MemberMessage/DestroyRequest.php ] 生成成功
 文件 [ /Users/wanchao/www/lara-test/app/Http/Requests/Member/MemberMessage/StoreRequest.php ] 生成成功
 
-# maybe your base controller isn`t BaseController, please update the controller file by yourself~
 
-# update the MemberMessageController
-
-# maybe there`s no BaseController at app\Http\Controllers
 
 # add route to routes/web.php
 
@@ -136,6 +132,8 @@ Route::group(['namespace' => 'Member','prefix' => 'member'], function ($route) {
     $route->get('index', 'MemberController@indexAction');
     $route->get('message', 'MemberMessageController@indexAction');
 });
+
+# update the MemberMessageController
 
 # dd the data of list, MemberMessageController
 
