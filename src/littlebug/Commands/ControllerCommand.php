@@ -142,14 +142,14 @@ class ControllerCommand extends CoreCommand
      
 namespace App\Http\Controllers{namespace};
 
-use App\Http\Controllers\BaseController;
+use App\Http\Controllers\Controller;
 use App\Http\Requests{request_namespace}\DestroyRequest;
 use App\Http\Requests{request_namespace}\StoreRequest;
 use App\Http\Requests{request_namespace}\UpdateRequest;
 use App\Repositories{repository_namespace}\{repository};
 use Littlebug\Helpers\Helper;
 
-class {class_name} extends BaseController
+class {class_name} extends Controller
 {
     /**
      * @var {repository}
