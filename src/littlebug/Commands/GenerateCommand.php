@@ -87,7 +87,13 @@ class GenerateCommand extends Command
      */
     protected function getRepositoryName($table)
     {
-        $table      = explode('.', Str::replaceLast('s', '', $table));
+        /**
+         * 去除自动识别s并去除
+         */
+//        if (Str::endsWith('s', $table)) {
+//            $table = Str::replaceLast('s', '', $table);
+//        }
+        $table      = explode('.', $table);
         $table      = array_pop($table);
         $repository = ltrim($this->option('model') ?: Str::studly($table), '/');
         if ($path = $this->option('path')) {
