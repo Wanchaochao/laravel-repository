@@ -63,7 +63,10 @@ class ModelCommand extends CoreCommand
         if ($connection = Arr::get($array, 'connection')) {
             $connection = 'protected $connection = \'' . $connection . '\';';
         }
-        $model_name = $this->handleOptionName(Str::replaceLast('s', '', $table_name));
+        if (Str::endsWith('s', $table_name)) {
+            $table_name = Str::replaceLast('s', '', $table_name);
+        }
+        $model_name = $this->handleOptionName($table_name);
         list($columns, $primaryKey) = $this->getColumnsAndPrimaryKey($table);
 
         $file_name = $this->getPath($model_name . '.php');
