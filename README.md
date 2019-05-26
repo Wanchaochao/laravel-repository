@@ -176,5 +176,6 @@ vist localhost:8001/member/message
 
 ```
 
+##### thanks for [JinxingLiu](https://mylovegy.github.io/blog/) and seven 💐🌹
 
 ##### if my repository is helpful to you, give me a star to encourage me~ ✨, I will continue to maintain this project.
