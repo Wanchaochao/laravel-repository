@@ -8,7 +8,7 @@
  */
 namespace Littlebug\Traits\Repository;
 
-trait RepositoryResponseTrait
+trait ResponseTrait
 {
     /**
      * 成功返回

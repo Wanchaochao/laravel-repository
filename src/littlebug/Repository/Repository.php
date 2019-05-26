@@ -11,7 +11,7 @@
 namespace Littlebug\Repository;
 
 use Littlebug\Traits\Repository\CacheTrait;
-use Littlebug\Traits\Repository\RepositoryResponseTrait;
+use Littlebug\Traits\Repository\ResponseTrait;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -34,7 +34,7 @@ abstract class Repository
 {
 
     use CacheTrait;
-    use RepositoryResponseTrait;
+    use ResponseTrait;
 
     /**
      * The model to provide.
