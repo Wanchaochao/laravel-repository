@@ -68,8 +68,6 @@ mkdir app/Http/Requests
 
 # add these codes on the top
 
-use Illuminate\Console\Scheduling\Schedule;
-use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use Littlebug\Commands\ControllerCommand;
 use Littlebug\Commands\GenerateCommand;
 use Littlebug\Commands\ModelCommand;

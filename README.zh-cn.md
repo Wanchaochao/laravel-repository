@@ -67,8 +67,6 @@ mkdir app/Http/Requests
 
 # 添加如下代码
 
-use Illuminate\Console\Scheduling\Schedule;
-use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use Littlebug\Commands\ControllerCommand;
 use Littlebug\Commands\GenerateCommand;
 use Littlebug\Commands\ModelCommand;
