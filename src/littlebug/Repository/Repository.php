@@ -37,7 +37,7 @@ abstract class Repository
      * 分页样式
      * @var string
      */
-    private $paginate_style = 'default';
+    private $paginateStyle = 'default';
 
     /**
      * @var array 支持查询的表达式
@@ -318,7 +318,7 @@ abstract class Repository
      */
     public function setPaginateStyle($style)
     {
-        $this->paginate_style = $style;
+        $this->paginateStyle = $style;
         return $this;
     }
 
@@ -335,7 +335,7 @@ abstract class Repository
     public function lists($filters = [], $fields = [], $page_size = 10, $cur_page = null)
     {
         $model = $this->setModelCondition($filters, $fields);
-        if ($this->paginate_style == 'simple') {
+        if ($this->paginateStyle == 'simple') {
             $paginate = $model->simplePaginate($page_size, ['*'], 'page', $cur_page);
         } else {
             $paginate = $model->paginate($page_size, ['*'], 'page', $cur_page);
@@ -370,8 +370,7 @@ abstract class Repository
      */
     public function toSql($filters)
     {
-        $model = $this->setModelCondition($filters);
-        return $model->toSql();
+        return $this->setModelCondition($filters)->toSql();
     }
 
     /***
