@@ -10,7 +10,7 @@
 
 namespace Littlebug\Repository;
 
-use Littlebug\Traits\Repository\CacheTrait;
+use Illuminate\Support\Facades\DB;
 use Littlebug\Traits\Repository\ResponseTrait;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Eloquent\Model;
@@ -19,11 +19,11 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
-use DB;
 use Illuminate\Support\Str;
 use Exception;
 use ReflectionClass;
 use Closure;
+use Littlebug\Helpers\Helper;
 
 /**
  * This is the abstract repository class.
@@ -33,7 +33,6 @@ use Closure;
 abstract class Repository
 {
 
-    use CacheTrait;
     use ResponseTrait;
 
     /**
@@ -43,31 +42,11 @@ abstract class Repository
      */
     protected $model;
 
-    /***
-     *
-     * 获取列表集合的最大长度，防止内存溢出
-     * eg:不分页一次性获取所有终端的信息(大于18000多条)，内存瞬间就爆了
-     *
-     * @var int
-     */
-    private $max_collection_size = 10000;
-
     /**
      * 分页样式
      * @var string
      */
     private $paginate_style = 'default';
-
-    /***
-     *
-     * 数据库执行方式
-     *
-     * @var array
-     */
-    private $db_modes = [
-        'master' => '/*TDDL:MASTER*/',
-        'slave'  => '/*TDDL:SLAVE*/',
-    ];
 
     /**
      * @var array 支持查询的表达式
@@ -92,7 +71,7 @@ abstract class Repository
         'not between' => 'NotBetween',
         'like'        => 'LIKE',
         'not_like'    => 'NOT LIKE',
-        'not like'    => 'NOT LIKE'
+        'not like'    => 'NOT LIKE',
     ];
 
     /**
@@ -149,35 +128,13 @@ abstract class Repository
      */
     public function get($filters, $fields = [])
     {
-        //直接走db的情况:
-        //１強制指定force_db字段
-        // ２如果自定乂了field字段,即不是全部返回所有字段
-
-        //如果是单个数值，则自动转换为PK条件查询
+        // 如果是单个数值，则自动转换为PK条件查询
         if (!is_array($filters)) {
-            $filters = [
-                $this->model->getKeyName() => (int)$filters,
-            ];
+            $filters = [$this->model->getKeyName() => (int)$filters];
         }
 
-        $c = count($fields);
-        if (Arr::get($filters, 'force_db', false) == true || ($c == 1 && $fields[0] == '*') || $c > 1) {
-            return $this->realGet($filters, $fields);
-        }
-
-        //灵活性,有缓存配置,走缓存,否则走db
-        list($result, $data, $callback) = $this->searchCache($filters);
-        //缓存命中
-        if ($result == $this->cache_hit) {
-            return $data;
-        }
-        //走db
-        $return_data = $this->realGet($filters, $fields);
-        //如果缓存未命中,需要调用缓存设置方法
-        if ($return_data && $result == $this->cache_miss && is_object($callback) && get_class($callback) == 'Closure') {
-            $callback($return_data);
-        }
-        return $return_data;
+        // 走db
+        return $this->realGet($filters, $fields);
     }
 
     /**
@@ -194,19 +151,6 @@ abstract class Repository
     }
 
     /**
-     * 查询一条数据
-     *
-     * @param array|mixed $filters 查询条件
-     * @param array       $field   查询字段
-     *
-     * @return mixed
-     */
-    public function findOne($filters, $field = [])
-    {
-        return $this->get($filters, $field);
-    }
-
-    /**
      * 自动过滤查询中空值查询一条数据
      *
      * @param       $filters
@@ -214,7 +158,7 @@ abstract class Repository
      *
      * @return mixed
      */
-    public function filterFindOne($filters, $fields = [])
+    public function filterOne($filters, $fields = [])
     {
         return $this->get($this->filterCondition($filters), $fields);
     }
@@ -230,7 +174,7 @@ abstract class Repository
      */
     public function getOne($filters, $field)
     {
-        //如果误传数组的话 取数组第一个值
+        // 如果误传数组的话 取数组第一个值
         if (is_array($field)) {
             $field = Arr::get($field, 0);
         }
@@ -308,11 +252,6 @@ abstract class Repository
      */
     public function getAll($filters, $fields = [])
     {
-        if (is_array($filters)) {
-            // 最大查询数据条数 $this->max_collection_size = 10000
-            $filters['limit'] = min($this->max_collection_size, Arr::get($filters, 'limit', $this->max_collection_size));
-        }
-
         $data        = $this->setModelFilter($filters, $fields)->get();
         $return_data = [];
         if ($data) {
@@ -350,24 +289,6 @@ abstract class Repository
     public function filterFindAll($filters, $fields = [])
     {
         return $this->getAll($this->filterCondition($filters), $fields);
-    }
-
-    /**
-     * 查询多条数据
-     *
-     * @param mixed|array $filters 查询条件
-     * @param array       $fields  查询字段
-     *
-     * @return mixed
-     */
-    public function all($filters, $fields = [])
-    {
-        if (is_array($filters)) {
-            // 最大查询数据条数 $this->max_collection_size = 10000
-            $filters['limit'] = min($this->max_collection_size, Arr::get($filters, 'limit', $this->max_collection_size));
-        }
-
-        return $this->setModelFilter($filters, $fields)->get();
     }
 
     /**
@@ -421,45 +342,6 @@ abstract class Repository
     }
 
     /**
-     * 查询数据条数和分页查询，需要自己传递 offset 和 limit
-     *
-     * @param array $filters 查询条件
-     * @param array $fields  查询的字段
-     *
-     * @return array
-     */
-    public function findCountAndItems($filters, $fields = [])
-    {
-        // 处理分页搜索
-        $limit = intval(isset($filters['limit']) ? Arr::pull($filters, 'limit', 10) : request()->input('page_size', 10));
-        if (isset($filters['offset'])) {
-            $offset = (int)Arr::pull($filters, 'offset', 0);
-        } else {
-            $page   = max(request()->input('page', 1), 1);
-            $offset = ($page - 1) * $limit;
-        }
-
-        $model = $this->setModelFilter($filters, $fields);
-
-        // 没有数据直接返回
-        if (!$count = $model->count()) {
-            return [0, []];
-        }
-
-        // 存在数据才去limit查询查询
-        $return_data = [];
-        if ($data = $model->offset($offset)->limit($limit)->get()) {
-            foreach ($data as $item) {
-                if ($item) {
-                    $return_data[] = $this->getItemInfo($item, $fields);
-                }
-            }
-        }
-
-        return [$count, $return_data];
-    }
-
-    /**
      * 自动过滤查询条件中的空值查询分页数据
      *
      * @param array $filters   查询条件
@@ -476,7 +358,9 @@ abstract class Repository
 
     /**
      * 获取database实例
+     *
      * @param string $connection
+     *
      * @return ConnectionInterface
      */
     public function getDB($connection = 'default')
@@ -517,7 +401,6 @@ abstract class Repository
      */
     public function getAllBySql($sql, $binds = [], $connection = 'default')
     {
-        $sql = $this->protectSelectStatement($sql);
         $ret = $this->getDB($connection)->select($sql, $binds);
         return $ret;
     }
@@ -665,8 +548,7 @@ abstract class Repository
      */
     public function count($filters)
     {
-        $model = $this->setModelFilter($filters);
-        return $model->count();
+        return $this->setModelFilter($filters)->count();
     }
 
     /**
@@ -677,21 +559,9 @@ abstract class Repository
      *
      * @return mixed
      */
-    public function findMax($filters, $field)
+    public function max($filters, $field)
     {
         return $this->setModelFilter($filters)->max($field);
-    }
-
-    /**
-     * 添加数据
-     *
-     * @param array $data 添加的数据数组
-     *
-     * @return array
-     */
-    public function create($data)
-    {
-        return $this->insert($data);
     }
 
     /**
@@ -701,7 +571,7 @@ abstract class Repository
      *
      * @return array
      */
-    final public function insert($data)
+    final public function create($data)
     {
         if (!is_array($data) || !$data) {
             return $this->error(t('操作失败'));
@@ -716,19 +586,6 @@ abstract class Repository
         } catch (Exception $e) {
             return $this->error($this->getError($e));
         }
-    }
-
-    /**
-     * 更新操作
-     *
-     * @param $update_condition
-     * @param $update_data
-     *
-     * @return array
-     */
-    public function update($update_condition, $update_data)
-    {
-        return $this->modify($update_condition, $update_data);
     }
 
     /**
@@ -763,16 +620,14 @@ abstract class Repository
      *
      * @return array
      */
-    final public function modify($update_condition, $update_data)
+    final public function update($update_condition, $update_data)
     {
-        //根据pk更新单条记录
+        // 根据pk更新单条记录
         if (is_scalar($update_condition) && preg_match('/^\d+$/', $update_condition)) {
-            $update_condition = [
-                $this->model->getKeyName() => $update_condition,
-            ];
+            $update_condition = [$this->model->getKeyName() => $update_condition];
         }
 
-        //过滤非法字段，禁止更新PK
+        // 过滤非法字段，禁止更新PK
         $columns = $this->getTableColumns();
         foreach ($update_data as $k => $v) {
             if ($k == $this->model->getKeyName() || !isset($columns[$k])) {
@@ -780,11 +635,12 @@ abstract class Repository
             }
         }
 
-        //空值判断
+        // 空值判断
         if (empty($update_data)) {
             return $this->error(t('未指定要更新的字段信息'));
         }
 
+        // 只能单表查询
         if (is_array($update_condition) && $update_condition) {
             foreach ($update_condition as $k => $v) {
                 if (!isset($columns[$k])) {
@@ -792,22 +648,17 @@ abstract class Repository
                 }
             }
         }
+
         if (!$update_condition) {
             return $this->error(t('未指定当前更新的条件'));
         }
 
         try {
-            /**
-             * 此处不能直接使用$this->model->fill,因为$this->model是单例
-             * 这会导致批量任务的时候fill的Attributes上下文数据错乱
-             * 比如先fill a=>1 b=>2 再fill c=>3
-             * 那么其实第二次update的数据是a=>1 b=>2 c=>3 而非c=>3,因为单例导致了追加错误
-             */
             /* @var $model mixed */
             $model = $this->model->newInstance();
             $rows  = $model->where($update_condition)->update($model->fill($update_data)->getAttributes());
 
-            //更新成功要调用清除缓存方法
+            // 更新成功要调用清除缓存方法
             if ($rows && method_exists($this, 'clearCache')) {
                 $this->clearCache($update_condition);
             }
@@ -818,19 +669,6 @@ abstract class Repository
         }
     }
 
-
-    /**
-     * 删除操作
-     *
-     * @param $id_or_array
-     *
-     * @return array
-     */
-    public function delete($id_or_array)
-    {
-        return $this->remove($id_or_array);
-    }
-
     /**
      * 删除数据
      *
@@ -838,20 +676,17 @@ abstract class Repository
      *
      * @return array
      */
-    final public function remove($id_or_array)
+    final public function delete($id_or_array)
     {
-        //id转换
+        // id转换
         if (is_scalar($id_or_array) && preg_match('/^\d+$/', $id_or_array)) {
-            $filters = [
-                $this->model->getKeyName() => $id_or_array,
-            ];
+            $filters = [$this->model->getKeyName() => $id_or_array];
         } else {
             $filters = $id_or_array;
         }
 
         try {
-            //物理删除时，清除缓存要放到执行删除操作的前面执行
-            //如果在后面，数据被删除，无法获取数据结果，导致缓存无法清除
+            // 如果在后面，数据被删除，无法获取数据结果，导致缓存无法清除
             if (method_exists($this, 'clearCache')) {
                 $this->clearCache($id_or_array);
             }
@@ -882,65 +717,6 @@ abstract class Repository
         return $_columns;
     }
 
-    /***
-     *
-     * 获取单条信息
-     *
-     * @param Model $item
-     * @param array $fields
-     *
-     * @return array
-     */
-    protected function getItemInfo(Model $item, $fields = [])
-    {
-        if (!$item) {
-            return [];
-        }
-
-        // 默认为所有字段的值
-        $info = $item->attributesToArray();
-        if (!$fields) {
-            return $info;
-        }
-
-        // 如果指定了排除字段，那么要排除那些字段
-        if ($except = Arr::pull($fields, 'except')) {
-            array_forget($info, $except);
-        }
-
-        // 如果指定了字段名称，则显示自定义的结果
-        $rs = [];
-        if (in_array('*', $fields)) {
-            $rs = $info;
-        }
-        foreach ($fields as $key => $sub_fields) {
-            if (is_int($key) && isset($info[$sub_fields])) {
-                $rs[$sub_fields] = $info[$sub_fields];
-            } else {
-
-                if (!$item->$key) {
-                    continue;
-                }
-
-                //查询关联模型的数据
-                //一对多结果
-                if ($item->$key instanceof Collection) {
-                    $rs[$key] = [];
-                    foreach ($item->$key as $i => $sub_item) {
-                        if ($i < $this->max_collection_size) {
-                            $rs[$key][] = $this->getItemInfo($sub_item, $sub_fields);
-                        }
-                    }
-
-                } else {//一对一结果
-                    $rs[$key] = $this->getItemInfo($item->$key, $sub_fields);
-                }
-            }
-        }
-        return $rs;
-    }
-
-
     /**
      * 过滤查询条件
      *
@@ -959,40 +735,12 @@ abstract class Repository
                 $condition[$key] = $value = $this->filterCondition($value);
             }
 
-            if (is_empty($value)) {
+            if (Helper::isEmpty($value)) {
                 unset($condition[$key]);
             }
         }
 
         return $condition;
-    }
-
-    /**
-     * @param      $msg
-     * @param int  $code
-     * @param null $prev
-     *
-     * @throws Exception
-     */
-    protected function throwException($msg, $code = 0, $prev = null)
-    {
-        throw new Exception($msg, $code, $prev);
-    }
-
-    /****
-     *
-     * 检查操作结果是否正确，否则抛出异常
-     *
-     * @param $ok
-     * @param $msg
-     *
-     * @throws Exception
-     */
-    protected function checkError($ok, $msg)
-    {
-        if (!$ok) {
-            $this->throwException($msg);
-        }
     }
 
     /****
@@ -1007,26 +755,19 @@ abstract class Repository
      */
     private function setModelFilter($filters = [], $fields = [])
     {
-        $model   = $this->model;
-        $columns = $this->getTableColumns($model);
-        $table   = $model->getTable();
-
-        //如果是单个数值，则自动转换为PK条件查询
+        $model = $this->model;
+        // 如果是单个数值，则自动转换为PK条件查询
         if (!is_array($filters)) {
-            $filters = [
-                $model->getKeyName() => (int)$filters,
-            ];
-        }
-        $sql_hint = $this->getSqlHint();
-        if ($sql_hint) {
-            $filters['__SQL_HINT__'] = $sql_hint;
+            $filters = [$model->getKeyName() => (int)$filters];
         }
 
         $fields = (array)$fields;
-
         if (!$filters) {
             return $model;
         }
+
+        $columns = $this->getTableColumns($model);
+        $table   = $model->getTable();
 
         /****
          * 分组，如果是relation的查询条件，需要放在前面build
@@ -1042,15 +783,15 @@ abstract class Repository
             }
         }
 
-        //首先设置relation查询，不能放在后面执行
+        // 首先设置relation查询，不能放在后面执行
         if ($relations = $this->getRelations($model, $fields, $relation_filters, $this)) {
             $model = $model->with($relations);
         }
 
-        //判断是否有关联模型的统计操作
+        // 判断是否有关联模型的统计操作
         $model = $this->addRelationCountSelect($model, $fields, $relation_filters, $this);
         unset($relations, $relation_name, $relation_filters);
-        //设置查询字段
+        // 设置查询字段
         $model = $this->addSelect($model, $fields, $table);
 
         return $this->addFilters($model_filters, $model, $this, $table, $columns);
@@ -1063,7 +804,7 @@ abstract class Repository
      * @param                     $model
      * @param                     $fields
      * @param                     $relation_filters
-     * @param  Repository         $that
+     * @param Repository          $that
      *
      * @return mixed
      */
@@ -1112,11 +853,11 @@ abstract class Repository
                                     unset($cur_filters['order']);//去除order字段
                                 }
 
-                                //字段精准匹配
+                                // 字段精准匹配
                                 if (isset($columns[$relation_field])) {
                                     $query = $that->addAccurateQuery($query, $table . '.' . $relation_field, $relation_value);
                                 } else {
-                                    //高级查询
+                                    // 高级查询
                                     list($model_key, $model_compare) = array_pad(explode(':', $relation_field, 2), 2, null);
                                     if ($model_key && $model_compare) {
                                         $query = $that->addComplexQuery($query, $table . '.' . $model_key, $model_compare, $relation_value);
@@ -1158,7 +899,7 @@ abstract class Repository
             }
         }
 
-        //查询字段设置为所有，保证relation取值正常,而输出时根据自定义再过滤
+        // 查询字段设置为所有，保证relation取值正常,而输出时根据自定义再过滤
         if ($use_select) {
             $query = $query->select([$table . '.*']);
         }
@@ -1170,7 +911,7 @@ abstract class Repository
      *
      * 添加SQL排序规则
      *
-     * @param  mixed $model
+     * @param mixed  $model
      * @param string $order_string
      * @param string $table
      * @param array  $columns
@@ -1182,7 +923,6 @@ abstract class Repository
         if ($orders = explode(',', $order_string)) {
             foreach ($orders as $order) {
                 list($k, $v) = array_pad(explode(' ', preg_replace('/\s+/', ' ', $order)), 2, null);
-
                 if ($k && isset($columns[$k]) && in_array(strtolower($v), ['', 'asc', 'desc'])) {
                     $model = $model->orderBy($table ? $table . '.' . $k : $k, $v ?: 'desc');
                 }
@@ -1258,17 +998,18 @@ abstract class Repository
      */
     private function getRelations($model, $fields, $relation_filters, $that)
     {
-        //relation查询时，合并SQL，优化语句
+        // relation查询时，合并SQL，优化语句
         $relations = [];
         if ($fields) {
             foreach ($fields as $field_key => $field_val) {
                 if (!is_int($field_key)) {
-                    //Model对象
+                    // Model对象
                     if (method_exists($model, ucfirst($field_key))) {
                         $relations[$field_key] = [];
                     }
                 }
             }
+
             unset($field_key, $field_val);
         }
 
@@ -1293,24 +1034,30 @@ abstract class Repository
                     $relation_name  = '';
                     $relation_field = $relation_key;
                 }
-                //如果relation存在
+
+                // 如果relation存在
                 if (method_exists($model, $relation_name)) {
-                    //未初始化时先初始化为空数组
+                    // 未初始化时先初始化为空数组
                     if (!isset($relations[$relation_name])) {
                         $relations[$relation_name] = [];
                     }
+
                     $relations[$relation_name][$relation_field] = $relation_value;
                 }
             }
         }
 
-        //当前model实际要绑定的relation
+        // 当前model实际要绑定的relation
         $bind_relations = [];
-
         if ($relations) {
             foreach ($relations as $relation_name => $relation_filters) {
                 $bind_relations[$relation_name] = $that->buildRelation(
-                    array_merge($that->getRelationDefaultFilters($model, $relation_name), (array)$relation_filters), (array)Arr::get($fields, $relation_name), $that
+                    array_merge(
+                        $that->getRelationDefaultFilters($model, $relation_name),
+                        (array)$relation_filters
+                    ),
+                    (array)Arr::get($fields, $relation_name),
+                    $that
                 );
             }
         }
@@ -1329,15 +1076,14 @@ abstract class Repository
      */
     private function getRelationDefaultFilters($model, $relation_name)
     {
-        //添加relation的默认条件，默认条件数组为“$relationFilters"的public属性
+        // 添加relation的默认条件，默认条件数组为“$relationFilters"的public属性
         $filter_attribute = $relation_name . 'Filters';
-
         if (isset($model->$filter_attribute) && is_array($model->$filter_attribute)) {
             $relation_data = $model->$filter_attribute;
         } else {
             $relation_data = [];
             try {
-                //由于PHP类属性区分大小写，而relation_count字段为小写，利用反射将属性转为小写，再进行比较
+                // 由于PHP类属性区分大小写，而relation_count字段为小写，利用反射将属性转为小写，再进行比较
                 $reflect = new ReflectionClass($model);
                 $pros    = $reflect->getDefaultProperties();
                 foreach ($pros as $name => $val) {
@@ -1363,7 +1109,7 @@ abstract class Repository
     private function buildRelation($relation_filters, $relation_fields, $that)
     {
         return function ($query) use ($relation_filters, $relation_fields, $that) {
-            //获取relation的表字段
+            // 获取relation的表字段
             /* @var $query mixed */
             $columns = $that->getTableColumns($query->getRelated());
             $table   = $query->getRelated()->getTable();
@@ -1372,10 +1118,11 @@ abstract class Repository
             if ($relations = $that->getRelations($query->getRelated(), $relation_fields, $relation_filters, $that)) {
                 $query = $query->with($relations);
             }
-            //判断是否有关联模型的统计操作
+            // 判断是否有关联模型的统计操作
             if ($relation_fields) {
                 $this->addRelationCountSelect($query, $relation_fields, $relation_filters, $that);
             }
+
             $that->addSelect($query, $relation_fields, $table);
             $that->addFilters($relation_filters, $query, $that, $table, $columns);
         };
@@ -1414,11 +1161,6 @@ abstract class Repository
         // 查询数据条数
         if ($limit = Arr::pull($relation_filters, 'limit')) {
             $query = $query->limit($limit);
-        }
-
-        // 查询 __SQL_HINT__
-        if ($raw_sql = Arr::pull($relation_filters, '__SQL_HINT__')) {
-            $query = $query->whereRaw(' 1 = 1 ' . $raw_sql);
         }
 
         foreach ($relation_filters as $relation_field => $relation_value) {
@@ -1499,8 +1241,13 @@ abstract class Repository
      */
     protected function getError(Exception $e)
     {
-        //记录数据库执行错误日志
-        logger()->error('db error', ['message' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine()]);
+        // 记录数据库执行错误日志
+        logger()->error('db error', [
+            'message' => $e->getMessage(),
+            'file'    => $e->getFile(),
+            'line'    => $e->getLine(),
+        ]);
+
         return app()->environment('production') ? t("系统错误，请重试") : $e->getMessage();
     }
 
@@ -1514,53 +1261,5 @@ abstract class Repository
     {
         $item = $this->setModelFilter($filters, $fields)->first();
         return $item ? $this->getItemInfo($item, $fields) : false;
-    }
-
-    private function getSqlHint()
-    {
-        $db_mode = strtolower(env('DB_MODE'));
-        //默认master，非法值也用master
-        if (!$db_mode || !isset($this->db_modes[$db_mode])) {
-            $db_mode = 'master';
-        }
-        return $this->db_modes[$db_mode];
-    }
-
-    private function protectSelectStatement($sql)
-    {
-        $command = substr($sql, 0, 6);
-        //非查询语句，不干预
-        if (strtoupper($command) != 'SELECT') {
-            return $sql;
-        }
-
-        $sql_hint = $this->getSqlHint();
-        if ($sql_hint) {
-            $sql = $sql_hint . $sql;
-        }
-
-        return $sql;
-    }
-
-    private function searchCache($filters)
-    {
-        if (!method_exists($this, 'getCache')) {
-            return $this->cacheNotFound();
-        }
-
-        $ret = $this->getCache($filters);
-        if (!is_array($ret) || count($ret) < 2) {
-            return $this->cacheNotFound();
-        }
-        list($get, $set) = array_pad($ret, 2, null);
-        if (is_object($get) && get_class($get) == 'Closure') {
-            if ($data = $get()) {
-                return $this->cacheHit($data);
-            } else {
-                return $this->cacheMiss($set);
-            }
-        }
-
-        return $this->cacheNotFound();
     }
 }

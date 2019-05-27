@@ -4,7 +4,6 @@
 2019-05-27
 ----------
 
-- change: Helper助手类使用助手函数代替
 - change: 基础类 Repository 修改
     - change: create、update、delete 不允许继承修改
     - change: Repository 方法命名规范，保持和laravel 一致, 这一点待定

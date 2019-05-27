@@ -108,7 +108,7 @@ class GenerateCommand extends Command
         }
 
         $repositories = explode('/', $repository);
-        Helper::array_studly_case($repositories);
+        Helper::arrayStudlyCase($repositories);
         return implode('/', $repositories);
     }
 }
