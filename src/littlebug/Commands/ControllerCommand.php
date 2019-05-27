@@ -66,13 +66,6 @@ class ControllerCommand extends CoreCommand
             'primary_key'          => $pk,
             'view'                 => $view,
         ]);
-
-        if ($table = $this->option('table')) {
-            $this->call('core:view', [
-                '--table' => $table,
-                '--path'  => str_replace('.', '/', $view)
-            ]);
-        }
     }
 
     /**

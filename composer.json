@@ -27,5 +27,12 @@
     "psr-4": {
       "Littlebug\\": "src/littlebug"
     }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Littlebug\\Providers\\CoreCommandServiceProvider"
+      ]
+    }
   }
 }
