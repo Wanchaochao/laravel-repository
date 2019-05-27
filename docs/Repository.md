@@ -12,9 +12,12 @@ Repository 使用说明
     
     // 简单数组查询
     $one = $this->repository->find([
-        'id'    => 1,
-        'level' => 1,
+        'id'     => 1,
+        'level'  => 1,
+        'status' => [1, 2]
     ]);
+    
+    // 表达式查询
 
 ```
 
