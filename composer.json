@@ -1,20 +1,31 @@
 {
-    "name": "littlebug/laravel-repository",
-    "description": "The repository mode for laravel!",
-    "homepage": "https://littlebug.vip",
-    "keywords": ["laravel", "repository", "repositories", "eloquent", "database"],
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Chao Wan",
-            "email": "wanchao@littlebug.vip"
-        }
-    ],
-    "minimum-stability": "dev",
-    "autoload": {
-        "psr-4": {
-            "Littlebug\\": "src/littlebug"
-        }
-    },
-    "require": {}
+  "name": "littlebug/laravel-repository",
+  "description": "The repository mode for laravel!",
+  "homepage": "https://littlebug.vip",
+  "keywords": [
+    "laravel",
+    "repository",
+    "repositories",
+    "eloquent",
+    "database"
+  ],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Chao Wan",
+      "email": "wanchao@littlebug.vip"
+    }
+  ],
+  "require": {
+    "php": ">=7.0.0"
+  },
+  "require-dev": {
+    "laravel/framework": "5.5.*"
+  },
+  "minimum-stability": "dev",
+  "autoload": {
+    "psr-4": {
+      "Littlebug\\": "src/littlebug"
+    }
+  }
 }
