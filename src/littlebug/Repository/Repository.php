@@ -11,19 +11,19 @@
 namespace Littlebug\Repository;
 
 use Illuminate\Support\Facades\DB;
-use Littlebug\Traits\Repository\ResponseTrait;
+use Littlebug\Traits\ResponseTrait;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Exception;
 use ReflectionClass;
 use Closure;
 use Littlebug\Helpers\Helper;
+use \Illuminate\Database\Query\Expression;
 
 /**
  * This is the abstract repository class.
@@ -95,475 +95,6 @@ abstract class Repository
         return $this->model;
     }
 
-    /***
-     *
-     * 自定义sql返回pager对象(eg:select a.*,b.*,c.* from a,b,c where a.id =b.a_id and b.aid=c.id)
-     *
-     * @param       $items
-     * @param       $total
-     * @param int   $per_page
-     * @param int   $curr_page
-     * @param array $options
-     *
-     * @return LengthAwarePaginator
-     */
-    public function getPager($items, $total, $per_page = 10, $curr_page = 1, array $options = [])
-    {
-        if (!$options) {
-            $options = [
-                'path'     => Paginator::resolveCurrentPath(),
-                'pageName' => 'page',
-            ];
-        }
-        return new LengthAwarePaginator($items, $total, $per_page, $curr_page, $options);
-    }
-
-    /**
-     * 查询一条数据
-     *
-     * @param array|mixed $filters 查询条件
-     * @param array       $fields  查询字段
-     *
-     * @return mixed
-     */
-    public function get($filters, $fields = [])
-    {
-        // 如果是单个数值，则自动转换为PK条件查询
-        if (!is_array($filters)) {
-            $filters = [$this->model->getKeyName() => (int)$filters];
-        }
-
-        // 走db
-        return $this->realGet($filters, $fields);
-    }
-
-    /**
-     * 查询一条数据
-     *
-     * @param array|mixed $filters 查询条件
-     * @param array       $fields  查询字段
-     *
-     * @return mixed
-     */
-    public function one($filters, $fields = [])
-    {
-        return $this->setModelFilter($filters, $fields)->first();
-    }
-
-    /**
-     * 自动过滤查询中空值查询一条数据
-     *
-     * @param       $filters
-     * @param array $fields
-     *
-     * @return mixed
-     */
-    public function filterOne($filters, $fields = [])
-    {
-        return $this->get($this->filterCondition($filters), $fields);
-    }
-
-    /**
-     *
-     * 获取一条记录的单个字段结果
-     *
-     * @param mixed|array $filters 查询条件
-     * @param string      $field   获取的字段
-     *
-     * @return bool|mixed
-     */
-    public function getOne($filters, $field)
-    {
-        // 如果误传数组的话 取数组第一个值
-        if (is_array($field)) {
-            $field = Arr::get($field, 0);
-        }
-
-        $item = $this->setModelFilter($filters, [$field])->first();
-
-        return $item ? Arr::get($item, $field) : false;
-    }
-
-    /**
-     *
-     * 获取一条记录的单个字段结果
-     *
-     * @param mixed|array $filters 查询条件
-     * @param string      $field   获取的字段
-     *
-     * @return bool|mixed
-     */
-    public function findColumn($filters, $field)
-    {
-        return $this->getOne($filters, $field);
-    }
-
-    /**
-     *
-     * 获取结果集里的单个字段所有值的数组
-     *
-     * @param mixed|array $filters 查询条件
-     * @param string      $field   获取的字段
-     *
-     * @return array
-     */
-    public function getOneAll($filters, $field)
-    {
-        //如果误传数组的话 取数组第一个值
-        if (is_array($field)) {
-            $field = Arr::get($field, 0);
-        }
-
-        $data        = $this->setModelFilter($filters, [$field])->get();
-        $return_data = [];
-        if ($data) {
-            foreach ($data as $item) {
-                if ($item) {
-                    $v             = $this->getItemInfo($item, [$field]);
-                    $return_data[] = array_pop($v);
-                }
-            }
-        }
-
-        return $return_data;
-    }
-
-    /**
-     *
-     * 获取结果集里的单个字段所有值的数组
-     *
-     * @param mixed|array $filters 查询条件
-     * @param string      $field   获取的字段
-     *
-     * @return array
-     */
-    public function findAllColumn($filters, $field)
-    {
-        return $this->getOneAll($filters, $field);
-    }
-
-    /**
-     * 查询所有记录
-     *
-     * @param array|mixed $filters 查询条件
-     * @param array       $fields  查询字段
-     *
-     * @return array
-     */
-    public function getAll($filters, $fields = [])
-    {
-        $data        = $this->setModelFilter($filters, $fields)->get();
-        $return_data = [];
-        if ($data) {
-            foreach ($data as $item) {
-                if ($item) {
-                    $return_data[] = $this->getItemInfo($item, $fields);
-                }
-            }
-        }
-
-        return $return_data;
-    }
-
-    /**
-     * 查询所有记录
-     *
-     * @param array|mixed $filters 查询条件
-     * @param array       $fields  查询字段
-     *
-     * @return array
-     */
-    public function findAll($filters, $fields = [])
-    {
-        return $this->getAll($filters, $fields);
-    }
-
-    /**
-     * 过滤查询中的空值 查询所有记录
-     *
-     * @param array|mixed $filters 查询条件
-     * @param array       $fields  查询字段
-     *
-     * @return array
-     */
-    public function filterFindAll($filters, $fields = [])
-    {
-        return $this->getAll($this->filterCondition($filters), $fields);
-    }
-
-    /**
-     * 设置分页样式，目前支持simple和default
-     *
-     * @param string $style
-     *
-     * @return $this
-     */
-    public function setPaginateStyle($style)
-    {
-        $this->paginate_style = $style;
-        return $this;
-    }
-
-    /**
-     * 获取列表
-     *
-     * @param array $filters
-     * @param int   $page_size
-     * @param array $fields
-     * @param int   $cur_page
-     *
-     * @return mixed
-     */
-    public function getList($filters = [], $fields = [], $page_size = 10, $cur_page = null)
-    {
-        $model = $this->setModelFilter($filters, $fields);
-        if ($this->paginate_style == 'simple') {
-            $paginate = $model->simplePaginate($page_size, ['*'], 'page', $cur_page);
-        } else {
-            $paginate = $model->paginate($page_size, ['*'], 'page', $cur_page);
-        }
-
-        //要返回的分页数据
-        $result          = [];
-        $result['items'] = [];
-        $result['pager'] = $paginate;
-
-        //返回数据转换
-        /* @var $paginate mixed */
-        if ($paginate->items()) {
-            foreach ($paginate->items() as $item) {
-                if ($item) {
-                    $result['items'][] = $this->getItemInfo($item, $fields);
-                }
-            }
-        }
-
-        return $result;
-    }
-
-    /**
-     * 自动过滤查询条件中的空值查询分页数据
-     *
-     * @param array $filters   查询条件
-     * @param array $fields    查询的字段信息
-     * @param int   $page_size 每页数据条数
-     * @param null  $cur_page  当前页面
-     *
-     * @return mixed
-     */
-    public function filterFindList($filters = [], $fields = [], $page_size = 10, $cur_page = null)
-    {
-        return $this->getList($this->filterCondition($filters), $fields, $page_size, $cur_page);
-    }
-
-    /**
-     * 获取database实例
-     *
-     * @param string $connection
-     *
-     * @return ConnectionInterface
-     */
-    public function getDB($connection = 'default')
-    {
-        return DB::connection($connection);
-    }
-
-    /****
-     *
-     * 自定义SQL查询
-     *
-     * @param $sql
-     * @param $binds
-     * @param $connection
-     *
-     * @return mixed
-     */
-    public function getBySql($sql, $binds = [], $connection = 'default')
-    {
-        $ret = $this->getAllBySql($sql, $binds, $connection);
-        return $ret ? Arr::get($ret, '0') : [];
-    }
-
-    public function fetchRow($sql, $binds = [], $connection = 'default')
-    {
-        return $this->getBySql($sql, $binds, $connection);
-    }
-
-    /****
-     *
-     * 获取所有记录
-     *
-     * @param        $sql
-     * @param array  $binds
-     * @param string $connection
-     *
-     * @return array
-     */
-    public function getAllBySql($sql, $binds = [], $connection = 'default')
-    {
-        $ret = $this->getDB($connection)->select($sql, $binds);
-        return $ret;
-    }
-
-    public function fetchAll($sql, $binds = [], $connection = 'default')
-    {
-        return $this->getAllBySql($sql, $binds, $connection);
-    }
-
-    /**
-     *
-     * 通过sql查询一条记录的一个字段
-     *
-     * @param string $sql        查询的sql
-     * @param array  $binds      绑定的参数
-     * @param string $field      查询的字段
-     * @param string $connection 使用的数据库连接
-     *
-     * @return bool|mixed
-     */
-    public function getOneBySql($sql, $binds = [], $field = '', $connection = 'default')
-    {
-        $ret  = $this->getAllBySql($sql, $binds, $connection);
-        $data = false;
-        if ($ret) {
-            $row = Arr::get($ret, '0');
-            //如果指定字段，则返回指定内容
-            if ($field) {
-                $data = Arr::get($row, $field);
-            } else {
-                $data = array_shift($row);
-            }
-        }
-        return $data;
-    }
-
-    /**
-     *
-     * 通过sql查询一条记录的一个字段
-     *
-     * @param string $sql        查询的sql
-     * @param array  $binds      绑定的参数
-     * @param string $field      查询的字段
-     * @param string $connection 使用的数据库连接
-     *
-     * @return bool|mixed
-     */
-    public function fetchOne($sql, $binds = [], $field = '', $connection = 'default')
-    {
-        return $this->getOneBySql($sql, $binds, $field, $connection);
-    }
-
-    /**
-     *
-     * 通过sql查询一条记录的一个字段
-     *
-     * @param string $sql        查询的sql
-     * @param array  $binds      绑定的参数
-     * @param string $field      查询的字段
-     * @param string $connection 使用的数据库连接
-     *
-     * @return bool|mixed
-     */
-    public function findColumnBySql($sql, $binds = [], $field = '', $connection = 'default')
-    {
-        return $this->getOneBySql($sql, $binds, $field, $connection);
-    }
-
-    /**
-     *
-     * 获取sql查询结果中的一个字段组成数组返回
-     *
-     * @param string $sql        查询的sql
-     * @param array  $binds      绑定的参数
-     * @param string $field      查询的字段
-     * @param string $connection 使用的数据库连接
-     *
-     * @return array
-     */
-    public function getOneAllBySql($sql, $binds = [], $field = '', $connection = 'default')
-    {
-        $ret  = $this->getAllBySql($sql, $binds, $connection);
-        $data = [];
-        if ($ret) {
-            foreach ($ret as $row) {
-                $data[] = $field ? Arr::get($row, $field) : array_shift($row);
-            }
-        }
-        return $data;
-    }
-
-    /**
-     *
-     * 获取sql查询结果中的一个字段组成数组返回
-     *
-     * @param string $sql        查询的sql
-     * @param array  $binds      绑定的参数
-     * @param string $field      查询的字段
-     * @param string $connection 使用的数据库连接
-     *
-     * @return array
-     */
-    public function fetchOneAll($sql, $binds = [], $field = '', $connection = 'default')
-    {
-        return $this->getOneAllBySql($sql, $binds, $field, $connection);
-    }
-
-    /**
-     *
-     * 获取sql查询结果中的一个字段组成数组返回
-     *
-     * @param string $sql        查询的sql
-     * @param array  $binds      绑定的参数
-     * @param string $field      查询的字段
-     * @param string $connection 使用的数据库连接
-     *
-     * @return array
-     */
-    public function findAllColumnBySql($sql, $binds, $field = '', $connection = 'default')
-    {
-        return $this->getOneAllBySql($sql, $binds, $field, $connection);
-    }
-
-    /****
-     *
-     * 返回查询条件编译后的sql语句
-     *
-     * @param $filters
-     *
-     * @return mixed
-     */
-    public function toSql($filters)
-    {
-        $model = $this->setModelFilter($filters);
-        return $model->toSql();
-    }
-
-    /***
-     *
-     * 获取统计信息
-     *
-     * @param $filters
-     *
-     * @return mixed
-     */
-    public function count($filters)
-    {
-        return $this->setModelFilter($filters)->count();
-    }
-
-    /**
-     * 获取最大值
-     *
-     * @param $filters
-     * @param $field
-     *
-     * @return mixed
-     */
-    public function max($filters, $field)
-    {
-        return $this->setModelFilter($filters)->max($field);
-    }
-
     /**
      * 新增数据
      *
@@ -578,35 +109,12 @@ abstract class Repository
         }
 
         try {
+
             if (!$model = $this->model->create($data)) {
                 return $this->error(t('操作失败'));
             }
 
             return $this->success($model->toArray());
-        } catch (Exception $e) {
-            return $this->error($this->getError($e));
-        }
-    }
-
-    /**
-     * 支持复杂查询的修改数据
-     *
-     * @param array $update_condition 查询数据
-     * @param array $update_data      修改数据
-     *
-     * @return array
-     */
-    public function findConditionUpdate($update_condition, $update_data)
-    {
-        $model = $this->setModelFilter($update_condition);
-        try {
-            $rows = $model->update($update_data);
-            //更新成功要调用清除缓存方法
-            if ($rows && method_exists($this, 'clearCache')) {
-                $this->clearCache($update_condition);
-            }
-
-            return $this->success($rows, t('更新成功'));
         } catch (Exception $e) {
             return $this->error($this->getError($e));
         }
@@ -678,7 +186,7 @@ abstract class Repository
      */
     final public function delete($id_or_array)
     {
-        // id转换
+        // id 转换
         if (is_scalar($id_or_array) && preg_match('/^\d+$/', $id_or_array)) {
             $filters = [$this->model->getKeyName() => $id_or_array];
         } else {
@@ -698,6 +206,239 @@ abstract class Repository
         }
     }
 
+    /***
+     *
+     * 自定义sql返回pager对象(eg:select a.*,b.*,c.* from a,b,c where a.id =b.a_id and b.aid=c.id)
+     *
+     * @param       $items
+     * @param       $total
+     * @param int   $per_page
+     * @param int   $curr_page
+     * @param array $options
+     *
+     * @return LengthAwarePaginator
+     */
+    public function getPager($items, $total, $per_page = 10, $curr_page = 1, array $options = [])
+    {
+        if (!$options) {
+            $options = [
+                'path'     => Paginator::resolveCurrentPath(),
+                'pageName' => 'page',
+            ];
+        }
+        return new LengthAwarePaginator($items, $total, $per_page, $curr_page, $options);
+    }
+
+    /**
+     * 查询一条数据
+     *
+     * @param array|mixed $filters 查询条件
+     * @param array       $fields  查询字段
+     *
+     * @return mixed
+     */
+    public function find($filters, $fields = [])
+    {
+        // 如果是单个数值，则自动转换为PK条件查询
+        if (!is_array($filters)) {
+            $filters = [$this->model->getKeyName() => (int)$filters];
+        }
+
+        if ($item = $this->setModelCondition($filters, $fields)->first()) {
+            return $item->toArray();
+        }
+
+        return false;
+    }
+
+    /**
+     *
+     * 获取一条记录的单个字段结果
+     *
+     * @param mixed|array $filters 查询条件
+     * @param string      $field   获取的字段
+     *
+     * @return bool|mixed
+     */
+    public function findBy($filters, $field)
+    {
+        // 如果误传数组的话 取数组第一个值
+        if (is_array($field)) {
+            $field = Arr::get($field, 0);
+        }
+
+        $item = $this->setModelCondition($filters, [$field])->first();
+        return $item ? Arr::get($item, $field) : false;
+    }
+
+    /**
+     *
+     * 获取结果集里的单个字段所有值的数组
+     *
+     * @param mixed|array $filters 查询条件
+     * @param string      $field   获取的字段
+     *
+     * @return array
+     */
+    public function findAllBy($filters, $field)
+    {
+        // 如果误传数组的话 取数组第一个值
+        if (is_array($field)) {
+            $field = Arr::get($field, 0);
+        }
+
+        $data        = $this->setModelCondition($filters, [$field])->get();
+        $return_data = [];
+        if ($data) {
+            foreach ($data as $item) {
+                if ($item) {
+                    $v             = $this->getItemInfo($item, [$field]);
+                    $return_data[] = array_pop($v);
+                }
+            }
+        }
+
+        return $return_data;
+    }
+
+    /**
+     * 查询所有记录
+     *
+     * @param array|mixed $filters 查询条件
+     * @param array       $fields  查询字段
+     *
+     * @return array
+     */
+    public function all($filters, $fields = [])
+    {
+        return $this->setModelCondition($filters, $fields)->get()->toArray();
+    }
+
+    /**
+     * 过滤查询中的空值 查询所有记录
+     *
+     * @param array|mixed $filters 查询条件
+     * @param array       $fields  查询字段
+     *
+     * @return array
+     */
+    public function filterFindAll($filters, $fields = [])
+    {
+        return $this->all($this->filterCondition($filters), $fields);
+    }
+
+    /**
+     * 设置分页样式，目前支持simple和default
+     *
+     * @param string $style
+     *
+     * @return $this
+     */
+    public function setPaginateStyle($style)
+    {
+        $this->paginate_style = $style;
+        return $this;
+    }
+
+    /**
+     * 获取列表
+     *
+     * @param array $filters
+     * @param int   $page_size
+     * @param array $fields
+     * @param int   $cur_page
+     *
+     * @return mixed
+     */
+    public function lists($filters = [], $fields = [], $page_size = 10, $cur_page = null)
+    {
+        $model = $this->setModelCondition($filters, $fields);
+        if ($this->paginate_style == 'simple') {
+            $paginate = $model->simplePaginate($page_size, ['*'], 'page', $cur_page);
+        } else {
+            $paginate = $model->paginate($page_size, ['*'], 'page', $cur_page);
+        }
+
+        return [
+            'items' => $paginate->items(),
+            'pager' => $paginate,
+        ];
+    }
+
+    /**
+     * 获取database实例
+     *
+     * @param string $connection
+     *
+     * @return ConnectionInterface
+     */
+    public function getDB($connection = 'default')
+    {
+        return DB::connection($connection);
+    }
+
+    /****
+     *
+     * 返回查询条件编译后的sql语句
+     *
+     * @param $filters
+     *
+     * @return mixed
+     */
+    public function toSql($filters)
+    {
+        $model = $this->setModelCondition($filters);
+        return $model->toSql();
+    }
+
+    /***
+     *
+     * 获取统计信息
+     *
+     * @param $filters
+     *
+     * @return mixed
+     */
+    public function count($filters)
+    {
+        return $this->setModelCondition($filters)->count();
+    }
+
+    /**
+     * 获取最大值
+     *
+     * @param $filters
+     * @param $field
+     *
+     * @return mixed
+     */
+    public function max($filters, $field)
+    {
+        return $this->setModelCondition($filters)->max($field);
+    }
+
+    /**
+     * 获取主键查询条件
+     *
+     * @param $condition
+     *
+     * @return array
+     */
+    public function getPrimaryKeyCondition($condition)
+    {
+        if (is_scalar($condition)) {
+            if ($this->model->getKeyType() == 'int') {
+                $condition = intval($condition);
+            }
+
+            $condition = [
+                $this->model->getKeyName() => $condition,
+            ];
+        }
+
+        return (array)$condition;
+    }
+
     /****
      *
      * 获取表格字段，并转换为KV格式
@@ -715,6 +456,480 @@ abstract class Repository
         }
 
         return $_columns;
+    }
+
+    /**
+     *
+     * 根据运行环境上报错误
+     *
+     * @param \Exception $e
+     *
+     * @return mixed|string
+     */
+    private function getError(Exception $e)
+    {
+        // 记录数据库执行错误日志
+        logger()->error('db error', [
+            'message' => $e->getMessage(),
+            'file'    => $e->getFile(),
+            'line'    => $e->getLine(),
+        ]);
+
+        return app()->environment('production') ? '系统错误，请重试' : $e->getMessage();
+    }
+
+    /**
+     * 查询字段信息
+     *
+     * @param mixed|model $query   查询对象
+     * @param array       $fields  查询的字段
+     * @param string      $table   表名称
+     * @param array       $columns 表字段信息
+     *
+     * @return mixed
+     */
+    private function select($query, $fields, $table, $columns = [])
+    {
+        $select     = [];
+        $use_select = true;
+        foreach ($fields as $i => $field) {
+            if (is_int($i) && is_string($field)) {
+                $select[] = isset($columns[$field]) ? $table . '.' . $field : $field;
+                if (substr($field, -6) === '_count') {
+                    $use_select = false;
+                    break;
+                }
+            } elseif ($field instanceof Expression) {
+                $select[] = $field;
+            }
+        }
+
+        if ($use_select) {
+            return $query->select($select);
+        }
+
+        return $query;
+    }
+
+    /**
+     * 排序查询
+     *
+     * @param mixed|model $query    查询对象
+     * @param string      $order_by 排序信息
+     * @param string      $table    表名称
+     * @param array       $columns  表字段信息
+     *
+     * @return mixed
+     */
+    private function orderBy($query, $order_by, $table, $columns)
+    {
+        if ($orders = explode(',', $order_by)) {
+            foreach ($orders as $order) {
+                $order = trim($order);
+                list($k, $v) = array_pad(explode(' ', preg_replace('/\s+/', ' ', $order)), 2, null);
+                if ($k && in_array(strtolower($v), ['', 'asc', 'desc'])) {
+                    if (!isset($columns[$k])) {
+                        $table = null;
+                    }
+
+                    $query->orderBy($table ? $table . '.' . $k : $k, $v ?: 'desc');
+                }
+            }
+        }
+
+        return $query;
+    }
+
+    /**
+     * 查询处理
+     *
+     * @param array  $condition 查询条件
+     * @param mixed  $query     查询对象
+     * @param string $table     查询的表
+     * @param array  $columns   查询的字段
+     *
+     * @return mixed
+     */
+    protected function handleConditionQuery($condition, $query, $table, $columns)
+    {
+        // 设置了排序
+        if ($order_by = array_pull($condition, 'order')) {
+            $this->orderBy($query, $order_by, $table, $columns);
+        }
+
+        // 设置了limit
+        if ($limit = array_pull($condition, 'limit')) {
+            $query->limit(intval($limit));
+        }
+
+        // 设置了offset
+        if ($offset = array_pull($condition, 'offset')) {
+            $query->offset(intval($offset));
+        }
+
+        // 设置了分组
+        if ($groupBy = array_pull($condition, 'group_by')) {
+            $query->groupBy($groupBy);
+        }
+
+        // 没有查询条件直接退出
+        if (empty($condition)) {
+            return $query;
+        }
+
+        return $this->conditionQuery($condition, $query, $table, $columns);
+    }
+
+    /**
+     * 查询处理
+     *
+     * @param array  $condition 查询条件
+     * @param mixed  $query     查询对象
+     * @param string $table     查询表名称
+     * @param array  $columns   查询的字段
+     * @param bool   $or        是否是or 查询默认false
+     *
+     * @return Model|mixed
+     */
+    protected function conditionQuery($condition, $query, $table, $columns, $or = false)
+    {
+        foreach ($condition as $column => $bind_value) {
+            // or 查询
+            if (strtolower($column) === 'or' && is_array($bind_value) && $bind_value) {
+                $query = $query->where(function ($query) use ($bind_value, $table, $columns) {
+                    $this->conditionQuery($bind_value, $query, $table, $columns, true);
+                });
+
+                continue;
+            }
+
+            // 字段直接查询 field1 => value1
+            if (isset($columns[$column])) {
+                $this->handleFieldQuery($query, $table . '.' . $column, $bind_value, $or);
+                continue;
+            }
+
+            // 表达式查询 field1:neq => value1
+            list($field, $expression) = array_pad(explode(':', $column, 2), 2, null);
+            if ($field && $expression) {
+                $this->handleExpressionConditionQuery($query, [$table . '.' . $field, $expression, $bind_value], $or);
+                continue;
+            }
+
+            // 自定义 scope 查询
+            if (is_a($query, Model::class)) {
+                $strMethod = 'scope' . ucfirst($column);
+                if (!method_exists($query, $strMethod)) {
+                    $strMethod = 'scope' . ucfirst(camel_case($column));
+                    $strMethod = method_exists($query, $strMethod) ? $strMethod : null;
+                }
+
+                if ($strMethod) {
+                    $query->{$strMethod}($query, $bind_value);
+                }
+
+                continue;
+            }
+
+            // scope 自定义查询
+            try {
+                $query->{$column}($bind_value);
+            } catch (Exception $e) {
+                try {
+                    $column = ucfirst(camel_case($column));
+                    $query->{$column}($bind_value);
+                } catch (Exception $e) {
+                }
+            }
+        }
+
+        return $query;
+    }
+
+    /**
+     * 处理表达式查询
+     *
+     * @param Model $query
+     * @param array $condition 查询对象
+     *                         ['field', 'expression', 'value']
+     * @param bool  $or
+     *
+     * @return Model
+     */
+    protected function handleExpressionConditionQuery($query, $condition = [], $or = false)
+    {
+        list($column, $expression, $value) = $condition;
+        if ($expression = Arr::get($this->expression, strtolower($expression))) {
+            if (in_array($expression, ['In', 'NotIn', 'Between', 'NotBetween'])) {
+                $strMethod = $or ? 'orWhere' . $expression : 'where' . $expression;
+                $query->{$strMethod}($column, (array)$value);
+            } else {
+                $strMethod = $or ? 'orWhere' : 'where';
+                if (in_array($expression, ['LIKE', 'NOT LIKE'])) {
+                    $value = '%' . (string)$value . '%';
+                }
+
+                $query->{$strMethod}($column, $expression, $value);
+            }
+        }
+
+        return $query;
+    }
+
+    /**
+     * 字段查询
+     *
+     * @param model       $query 查询对象
+     * @param string      $field 查询字段
+     * @param mixed|array $value 查询的值
+     * @param bool        $or    是否是or 查询
+     *
+     * @return mixed
+     */
+    protected function handleFieldQuery($query, $field, $value, $or = false)
+    {
+        $strMethod = is_array($value) ? 'whereIn' : 'where';
+        if ($or) {
+            $strMethod = 'or' . ucfirst($strMethod);
+        }
+
+        return $query->{$strMethod}($field, $value);
+    }
+
+    /**
+     * 设置model 的查询信息
+     *
+     * @param array $conditions 查询条件
+     * @param array $fields     查询字段
+     *
+     * @return Model|mixed
+     */
+    public function setModelCondition($conditions = [], $fields = [])
+    {
+        // 查询条件为空，直接返回
+        $conditions = $this->getPrimaryKeyCondition($conditions);
+        $model      = $this->model;
+        $table      = $this->model->getTable();
+        $columns    = $this->getTableColumns($model);
+        $fields     = (array)$fields;
+
+        // 分组，如果是relation的查询条件，需要放在前面build
+        $relation_condition = $model_condition = [];
+        foreach ($conditions as $field => $value) {
+            list($relation_name, $relation_key) = array_pad(explode('.', $field, 2), 2, null);
+            if ($relation_name && $relation_key) {
+                $relation_condition[$field] = $value;
+            } else {
+                $model_condition[$field] = $value;
+            }
+        }
+
+        // 首先设置relation查询，不能放在后面执行
+        if ($relations = $this->getRelations($model, $fields, $relation_condition)) {
+            $model = $model->with($relations);
+        }
+
+        // 判断是否有关联模型的统计操作
+        $model = $this->addRelationCountSelect($model, $fields, $relation_condition);
+        unset($relations, $relation_name, $relation_filters);
+
+        $model = $this->select($model, $fields, $table, $columns);
+        return $this->handleConditionQuery($model_condition, $model, $table, $columns);
+    }
+
+    /**
+     * 获取关联表集合
+     *
+     * @param model        $model              查询的model
+     * @param string|array $fields             查询的字段
+     * @param array        $relation_condition 关联查询的条件
+     *
+     * @return array
+     */
+    protected function getRelations($model, $fields, $relation_condition)
+    {
+        // relation查询时，合并SQL，优化语句
+        $relations = [];
+        if ($fields) {
+            foreach ($fields as $field_key => $field_val) {
+                if (!is_int($field_key)) {
+                    // Model对象
+                    if (method_exists($model, ucfirst($field_key))) {
+                        $relations[$field_key] = [];
+                    }
+                }
+            }
+
+            unset($field_key, $field_val);
+        }
+
+        // 关联查询 roles.user_id = 1
+        if ($relation_condition) {
+            foreach ($relation_condition as $relation_key => $relation_value) {
+                $dot_index = strpos($relation_key, '.');
+                if ($dot_index !== false) {
+                    $relation_name  = substr($relation_key, 0, $dot_index);
+                    $relation_field = substr($relation_key, $dot_index + 1);
+                } else {
+                    $relation_name  = '';
+                    $relation_field = $relation_key;
+                }
+
+                // 如果relation存在
+                if (method_exists($model, $relation_name)) {
+                    // 未初始化时先初始化为空数组
+                    if (!isset($relations[$relation_name])) {
+                        $relations[$relation_name] = [];
+                    }
+                    $relations[$relation_name][$relation_field] = $relation_value;
+                }
+            }
+        }
+
+        // 当前model实际要绑定的relation
+        $bind_relations = [];
+        if ($relations) {
+            foreach ($relations as $relation_name => $relation_filters) {
+                $bind_relations[$relation_name] = $this->buildRelation(
+                    array_merge(
+                        $this->getRelationDefaultFilters($model, $relation_name),
+                        (array)$relation_filters
+                    ),
+                    (array)array_get($fields, $relation_name)
+                );
+            }
+        }
+
+        return $bind_relations;
+    }
+
+    /**
+     * 获取关联查询的默认查询条件
+     *
+     * @param model  $model         查询的model
+     * @param string $relation_name 关联查询字段
+     *
+     * @return array
+     */
+    private function getRelationDefaultFilters($model, $relation_name)
+    {
+        // 添加relation的默认条件，默认条件数组为“$relationFilters"的public属性
+        $filter_attribute = $relation_name . 'Filters';
+        if (isset($model->$filter_attribute) && is_array($model->$filter_attribute)) {
+            return $model->$filter_attribute;
+        }
+
+        $relation_data = [];
+        try {
+            //由于PHP类属性区分大小写，而relation_count字段为小写，利用反射将属性转为小写，再进行比较
+            if (!$pros = (new ReflectionClass($model))->getDefaultProperties()) {
+                foreach ($pros as $name => $val) {
+                    if (strtolower($name) == strtolower($filter_attribute) && is_array($val)) {
+                        $relation_data = $val;
+                    }
+                }
+            }
+        } catch (Exception $e) {
+        }
+
+        return $relation_data;
+    }
+
+    /**
+     * 添加关联查询
+     *
+     * @param array $relation_filters 关联查询的条件
+     * @param array $relation_fields  关联查询的字段信息
+     *
+     * @return \Closure
+     */
+    private function buildRelation($relation_filters, $relation_fields)
+    {
+        return function ($query) use ($relation_filters, $relation_fields) {
+            // 获取relation的表字段
+            /* @ver $query Builder */
+            $model   = $query->getRelated();
+            $columns = $this->getTableColumns($model);
+
+            /* @ver $model Model */
+            $table = $model->getTable();
+
+            // relation绑定
+            if ($relations = $this->getRelations($model, $relation_fields, $relation_filters)) {
+                $query = $query->with($relations);
+            }
+
+            // 判断是否有关联模型的统计操作
+            if ($relation_fields) {
+                $this->addRelationCountSelect($query, $relation_fields, $relation_filters);
+            }
+
+            $this->select($query, $relation_fields, $table);
+            $this->handleConditionQuery($relation_filters, $query, $table, $columns);
+        };
+    }
+
+    /**
+     * 添加关联查询的统计
+     *
+     * @param mixed|model $model            查询的model
+     * @param array       $fields           查询的字段信息
+     * @param array       $relation_filters 关联查询的字段信息
+     *
+     * @return mixed
+     */
+    private function addRelationCountSelect($model, $fields, $relation_filters)
+    {
+        $filters = [];
+        if ($relation_filters) {
+            foreach ($relation_filters as $filter => $value) {
+                list($a, $b) = array_pad(explode('.', $filter, 2), 2, null);
+                if ($a && $b) {
+                    $a = strtolower($a);
+                    if (!isset($filters[$a])) {
+                        $filters[$a] = [];
+                    }
+                    $filters[$a][$b] = $value;
+                }
+            }
+
+            unset($filter, $value);
+        }
+
+        $relations_count = [];
+        if ($fields) {
+            foreach ($fields as $__k => $__f) {
+                if (is_int($__k) && is_string($__f)) {
+                    $count_key     = substr($__f, -6);
+                    $relation_name = strtolower(substr($__f, 0, -6));
+                    if ($count_key == '_count' && method_exists($model->getModel(), $relation_name)) {
+                        // 当前模型的关联模型
+                        $sub_model = $model->getModel()->$relation_name()->getRelated();
+                        $columns   = $this->getTableColumns($sub_model);
+                        /* @var $sub_model Model */
+                        $table = $sub_model->getTable();
+
+                        // 关联模型的查询条件
+                        $cur_filters = array_merge(
+                            $this->getRelationDefaultFilters($model->getModel(), $relation_name),
+                            (array)array_get($filters, $relation_name)
+                        );
+
+                        $relations_count[$relation_name] = function ($query) use ($cur_filters, $columns, $table) {
+                            return $this->handleConditionQuery($cur_filters, $query, $table, $columns);
+                        };
+                    }
+                }
+
+                unset($count_key, $relation_name, $__k, $__f, $sub_model, $columns, $table);
+            }
+        }
+
+        if ($relations_count) {
+            $model = $model->withCount($relations_count);
+        }
+
+        return $model;
     }
 
     /**
@@ -741,525 +956,5 @@ abstract class Repository
         }
 
         return $condition;
-    }
-
-    /****
-     *
-     *
-     * 设置查询条件
-     *
-     * @param array $filters
-     * @param array $fields
-     *
-     * @return mixed
-     */
-    private function setModelFilter($filters = [], $fields = [])
-    {
-        $model = $this->model;
-        // 如果是单个数值，则自动转换为PK条件查询
-        if (!is_array($filters)) {
-            $filters = [$model->getKeyName() => (int)$filters];
-        }
-
-        $fields = (array)$fields;
-        if (!$filters) {
-            return $model;
-        }
-
-        $columns = $this->getTableColumns($model);
-        $table   = $model->getTable();
-
-        /****
-         * 分组，如果是relation的查询条件，需要放在前面build
-         */
-        $relation_filters = $model_filters = [];
-        foreach ($filters as $field => $value) {
-            list($relation_name, $relation_key) = array_pad(explode('.', $field, 2), 2, null);
-
-            if ($relation_name && $relation_key) {
-                $relation_filters[$field] = $value;
-            } else {
-                $model_filters[$field] = $value;
-            }
-        }
-
-        // 首先设置relation查询，不能放在后面执行
-        if ($relations = $this->getRelations($model, $fields, $relation_filters, $this)) {
-            $model = $model->with($relations);
-        }
-
-        // 判断是否有关联模型的统计操作
-        $model = $this->addRelationCountSelect($model, $fields, $relation_filters, $this);
-        unset($relations, $relation_name, $relation_filters);
-        // 设置查询字段
-        $model = $this->addSelect($model, $fields, $table);
-
-        return $this->addFilters($model_filters, $model, $this, $table, $columns);
-    }
-
-    /****
-     *
-     * relation count查询
-     *
-     * @param                     $model
-     * @param                     $fields
-     * @param                     $relation_filters
-     * @param Repository          $that
-     *
-     * @return mixed
-     */
-    private function addRelationCountSelect($model, $fields, $relation_filters, $that)
-    {
-        $filters = [];
-        if ($relation_filters) {
-            foreach ($relation_filters as $filter => $value) {
-                list($a, $b) = array_pad(explode('.', $filter, 2), 2, null);
-                if ($a && $b) {
-                    $a = strtolower($a);
-                    if (!isset($filters[$a])) {
-                        $filters[$a] = [];
-                    }
-                    $filters[$a][$b] = $value;
-                }
-            }
-            unset($filter, $value);
-        }
-
-        $relations_count = [];
-        if ($fields) {
-            foreach ($fields as $__k => $__f) {
-                if (is_int($__k) && is_string($__f)) {
-                    $count_key     = substr($__f, -6);
-                    $relation_name = strtolower(substr($__f, 0, -6));
-                    /* @var $model mixed */
-                    if ($count_key == '_count' && method_exists($model->getModel(), $relation_name)) {
-                        //当前模型的关联模型
-                        $sub_model = $model->getModel()->$relation_name()->getRelated();
-
-                        //count必须转换为小写，对应输出的count字段也为小写，如：users_count,storesinfo_count
-                        $columns = $that->getTableColumns($sub_model);//关联模型的表字段
-                        /* @var $sub_model mixed */
-                        $table = $sub_model->getTable();//关联模型的表名
-                        //关联模型的查询条件
-                        $cur_filters = array_merge(
-                            $that->getRelationDefaultFilters($model->getModel(), $relation_name), (array)Arr::get($filters, $relation_name)
-                        );
-
-                        $relations_count[$relation_name] = function ($query) use ($cur_filters, $that, $columns, $table) {
-                            foreach ($cur_filters as $relation_field => $relation_value) {
-                                //relation排序设置
-                                if ($relation_field == 'order') {
-                                    $query = $that->addOrderQuery($query, $relation_value, $table, $columns);
-                                    unset($cur_filters['order']);//去除order字段
-                                }
-
-                                // 字段精准匹配
-                                if (isset($columns[$relation_field])) {
-                                    $query = $that->addAccurateQuery($query, $table . '.' . $relation_field, $relation_value);
-                                } else {
-                                    // 高级查询
-                                    list($model_key, $model_compare) = array_pad(explode(':', $relation_field, 2), 2, null);
-                                    if ($model_key && $model_compare) {
-                                        $query = $that->addComplexQuery($query, $table . '.' . $model_key, $model_compare, $relation_value);
-                                    }
-                                }
-                            }
-                            return $query;
-
-                        };
-                    }
-                }
-                unset($count_key, $relation_name, $__k, $__f, $sub_model, $columns, $table);
-            }
-        }
-        if ($relations_count) {
-            $model = $model->withCount($relations_count);
-        }
-        return $model;
-    }
-
-    /****
-     *
-     * 添加select语句，如果有关联_count，则不添加
-     *
-     * @param \Illuminate\Database\Query\Builder $query
-     * @param                                    $fields
-     * @param                                    $table
-     *
-     * @return mixed
-     */
-    private function addSelect($query, $fields, $table)
-    {
-        $use_select = true;
-        foreach ($fields as $i => $filter) {
-            if (is_int($i) && is_string($filter)) {
-                if (substr($filter, -6) === '_count') {
-                    $use_select = false;
-                }
-            }
-        }
-
-        // 查询字段设置为所有，保证relation取值正常,而输出时根据自定义再过滤
-        if ($use_select) {
-            $query = $query->select([$table . '.*']);
-        }
-
-        return $query;
-    }
-
-    /****
-     *
-     * 添加SQL排序规则
-     *
-     * @param mixed  $model
-     * @param string $order_string
-     * @param string $table
-     * @param array  $columns
-     *
-     * @return mixed
-     */
-    private function addOrderQuery($model, $order_string, $table, $columns)
-    {
-        if ($orders = explode(',', $order_string)) {
-            foreach ($orders as $order) {
-                list($k, $v) = array_pad(explode(' ', preg_replace('/\s+/', ' ', $order)), 2, null);
-                if ($k && isset($columns[$k]) && in_array(strtolower($v), ['', 'asc', 'desc'])) {
-                    $model = $model->orderBy($table ? $table . '.' . $k : $k, $v ?: 'desc');
-                }
-            }
-        }
-
-        return $model;
-    }
-
-    /****
-     *
-     * 添加精准的SQL查询(条件字段与表格字段撇撇)
-     *
-     * @param mixed $model
-     * @param       $field
-     * @param       $value
-     *
-     * @return mixed
-     */
-    private function addAccurateQuery($model, $field, $value)
-    {
-        //in查询
-        if (is_array($value)) {
-            $model = $model->whereIn($field, $value);
-        } else {//=查询
-            $model = $model->where($field, $value);
-        }
-
-        return $model;
-    }
-
-    /*****
-     *
-     * 复杂查询，条件字段需要解释执行
-     *
-     * @param $model
-     * @param $field
-     * @param $compare
-     * @param $value
-     * @param $or
-     *
-     * @return mixed
-     */
-    private function addComplexQuery($model, $field, $compare, $value, $or = false)
-    {
-        if ($expression = Arr::get($this->expression, strtolower($compare))) {
-            if (in_array($expression, ['In', 'NotIn', 'Between', 'NotBetween'])) {
-                $strMethod = $or ? 'orWhere' . $expression : 'where' . $expression;
-                $model     = $model->{$strMethod}($field, (array)$value);
-            } else {
-                $strMethod = $or ? 'orWhere' : 'where';
-                if (in_array($expression, ['LIKE', 'NOT LIKE'])) {
-                    $value = '%' . (string)$value . '%';
-                }
-
-                $model = $model->{$strMethod}($field, $expression, $value);
-            }
-        }
-
-        return $model;
-    }
-
-    /*****
-     *
-     * 获取relation集合
-     *
-     * @param                     $model
-     * @param                     $fields
-     * @param                     $relation_filters
-     * @param Repository          $that
-     *
-     * @return array
-     */
-    private function getRelations($model, $fields, $relation_filters, $that)
-    {
-        // relation查询时，合并SQL，优化语句
-        $relations = [];
-        if ($fields) {
-            foreach ($fields as $field_key => $field_val) {
-                if (!is_int($field_key)) {
-                    // Model对象
-                    if (method_exists($model, ucfirst($field_key))) {
-                        $relations[$field_key] = [];
-                    }
-                }
-            }
-
-            unset($field_key, $field_val);
-        }
-
-        /************
-         *
-         *
-         * 关联模型的条件查询
-         * relationModel.KeyName:compare
-         * eg:userInfo.user_id:neq
-         * eg:appInfo.status
-         * eg:channelInfo.user_id:between
-         *
-         *
-         */
-        if ($relation_filters) {
-            foreach ($relation_filters as $relation_key => $relation_value) {
-                $dot_index = strpos($relation_key, '.');
-                if ($dot_index !== false) {
-                    $relation_name  = substr($relation_key, 0, $dot_index);
-                    $relation_field = substr($relation_key, $dot_index + 1);
-                } else {
-                    $relation_name  = '';
-                    $relation_field = $relation_key;
-                }
-
-                // 如果relation存在
-                if (method_exists($model, $relation_name)) {
-                    // 未初始化时先初始化为空数组
-                    if (!isset($relations[$relation_name])) {
-                        $relations[$relation_name] = [];
-                    }
-
-                    $relations[$relation_name][$relation_field] = $relation_value;
-                }
-            }
-        }
-
-        // 当前model实际要绑定的relation
-        $bind_relations = [];
-        if ($relations) {
-            foreach ($relations as $relation_name => $relation_filters) {
-                $bind_relations[$relation_name] = $that->buildRelation(
-                    array_merge(
-                        $that->getRelationDefaultFilters($model, $relation_name),
-                        (array)$relation_filters
-                    ),
-                    (array)Arr::get($fields, $relation_name),
-                    $that
-                );
-            }
-        }
-
-        return $bind_relations;
-    }
-
-    /****
-     *
-     * 获取relation的默认条件
-     *
-     * @param $model
-     * @param $relation_name
-     *
-     * @return array
-     */
-    private function getRelationDefaultFilters($model, $relation_name)
-    {
-        // 添加relation的默认条件，默认条件数组为“$relationFilters"的public属性
-        $filter_attribute = $relation_name . 'Filters';
-        if (isset($model->$filter_attribute) && is_array($model->$filter_attribute)) {
-            $relation_data = $model->$filter_attribute;
-        } else {
-            $relation_data = [];
-            try {
-                // 由于PHP类属性区分大小写，而relation_count字段为小写，利用反射将属性转为小写，再进行比较
-                $reflect = new ReflectionClass($model);
-                $pros    = $reflect->getDefaultProperties();
-                foreach ($pros as $name => $val) {
-                    if (strtolower($name) == strtolower($filter_attribute) && is_array($val)) {
-                        $relation_data = $val;
-                    }
-                }
-            } catch (Exception $e) {
-                return $this->error($this->getError($e));
-            }
-        }
-
-        return $relation_data;
-    }
-
-    /****
-     * @param                     $relation_filters
-     * @param                     $relation_fields
-     * @param Repository          $that
-     *
-     * @return Closure
-     */
-    private function buildRelation($relation_filters, $relation_fields, $that)
-    {
-        return function ($query) use ($relation_filters, $relation_fields, $that) {
-            // 获取relation的表字段
-            /* @var $query mixed */
-            $columns = $that->getTableColumns($query->getRelated());
-            $table   = $query->getRelated()->getTable();
-
-            //relation绑定
-            if ($relations = $that->getRelations($query->getRelated(), $relation_fields, $relation_filters, $that)) {
-                $query = $query->with($relations);
-            }
-            // 判断是否有关联模型的统计操作
-            if ($relation_fields) {
-                $this->addRelationCountSelect($query, $relation_fields, $relation_filters, $that);
-            }
-
-            $that->addSelect($query, $relation_fields, $table);
-            $that->addFilters($relation_filters, $query, $that, $table, $columns);
-        };
-    }
-
-    /*****
-     *
-     *
-     * 条件查询
-     *
-     * @param                     $relation_filters
-     * @param Model|Builder       $query
-     * @param Repository          $that
-     * @param                     $table
-     * @param                     $columns
-     *
-     * @return mixed
-     */
-    private function addFilters($relation_filters, $query, $that, $table, $columns)
-    {
-        // 添加指定了索引
-        if ($force_index = Arr::pull($relation_filters, 'force_index')) {
-            $query = $query->from(DB::raw("{$this->model->getTable()} FORCE INDEX ({$force_index})"));
-        }
-
-        // 处理分组
-        if ($group_by = Arr::pull($relation_filters, 'group_by')) {
-            $query = $query->groupBy($group_by);
-        }
-
-        // 处理排序
-        if ($order_by = Arr::pull($relation_filters, 'order')) {
-            $query = $that->addOrderQuery($query, $order_by, $table, $columns);
-        }
-
-        // 查询数据条数
-        if ($limit = Arr::pull($relation_filters, 'limit')) {
-            $query = $query->limit($limit);
-        }
-
-        foreach ($relation_filters as $relation_field => $relation_value) {
-            //Or查询
-            if (strtolower($relation_field) == 'or') {
-                if (is_array($relation_value) && $relation_value) {
-                    $query = $query->where(
-                        function ($query) use ($relation_value, $that, $table, $columns) {
-                            foreach ($relation_value as $k => $v) {
-                                //字段精准匹配
-                                if (isset($columns[$k])) {
-                                    /* @var $query \Illuminate\Database\Query\Builder */
-                                    $query = is_array($v) ? $query->orWhereIn($table . '.' . $k, $v) : $query->orWhere($table . '.' . $k, $v);
-                                } else {
-                                    //高级查询
-                                    list($model_key, $model_compare) = array_pad(explode(':', $k, 2), 2, null);
-                                    if ($model_key && $model_compare) {
-                                        $query = $that->addComplexQuery($query, $table . '.' . $model_key, $model_compare, $v, true);
-                                    }
-                                }
-                            }
-                        }
-                    );
-                }
-            }
-
-            //字段精准匹配
-            if (isset($columns[$relation_field])) {
-                $query = $that->addAccurateQuery($query, $table . '.' . $relation_field, $relation_value);
-            } else {
-                //高级查询
-                list($model_key, $model_compare) = array_pad(explode(':', $relation_field, 2), 2, null);
-                if ($model_key && $model_compare) {
-                    $query = $that->addComplexQuery($query, $table . '.' . $model_key, $model_compare, $relation_value);
-                } else {
-                    //自定义scope查询
-                    if (is_a($query, Model::class)) {
-                        $_method = 'scope' . ucfirst($relation_field);
-                        if (method_exists($query, $_method)) {
-                            $query = $query->$_method($query, $relation_value);
-                        } else {
-                            $_camel_method = 'scope' . ucfirst(camel_case($relation_field));
-
-                            if (method_exists($query, $_camel_method)) {
-                                $query = $query->$_camel_method($query, $relation_value);
-                            }
-                        }
-
-                    } else {
-                        $ret = 1;
-                        try {
-                            $query = $query->$relation_field($relation_value);
-                        } catch (Exception $e) {
-                            $ret = 0;
-                        }
-                        if ($ret == 0) {
-                            $_camel_method = ucfirst(Str::camel($relation_field));
-                            try {
-                                $query = $query->$_camel_method($relation_value);
-                            } catch (Exception $e) {
-                                $this->error($e->getMessage());
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return $query;
-    }
-
-    /***
-     *
-     * 根据运行环境上报错误
-     *
-     * @param Exception $e
-     *
-     * @return mixed|string
-     */
-    protected function getError(Exception $e)
-    {
-        // 记录数据库执行错误日志
-        logger()->error('db error', [
-            'message' => $e->getMessage(),
-            'file'    => $e->getFile(),
-            'line'    => $e->getLine(),
-        ]);
-
-        return app()->environment('production') ? t("系统错误，请重试") : $e->getMessage();
-    }
-
-    /**
-     * @param       $filters
-     * @param array $fields
-     *
-     * @return array|bool
-     */
-    private function realGet($filters, $fields = [])
-    {
-        $item = $this->setModelFilter($filters, $fields)->first();
-        return $item ? $this->getItemInfo($item, $fields) : false;
     }
 }
