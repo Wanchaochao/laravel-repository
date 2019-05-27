@@ -1,12 +1,4 @@
 <?php
-/*
- * This file is part of Laravel Credentials.
- *
- * (c) Graham Campbell <graham@alt-three.com>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
 
 namespace Littlebug\Repository;
 
@@ -18,7 +10,6 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
 use Exception;
 use ReflectionClass;
 use Closure;
@@ -105,13 +96,13 @@ abstract class Repository
     final public function create($data)
     {
         if (!is_array($data) || !$data) {
-            return $this->error(t('操作失败'));
+            return $this->error('操作失败');
         }
 
         try {
 
             if (!$model = $this->model->create($data)) {
-                return $this->error(t('操作失败'));
+                return $this->error('操作失败');
             }
 
             return $this->success($model->toArray());
@@ -145,7 +136,7 @@ abstract class Repository
 
         // 空值判断
         if (empty($update_data)) {
-            return $this->error(t('未指定要更新的字段信息'));
+            return $this->error('未指定要更新的字段信息');
         }
 
         // 只能单表查询
@@ -158,7 +149,7 @@ abstract class Repository
         }
 
         if (!$update_condition) {
-            return $this->error(t('未指定当前更新的条件'));
+            return $this->error('未指定当前更新的条件');
         }
 
         try {
@@ -171,7 +162,7 @@ abstract class Repository
                 $this->clearCache($update_condition);
             }
 
-            return $this->success($rows, t('更新成功'));
+            return $this->success($rows, '更新成功');
         } catch (Exception $e) {
             return $this->error($this->getError($e));
         }
@@ -200,7 +191,7 @@ abstract class Repository
             }
 
             $affected_rows = $this->model->where($filters)->delete();
-            return $this->success($affected_rows, t('操作成功'));
+            return $this->success($affected_rows, '操作成功');
         } catch (Exception $e) {
             return $this->error($this->getError($e));
         }
@@ -244,6 +235,7 @@ abstract class Repository
             $filters = [$this->model->getKeyName() => (int)$filters];
         }
 
+        /* @var $item Model|object|static|null */
         if ($item = $this->setModelCondition($filters, $fields)->first()) {
             return $item->toArray();
         }
@@ -267,8 +259,8 @@ abstract class Repository
             $field = Arr::get($field, 0);
         }
 
-        $item = $this->setModelCondition($filters, [$field])->first();
-        return $item ? Arr::get($item, $field) : false;
+        $item = $this->find($filters, [$field]);
+        return Arr::get($item, $field, false);
     }
 
     /**
@@ -287,18 +279,8 @@ abstract class Repository
             $field = Arr::get($field, 0);
         }
 
-        $data        = $this->setModelCondition($filters, [$field])->get();
-        $return_data = [];
-        if ($data) {
-            foreach ($data as $item) {
-                if ($item) {
-                    $v             = $this->getItemInfo($item, [$field]);
-                    $return_data[] = array_pop($v);
-                }
-            }
-        }
-
-        return $return_data;
+        $data = $this->all($filters, [$field]);
+        return array_column($data, $field);
     }
 
     /**
@@ -359,6 +341,7 @@ abstract class Repository
             $paginate = $model->paginate($page_size, ['*'], 'page', $cur_page);
         }
 
+        /* @var $paginate Paginator */
         return [
             'items' => $paginate->items(),
             'pager' => $paginate,
@@ -462,7 +445,7 @@ abstract class Repository
      *
      * 根据运行环境上报错误
      *
-     * @param \Exception $e
+     * @param Exception $e
      *
      * @return mixed|string
      */
@@ -795,7 +778,7 @@ abstract class Repository
                         $this->getRelationDefaultFilters($model, $relation_name),
                         (array)$relation_filters
                     ),
-                    (array)array_get($fields, $relation_name)
+                    (array)Arr::get($fields, $relation_name)
                 );
             }
         }
@@ -841,18 +824,15 @@ abstract class Repository
      * @param array $relation_filters 关联查询的条件
      * @param array $relation_fields  关联查询的字段信息
      *
-     * @return \Closure
+     * @return Closure
      */
     private function buildRelation($relation_filters, $relation_fields)
     {
         return function ($query) use ($relation_filters, $relation_fields) {
             // 获取relation的表字段
-            /* @ver $query Builder */
             $model   = $query->getRelated();
             $columns = $this->getTableColumns($model);
-
-            /* @ver $model Model */
-            $table = $model->getTable();
+            $table   = $model->getTable();
 
             // relation绑定
             if ($relations = $this->getRelations($model, $relation_fields, $relation_filters)) {
@@ -912,7 +892,7 @@ abstract class Repository
                         // 关联模型的查询条件
                         $cur_filters = array_merge(
                             $this->getRelationDefaultFilters($model->getModel(), $relation_name),
-                            (array)array_get($filters, $relation_name)
+                            (array)Arr::get($filters, $relation_name)
                         );
 
                         $relations_count[$relation_name] = function ($query) use ($cur_filters, $columns, $table) {
