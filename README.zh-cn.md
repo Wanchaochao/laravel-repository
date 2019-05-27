@@ -60,38 +60,6 @@ mkdir app/Http/Requests
 
 [Request.php](https://github.com/Wanchaochao/laravel-repository/blob/master/src/littlebug/Request/Request.php)
 
-```php
-# 注册commands命令
-
-# 找到 app\Console\Kernel.php 文件
-
-# 添加如下代码
-
-use Littlebug\Commands\ControllerCommand;
-use Littlebug\Commands\GenerateCommand;
-use Littlebug\Commands\ModelCommand;
-use Littlebug\Commands\RepositoryCommand;
-use Littlebug\Commands\RequestCommand;
-use Littlebug\Commands\ViewCommand;
-
-# 找到属性 $commands = []
-
-# 添加下面的代码至数组末尾
-    [
-        # your commands
-        ...
-        
-        # litttlebug\commands
-        ControllerCommand::class,
-        GenerateCommand::class,
-        ModelCommand::class,
-        RepositoryCommand::class,
-        RequestCommand::class,
-        ViewCommand::class
-    ]
-    
-```
-
 ### 关于一键生成代码
 
 ```bash
@@ -100,7 +68,7 @@ use Littlebug\Commands\ViewCommand;
 
 # 输入
 
-# php artisan list
+php artisan list
 
 # 如果你看到下面这些提示，那么可以开始快速生成代码了!~
 ```
@@ -146,8 +114,6 @@ public function indexAction()
     dd($list);
     return view('member.member_message.index', compact('list', 'filters'));
 }
-
-
 
 # 终端
 

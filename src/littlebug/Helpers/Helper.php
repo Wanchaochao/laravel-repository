@@ -52,4 +52,38 @@ class Helper
             return !static::isEmpty($value);
         });
     }
+
+    /**
+     * 判断数组是否为关联数组
+     *
+     * @param array $array      需要判断的数组
+     * @param bool  $allStrings whether the array keys must be all strings in order for
+     *                          the array to be treated as associative.
+     *
+     * @return bool 是关联数组返回true
+     */
+    public static function isAssociative($array, $allStrings = true)
+    {
+        if (!is_array($array) || empty($array)) {
+            return false;
+        }
+
+        if ($allStrings) {
+            foreach ($array as $key => $value) {
+                if (!is_string($key)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        foreach ($array as $key => $value) {
+            if (is_string($key)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

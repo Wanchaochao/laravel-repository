@@ -3,6 +3,7 @@
 namespace Littlebug\Repository;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Littlebug\Traits\ResponseTrait;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Eloquent\Model;
@@ -15,6 +16,7 @@ use ReflectionClass;
 use Closure;
 use Littlebug\Helpers\Helper;
 use \Illuminate\Database\Query\Expression;
+use \Illuminate\Database\Eloquent\Relations\Relation;
 
 /**
  * This is the abstract repository class.
@@ -128,8 +130,9 @@ abstract class Repository
 
         // 过滤非法字段，禁止更新PK
         $columns = $this->getTableColumns();
+        Arr::pull($update_data, $this->model->getKeyName());
         foreach ($update_data as $k => $v) {
-            if ($k == $this->model->getKeyName() || !isset($columns[$k])) {
+            if (!isset($columns[$k])) {
                 unset($update_data[$k]);
             }
         }
@@ -156,12 +159,6 @@ abstract class Repository
             /* @var $model mixed */
             $model = $this->model->newInstance();
             $rows  = $model->where($update_condition)->update($model->fill($update_data)->getAttributes());
-
-            // 更新成功要调用清除缓存方法
-            if ($rows && method_exists($this, 'clearCache')) {
-                $this->clearCache($update_condition);
-            }
-
             return $this->success($rows, '更新成功');
         } catch (Exception $e) {
             return $this->error($this->getError($e));
@@ -185,39 +182,11 @@ abstract class Repository
         }
 
         try {
-            // 如果在后面，数据被删除，无法获取数据结果，导致缓存无法清除
-            if (method_exists($this, 'clearCache')) {
-                $this->clearCache($id_or_array);
-            }
-
             $affected_rows = $this->model->where($filters)->delete();
             return $this->success($affected_rows, '操作成功');
         } catch (Exception $e) {
             return $this->error($this->getError($e));
         }
-    }
-
-    /***
-     *
-     * 自定义sql返回pager对象(eg:select a.*,b.*,c.* from a,b,c where a.id =b.a_id and b.aid=c.id)
-     *
-     * @param       $items
-     * @param       $total
-     * @param int   $per_page
-     * @param int   $curr_page
-     * @param array $options
-     *
-     * @return LengthAwarePaginator
-     */
-    public function getPager($items, $total, $per_page = 10, $curr_page = 1, array $options = [])
-    {
-        if (!$options) {
-            $options = [
-                'path'     => Paginator::resolveCurrentPath(),
-                'pageName' => 'page',
-            ];
-        }
-        return new LengthAwarePaginator($items, $total, $per_page, $curr_page, $options);
     }
 
     /**
@@ -230,13 +199,26 @@ abstract class Repository
      */
     public function find($filters, $fields = [])
     {
-        // 如果是单个数值，则自动转换为PK条件查询
-        if (!is_array($filters)) {
-            $filters = [$this->model->getKeyName() => (int)$filters];
+        /* @var $item Model|object|static|null */
+        if ($item = $this->findCondition($filters, $fields)->first()) {
+            return $item->toArray();
         }
 
+        return false;
+    }
+
+    /**
+     * 查询一条数据
+     *
+     * @param array|mixed $filters 查询条件
+     * @param array       $fields  查询字段
+     *
+     * @return mixed
+     */
+    public function one($filters, $fields = [])
+    {
         /* @var $item Model|object|static|null */
-        if ($item = $this->setModelCondition($filters, $fields)->first()) {
+        if ($item = $this->findCondition($filters, $fields)->first()) {
             return $item->toArray();
         }
 
@@ -275,12 +257,20 @@ abstract class Repository
     public function findAllBy($filters, $field)
     {
         // 如果误传数组的话 取数组第一个值
-        if (is_array($field)) {
-            $field = Arr::get($field, 0);
+        $field = $this->firstKey($field);
+        $data  = $this->all($filters, $this->firstField($field));
+        dump($data);
+        if (empty($data)) {
+            return [];
         }
 
-        $data = $this->all($filters, [$field]);
-        return array_column($data, $field);
+        $colums = [];
+
+        foreach ($data as $value) {
+            $colums[] = Arr::get($value, $field);
+        }
+
+        return $colums;
     }
 
     /**
@@ -293,8 +283,22 @@ abstract class Repository
      */
     public function all($filters, $fields = [])
     {
-        return $this->setModelCondition($filters, $fields)->get()->toArray();
+        return $this->findCondition($filters, $fields)->get()->toArray();
     }
+
+    /**
+     * 查询所有记录
+     *
+     * @param array|mixed $filters 查询条件
+     * @param array       $fields  查询字段
+     *
+     * @return array
+     */
+    public function findAll($filters, $fields = [])
+    {
+        return $this->all($filters, $fields);
+    }
+
 
     /**
      * 过滤查询中的空值 查询所有记录
@@ -334,7 +338,7 @@ abstract class Repository
      */
     public function lists($filters = [], $fields = [], $page_size = 10, $cur_page = null)
     {
-        $model = $this->setModelCondition($filters, $fields);
+        $model = $this->findCondition($filters, $fields);
         if ($this->paginateStyle == 'simple') {
             $paginate = $model->simplePaginate($page_size, ['*'], 'page', $cur_page);
         } else {
@@ -348,18 +352,6 @@ abstract class Repository
         ];
     }
 
-    /**
-     * 获取database实例
-     *
-     * @param string $connection
-     *
-     * @return ConnectionInterface
-     */
-    public function getDB($connection = 'default')
-    {
-        return DB::connection($connection);
-    }
-
     /****
      *
      * 返回查询条件编译后的sql语句
@@ -370,7 +362,7 @@ abstract class Repository
      */
     public function toSql($filters)
     {
-        return $this->setModelCondition($filters)->toSql();
+        return $this->findCondition($filters)->toSql();
     }
 
     /***
@@ -383,7 +375,7 @@ abstract class Repository
      */
     public function count($filters)
     {
-        return $this->setModelCondition($filters)->count();
+        return $this->findCondition($filters)->count();
     }
 
     /**
@@ -396,7 +388,7 @@ abstract class Repository
      */
     public function max($filters, $field)
     {
-        return $this->setModelCondition($filters)->max($field);
+        return $this->findCondition($filters)->max($field);
     }
 
     /**
@@ -408,13 +400,14 @@ abstract class Repository
      */
     public function getPrimaryKeyCondition($condition)
     {
-        if (is_scalar($condition)) {
-            if ($this->model->getKeyType() == 'int') {
+        // 标量(数字、字符、布尔值)查询, 或者不是关联数组 通过处理主键查询
+        if (is_scalar($condition) || (!Helper::isAssociative($condition) && is_array($condition))) {
+            if ($this->model->getKeyType() == 'int' && is_numeric($condition)) {
                 $condition = intval($condition);
             }
 
             $condition = [
-                $this->model->getKeyName() => $condition,
+                $this->model->getKeyName() => is_array($condition) ? array_values($condition) : $condition,
             ];
         }
 
@@ -441,85 +434,29 @@ abstract class Repository
     }
 
     /**
+     * 过滤查询条件
      *
-     * 根据运行环境上报错误
-     *
-     * @param Exception $e
-     *
-     * @return mixed|string
-     */
-    private function getError(Exception $e)
-    {
-        // 记录数据库执行错误日志
-        logger()->error('db error', [
-            'message' => $e->getMessage(),
-            'file'    => $e->getFile(),
-            'line'    => $e->getLine(),
-        ]);
-
-        return app()->environment('production') ? '系统错误，请重试' : $e->getMessage();
-    }
-
-    /**
-     * 查询字段信息
-     *
-     * @param mixed|model $query   查询对象
-     * @param array       $fields  查询的字段
-     * @param string      $table   表名称
-     * @param array       $columns 表字段信息
+     * @param mixed|array $condition 查询条件
      *
      * @return mixed
      */
-    private function select($query, $fields, $table, $columns = [])
+    protected function filterCondition($condition)
     {
-        $select     = [];
-        $use_select = true;
-        foreach ($fields as $i => $field) {
-            if (is_int($i) && is_string($field)) {
-                $select[] = isset($columns[$field]) ? $table . '.' . $field : $field;
-                if (substr($field, -6) === '_count') {
-                    $use_select = false;
-                    break;
-                }
-            } elseif ($field instanceof Expression) {
-                $select[] = $field;
+        if (!is_array($condition)) {
+            return $condition;
+        }
+
+        foreach ($condition as $key => $value) {
+            if (strtolower($key) === 'or') {
+                $condition[$key] = $value = $this->filterCondition($value);
+            }
+
+            if (Helper::isEmpty($value)) {
+                unset($condition[$key]);
             }
         }
 
-        if ($use_select) {
-            return $query->select($select);
-        }
-
-        return $query;
-    }
-
-    /**
-     * 排序查询
-     *
-     * @param mixed|model $query    查询对象
-     * @param string      $order_by 排序信息
-     * @param string      $table    表名称
-     * @param array       $columns  表字段信息
-     *
-     * @return mixed
-     */
-    private function orderBy($query, $order_by, $table, $columns)
-    {
-        if ($orders = explode(',', $order_by)) {
-            foreach ($orders as $order) {
-                $order = trim($order);
-                list($k, $v) = array_pad(explode(' ', preg_replace('/\s+/', ' ', $order)), 2, null);
-                if ($k && in_array(strtolower($v), ['', 'asc', 'desc'])) {
-                    if (!isset($columns[$k])) {
-                        $table = null;
-                    }
-
-                    $query->orderBy($table ? $table . '.' . $k : $k, $v ?: 'desc');
-                }
-            }
-        }
-
-        return $query;
+        return $condition;
     }
 
     /**
@@ -534,23 +471,28 @@ abstract class Repository
      */
     protected function handleConditionQuery($condition, $query, $table, $columns)
     {
+        // 添加指定了索引
+        if ($force_index = Arr::pull($condition, 'force_index')) {
+            $query = $query->from(DB::raw("{$this->model->getTable()} FORCE INDEX ({$force_index})"));
+        }
+
         // 设置了排序
-        if ($order_by = array_pull($condition, 'order')) {
+        if ($order_by = Arr::pull($condition, 'order')) {
             $this->orderBy($query, $order_by, $table, $columns);
         }
 
         // 设置了limit
-        if ($limit = array_pull($condition, 'limit')) {
+        if ($limit = Arr::pull($condition, 'limit')) {
             $query->limit(intval($limit));
         }
 
         // 设置了offset
-        if ($offset = array_pull($condition, 'offset')) {
+        if ($offset = Arr::pull($condition, 'offset')) {
             $query->offset(intval($offset));
         }
 
         // 设置了分组
-        if ($groupBy = array_pull($condition, 'group_by')) {
+        if ($groupBy = Arr::pull($condition, 'group')) {
             $query->groupBy($groupBy);
         }
 
@@ -602,7 +544,7 @@ abstract class Repository
             if (is_a($query, Model::class)) {
                 $strMethod = 'scope' . ucfirst($column);
                 if (!method_exists($query, $strMethod)) {
-                    $strMethod = 'scope' . ucfirst(camel_case($column));
+                    $strMethod = 'scope' . ucfirst(Str::camel($column));
                     $strMethod = method_exists($query, $strMethod) ? $strMethod : null;
                 }
 
@@ -618,7 +560,7 @@ abstract class Repository
                 $query->{$column}($bind_value);
             } catch (Exception $e) {
                 try {
-                    $column = ucfirst(camel_case($column));
+                    $column = ucfirst(Str::camel($column));
                     $query->{$column}($bind_value);
                 } catch (Exception $e) {
                 }
@@ -686,11 +628,11 @@ abstract class Repository
      *
      * @return Model|mixed
      */
-    public function setModelCondition($conditions = [], $fields = [])
+    public function findCondition($conditions = [], $fields = [])
     {
-        // 查询条件为空，直接返回
+        // 查询条件为
         $conditions = $this->getPrimaryKeyCondition($conditions);
-        $model      = $this->model;
+        $model      = $this->model->newModelInstance();
         $table      = $this->model->getTable();
         $columns    = $this->getTableColumns($model);
         $fields     = (array)$fields;
@@ -706,8 +648,11 @@ abstract class Repository
             }
         }
 
+        // 存在关联查询，自己查询字段中，需要加入主键查询
+        $primary = null;
         // 首先设置relation查询，不能放在后面执行
         if ($relations = $this->getRelations($model, $fields, $relation_condition)) {
+            $primary = $model->getKeyName();
             $model = $model->with($relations);
         }
 
@@ -715,7 +660,7 @@ abstract class Repository
         $model = $this->addRelationCountSelect($model, $fields, $relation_condition);
         unset($relations, $relation_name, $relation_filters);
 
-        $model = $this->select($model, $fields, $table, $columns);
+        $model = $this->select($model, $fields, $table, $columns, $primary);
         return $this->handleConditionQuery($model_condition, $model, $table, $columns);
     }
 
@@ -731,31 +676,38 @@ abstract class Repository
     protected function getRelations($model, $fields, $relation_condition)
     {
         // relation查询时，合并SQL，优化语句
-        $relations = [];
+        $relations = $relation_fields = [];
         if ($fields) {
-            foreach ($fields as $field_key => $field_val) {
-                if (!is_int($field_key)) {
-                    // Model对象
-                    if (method_exists($model, ucfirst($field_key))) {
-                        $relations[$field_key] = [];
+            foreach ($fields as $field => $val) {
+                if (!is_int($field)) {
+
+                    // 这里查询字段需要处理下 比如: user_name => userName
+                    $field = Str::camel($field);
+
+                    // Model对象存在这个方法
+                    if (method_exists($model, $field)) {
+                        $relations[$field]       = [];
+                        $relation_fields[$field] = $val;
                     }
                 }
             }
 
-            unset($field_key, $field_val);
+            unset($field, $field);
         }
 
         // 关联查询 roles.user_id = 1
         if ($relation_condition) {
             foreach ($relation_condition as $relation_key => $relation_value) {
-                $dot_index = strpos($relation_key, '.');
-                if ($dot_index !== false) {
-                    $relation_name  = substr($relation_key, 0, $dot_index);
-                    $relation_field = substr($relation_key, $dot_index + 1);
-                } else {
-                    $relation_name  = '';
-                    $relation_field = $relation_key;
+
+                // 获取第一个 . 出现的位置，可能存在 users.parent.status=1 的情况
+                $index = strpos($relation_key, '.');
+                if ($index === false) {
+                    continue;
                 }
+
+                // 这里查询字段需要处理下 比如: user_name => userName
+                $relation_name  = Str::camel(substr($relation_key, 0, $index));
+                $relation_field = substr($relation_key, $index + 1);
 
                 // 如果relation存在
                 if (method_exists($model, $relation_name)) {
@@ -763,6 +715,7 @@ abstract class Repository
                     if (!isset($relations[$relation_name])) {
                         $relations[$relation_name] = [];
                     }
+
                     $relations[$relation_name][$relation_field] = $relation_value;
                 }
             }
@@ -777,7 +730,7 @@ abstract class Repository
                         $this->getRelationDefaultFilters($model, $relation_name),
                         (array)$relation_filters
                     ),
-                    (array)Arr::get($fields, $relation_name)
+                    (array)Arr::get($relation_fields, $relation_name)
                 );
             }
         }
@@ -803,7 +756,7 @@ abstract class Repository
 
         $relation_data = [];
         try {
-            //由于PHP类属性区分大小写，而relation_count字段为小写，利用反射将属性转为小写，再进行比较
+            // 由于PHP类属性区分大小写，而relation_count字段为小写，利用反射将属性转为小写，再进行比较
             if (!$pros = (new ReflectionClass($model))->getDefaultProperties()) {
                 foreach ($pros as $name => $val) {
                     if (strtolower($name) == strtolower($filter_attribute) && is_array($val)) {
@@ -829,6 +782,8 @@ abstract class Repository
     {
         return function ($query) use ($relation_filters, $relation_fields) {
             // 获取relation的表字段
+            /* @var $model Model */
+            /* @var $query Relation */
             $model   = $query->getRelated();
             $columns = $this->getTableColumns($model);
             $table   = $model->getTable();
@@ -843,7 +798,7 @@ abstract class Repository
                 $this->addRelationCountSelect($query, $relation_fields, $relation_filters);
             }
 
-            $this->select($query, $relation_fields, $table);
+            $this->select($query, $relation_fields, $table, $columns, $model->getKeyName());
             $this->handleConditionQuery($relation_filters, $query, $table, $columns);
         };
     }
@@ -912,28 +867,127 @@ abstract class Repository
     }
 
     /**
-     * 过滤查询条件
      *
-     * @param mixed|array $condition 查询条件
+     * 根据运行环境上报错误
+     *
+     * @param Exception $e
+     *
+     * @return mixed|string
+     */
+    private function getError(Exception $e)
+    {
+        // 记录数据库执行错误日志
+        logger()->error('db error', [
+            'message' => $e->getMessage(),
+            'file'    => $e->getFile(),
+            'line'    => $e->getLine(),
+        ]);
+
+        return app()->environment('production') ? '系统错误，请重试' : $e->getMessage();
+    }
+
+    /**
+     * 查询字段信息
+     *
+     * @param mixed|model $query       查询对象
+     * @param array       $fields      查询的字段
+     * @param string      $table       表名称
+     * @param array       $columns     表字段信息
+     * @param string      $relationKey 关联表主键
      *
      * @return mixed
      */
-    protected function filterCondition($condition)
+    private function select($query, $fields, $table, $columns = [], $relation_key = false)
     {
-        if (!is_array($condition)) {
-            return $condition;
+        $select     = [];
+        $use_select = true;
+        foreach ($fields as $i => $field) {
+            if (is_int($i) && is_string($field)) {
+                $select[] = isset($columns[$field]) ? $table . '.' . $field : $field;
+                if (substr($field, -6) === '_count') {
+                    $use_select = false;
+                    break;
+                }
+            } elseif ($field instanceof Expression) {
+                $select[] = $field;
+            }
         }
 
-        foreach ($condition as $key => $value) {
-            if (strtolower($key) === 'or') {
-                $condition[$key] = $value = $this->filterCondition($value);
+        // 需要查询和查询字段存在的情况下查询字段
+        if ($use_select && $select) {
+            // 关联查询必须添加自己的组件在里面
+            if ($relation_key && !in_array($relation_key, $fields)) {
+                array_push($select, $table . '.' . $relation_key);
             }
 
-            if (Helper::isEmpty($value)) {
-                unset($condition[$key]);
+            return $query->select($select);
+        }
+
+        return $query;
+    }
+
+    /**
+     * 排序查询
+     *
+     * @param mixed|model $query    查询对象
+     * @param string      $order_by 排序信息
+     * @param string      $table    表名称
+     * @param array       $columns  表字段信息
+     *
+     * @return mixed
+     */
+    private function orderBy($query, $order_by, $table, $columns)
+    {
+        if ($orders = explode(',', $order_by)) {
+            foreach ($orders as $order) {
+                $order = trim($order);
+                list($k, $v) = array_pad(explode(' ', preg_replace('/\s+/', ' ', $order)), 2, null);
+                if ($k && in_array(strtolower($v), ['', 'asc', 'desc'])) {
+                    if (!isset($columns[$k])) {
+                        $table = null;
+                    }
+
+                    $query->orderBy($table ? $table . '.' . $k : $k, $v ?: 'desc');
+                }
             }
         }
 
-        return $condition;
+        return $query;
+    }
+
+    /**
+     * 获取传入的当个字段信息
+     *
+     * @param $mixed_value
+     *
+     * @return string
+     */
+    private function firstKey($mixed_value)
+    {
+        if (is_array($mixed_value)) {
+            $mixed_value = Arr::get(array_values($mixed_value), 0);
+        }
+
+        return (string)$mixed_value;
+    }
+
+    /**
+     * 获取查询单个字段数据信息
+     *
+     * @param $field
+     *
+     * @return array
+     */
+    private function firstField($field)
+    {
+        $index = strpos($field, '.');
+        if ($index === false) {
+            return $field;
+        }
+
+        $field_name  = substr($field, 0, $index);
+        $field_value = substr($field, $index + 1);
+
+        return [$field_name => $this->firstField($field_value)];
     }
 }
