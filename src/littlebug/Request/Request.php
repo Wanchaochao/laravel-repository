@@ -10,7 +10,7 @@ abstract class Request extends FormRequest
 
     public function response(array $errors)
     {
-        //指定上传文件的要返回json格式
+        // 指定上传文件的要返回json格式
         if ($this->expectsJson() && $this->ajax() && $this->wantsJson()) {
             return response()->json($errors);
         } else {
