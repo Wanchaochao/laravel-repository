@@ -23,7 +23,6 @@ use \Illuminate\Database\Eloquent\Relations\Relation;
  */
 abstract class Repository
 {
-
     use ResponseTrait;
 
     /**
