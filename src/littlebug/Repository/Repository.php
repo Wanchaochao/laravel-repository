@@ -5,9 +5,7 @@ namespace Littlebug\Repository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Littlebug\Traits\ResponseTrait;
-use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Arr;
@@ -197,24 +195,6 @@ abstract class Repository
      *
      * @return mixed
      */
-    public function find($filters, $fields = [])
-    {
-        /* @var $item Model|object|static|null */
-        if ($item = $this->findCondition($filters, $fields)->first()) {
-            return $item->toArray();
-        }
-
-        return false;
-    }
-
-    /**
-     * 查询一条数据
-     *
-     * @param array|mixed $filters 查询条件
-     * @param array       $fields  查询字段
-     *
-     * @return mixed
-     */
     public function one($filters, $fields = [])
     {
         /* @var $item Model|object|static|null */
@@ -237,11 +217,8 @@ abstract class Repository
     public function findBy($filters, $field)
     {
         // 如果误传数组的话 取数组第一个值
-        if (is_array($field)) {
-            $field = Arr::get($field, 0);
-        }
-
-        $item = $this->find($filters, [$field]);
+        $field = $this->firstKey($field);
+        $item  = $this->one($filters, $this->firstField($field));
         return Arr::get($item, $field, false);
     }
 
@@ -258,19 +235,16 @@ abstract class Repository
     {
         // 如果误传数组的话 取数组第一个值
         $field = $this->firstKey($field);
-        $data  = $this->all($filters, $this->firstField($field));
-        dump($data);
-        if (empty($data)) {
+        if (!$data = $this->all($filters, $this->firstField($field))) {
             return [];
         }
 
-        $colums = [];
-
+        $columns = [];
         foreach ($data as $value) {
-            $colums[] = Arr::get($value, $field);
+            $columns[] = Arr::get($value, $field);
         }
 
-        return $colums;
+        return $columns;
     }
 
     /**
@@ -431,6 +405,50 @@ abstract class Repository
         }
 
         return $_columns;
+    }
+
+    /**
+     * 设置model 的查询信息
+     *
+     * @param array $conditions 查询条件
+     * @param array $fields     查询字段
+     *
+     * @return Model|mixed
+     */
+    public function findCondition($conditions = [], $fields = [])
+    {
+        // 查询条件为
+        $conditions = $this->getPrimaryKeyCondition($conditions);
+        $model      = $this->model->newModelInstance();
+        $table      = $this->model->getTable();
+        $columns    = $this->getTableColumns($model);
+        $fields     = (array)$fields;
+
+        // 分组，如果是relation的查询条件，需要放在前面build
+        $relation_condition = $model_condition = [];
+        foreach ($conditions as $field => $value) {
+            list($relation_name, $relation_key) = array_pad(explode('.', $field, 2), 2, null);
+            if ($relation_name && $relation_key) {
+                $relation_condition[$field] = $value;
+            } else {
+                $model_condition[$field] = $value;
+            }
+        }
+
+        // 存在关联查询，自己查询字段中，需要加入主键查询
+        $primary = null;
+        // 首先设置relation查询，不能放在后面执行
+        if ($relations = $this->getRelations($model, $fields, $relation_condition)) {
+            $primary = $model->getKeyName();
+            $model   = $model->with($relations);
+        }
+
+        // 判断是否有关联模型的统计操作
+        $model = $this->addRelationCountSelect($model, $fields, $relation_condition);
+        unset($relations, $relation_name, $relation_filters);
+
+        $model = $this->select($model, $fields, $table, $columns, $primary);
+        return $this->handleConditionQuery($model_condition, $model, $table, $columns);
     }
 
     /**
@@ -618,50 +636,6 @@ abstract class Repository
         }
 
         return $query->{$strMethod}($field, $value);
-    }
-
-    /**
-     * 设置model 的查询信息
-     *
-     * @param array $conditions 查询条件
-     * @param array $fields     查询字段
-     *
-     * @return Model|mixed
-     */
-    public function findCondition($conditions = [], $fields = [])
-    {
-        // 查询条件为
-        $conditions = $this->getPrimaryKeyCondition($conditions);
-        $model      = $this->model->newModelInstance();
-        $table      = $this->model->getTable();
-        $columns    = $this->getTableColumns($model);
-        $fields     = (array)$fields;
-
-        // 分组，如果是relation的查询条件，需要放在前面build
-        $relation_condition = $model_condition = [];
-        foreach ($conditions as $field => $value) {
-            list($relation_name, $relation_key) = array_pad(explode('.', $field, 2), 2, null);
-            if ($relation_name && $relation_key) {
-                $relation_condition[$field] = $value;
-            } else {
-                $model_condition[$field] = $value;
-            }
-        }
-
-        // 存在关联查询，自己查询字段中，需要加入主键查询
-        $primary = null;
-        // 首先设置relation查询，不能放在后面执行
-        if ($relations = $this->getRelations($model, $fields, $relation_condition)) {
-            $primary = $model->getKeyName();
-            $model = $model->with($relations);
-        }
-
-        // 判断是否有关联模型的统计操作
-        $model = $this->addRelationCountSelect($model, $fields, $relation_condition);
-        unset($relations, $relation_name, $relation_filters);
-
-        $model = $this->select($model, $fields, $table, $columns, $primary);
-        return $this->handleConditionQuery($model_condition, $model, $table, $columns);
     }
 
     /**
@@ -889,11 +863,11 @@ abstract class Repository
     /**
      * 查询字段信息
      *
-     * @param mixed|model $query       查询对象
-     * @param array       $fields      查询的字段
-     * @param string      $table       表名称
-     * @param array       $columns     表字段信息
-     * @param string      $relationKey 关联表主键
+     * @param mixed|model          $query        查询对象
+     * @param array                $fields       查询的字段
+     * @param string               $table        表名称
+     * @param array                $columns      表字段信息
+     * @param string|boolean|array $relation_key 关联表主键
      *
      * @return mixed
      */
