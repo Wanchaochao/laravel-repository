@@ -136,20 +136,44 @@ class ModelCommand extends CoreCommand
 
     public function getRenderHtml()
     {
-
         return <<<html
 <?php
 
 namespace App\Models{namespace};
 
-{use_base}
+use Illuminate\Database\Eloquent\Model;
 
 class {class_name} extends Model
 {
-    protected \$table      = '{table}';
+    /**
+     * 定义表名称
+     *
+     * @var string
+     */
+    protected \$table = '{table}';
+    
+    /**
+     * 定义主键
+     *
+     * @var string
+     */
     protected \$primaryKey = '{primaryKey}';
+    
     {connection}
-    public    \$columns    = {columns};
+    
+    /**
+     * 定义表字段信息
+     *
+     * @var array
+     */
+    public \$columns = {columns};
+    
+    /**
+     * 不可被批量赋值的属性。
+     *
+     * @var array
+     */
+    protected \$guarded = ['{primaryKey}'];
 }
 html;
     }

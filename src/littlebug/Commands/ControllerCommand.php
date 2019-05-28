@@ -161,9 +161,9 @@ class {class_name} extends Controller
      */
     public function indexAction()
     {
-        \$filters = Helper::filter_array(request()->all());
+        \$filters = Helper::filterArray(request()->all());
         \$filters['order'] = '{primary_key} desc';
-        \$list = \$this->{repository_name}->getList(\$filters);
+        \$list = \$this->{repository_name}->lists(\$filters);
         return view('{view}.index', compact('list', 'filters'));
     }
     
