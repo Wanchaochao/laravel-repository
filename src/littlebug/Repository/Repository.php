@@ -94,14 +94,15 @@ abstract class Repository
      */
     final public function create($data)
     {
-        if (!is_array($data) || !$data) {
-            return $this->error('操作失败');
+        // 不能是空数组
+        if (empty($data) || !is_array($data)) {
+            return $this->error('创建失败');
         }
 
         try {
-
+            // 创建数据
             if (!$model = $this->model->create($data)) {
-                return $this->error('操作失败');
+                return $this->error('创建失败');
             }
 
             return $this->success($model->toArray());
@@ -113,49 +114,35 @@ abstract class Repository
     /**
      * 修改数据
      *
-     * @param array|mixed $update_condition 修改的查询条件
-     * @param array       $update_data      修改的数据
+     * @param array|mixed $conditions 修改的查询条件
+     * @param array       $data       修改的数据
      *
      * @return array
      */
-    final public function update($update_condition, $update_data)
+    final public function update($conditions, $data)
     {
         // 根据pk更新单条记录
-        if (is_scalar($update_condition) && preg_match('/^\d+$/', $update_condition)) {
-            $update_condition = [$this->model->getKeyName() => $update_condition];
+        $conditions = $this->getPrimaryKeyCondition($conditions);
+        if (empty($conditions)) {
+            return $this->error('未指定修改条件');
         }
 
-        // 过滤非法字段，禁止更新PK
+        // 过滤非法字段，禁止更新主键
         $columns = $this->getTableColumns();
-        Arr::pull($update_data, $this->model->getKeyName());
-        foreach ($update_data as $k => $v) {
+        Arr::pull($data, $this->model->getKeyName());
+        foreach ($data as $k => $v) {
             if (!isset($columns[$k])) {
-                unset($update_data[$k]);
+                unset($data[$k]);
             }
         }
 
         // 空值判断
-        if (empty($update_data)) {
-            return $this->error('未指定要更新的字段信息');
-        }
-
-        // 只能单表查询
-        if (is_array($update_condition) && $update_condition) {
-            foreach ($update_condition as $k => $v) {
-                if (!isset($columns[$k])) {
-                    unset($update_condition[$k]);
-                }
-            }
-        }
-
-        if (!$update_condition) {
-            return $this->error('未指定当前更新的条件');
+        if (empty($data)) {
+            return $this->error('未指定更新字段');
         }
 
         try {
-            /* @var $model mixed */
-            $model = $this->model->newInstance();
-            $rows  = $model->where($update_condition)->update($model->fill($update_data)->getAttributes());
+            $rows = $this->findCondition($conditions)->update($data);
             return $this->success($rows, '更新成功');
         } catch (Exception $e) {
             return $this->error($this->getError($e));
@@ -171,16 +158,15 @@ abstract class Repository
      */
     final public function delete($conditions)
     {
-        // id 转换
-        if (is_scalar($$conditions) && preg_match('/^\d+$/', $conditions)) {
-            $filters = [$this->model->getKeyName() => $conditions];
-        } else {
-            $filters = $conditions;
+        // 查询条件处理
+        $conditions = $this->getPrimaryKeyCondition($conditions);
+        if (empty($conditions)) {
+            return $this->error('未指定删除条件');
         }
 
         try {
-            $affected_rows = $this->model->where($filters)->delete();
-            return $this->success($affected_rows, '操作成功');
+            $affected_rows = $this->findCondition($conditions)->delete();
+            return $this->success($affected_rows, '删除成功');
         } catch (Exception $e) {
             return $this->error($this->getError($e));
         }
@@ -316,23 +302,30 @@ abstract class Repository
      *
      * @param array $conditions 查询条件
      * @param array $fields     查询字段
-     * @param int   $page_size  每页数据数
-     * @param int   $cur_page   当前页
+     * @param int   $size  每页数据数
+     * @param int   $current   当前页
      *
      * @return mixed
      */
-    public function lists($conditions = [], $fields = [], $page_size = 10, $cur_page = null)
+    public function lists($conditions = [], $fields = [], $size = 10, $current = null)
     {
         $model = $this->findCondition($conditions, $fields);
         if ($this->paginateStyle == 'simple') {
-            $paginate = $model->simplePaginate($page_size, ['*'], 'page', $cur_page);
+            $paginate = $model->simplePaginate($size, ['*'], 'page', $current);
         } else {
-            $paginate = $model->paginate($page_size, ['*'], 'page', $cur_page);
+            $paginate = $model->paginate($size, ['*'], 'page', $current);
         }
 
         /* @var $paginate Paginator */
+        $items = $paginate->items();
+        foreach ($items as &$value) {
+            /* @var $value Model   */
+            $value = $value->toArray();
+        }
+        unset($value);
+
         return [
-            'items' => $paginate->items(),
+            'items' => $items,
             'pager' => $paginate,
         ];
     }
@@ -379,24 +372,30 @@ abstract class Repository
     /**
      * 获取主键查询条件
      *
-     * @param $condition
+     * @param mixed|array $conditions 查询的条件
      *
      * @return array
      */
-    public function getPrimaryKeyCondition($condition)
+    public function getPrimaryKeyCondition($conditions)
     {
-        // 标量(数字、字符、布尔值)查询, 或者不是关联数组 通过处理主键查询
-        if (is_scalar($condition) || (!Helper::isAssociative($condition) && is_array($condition))) {
-            if ($this->model->getKeyType() == 'int' && is_numeric($condition)) {
-                $condition = intval($condition);
-            }
-
-            $condition = [
-                $this->model->getKeyName() => is_array($condition) ? array_values($condition) : $condition,
-            ];
+        // 没有查询条件
+        if (empty($conditions)) {
+            return $conditions;
         }
 
-        return (array)$condition;
+        // 标量(数字、字符、布尔值)查询, 处理为主键查询
+        if (is_scalar($conditions)) {
+            if ($this->model->getKeyType() == 'int') {
+                $conditions = intval($conditions);
+            }
+
+            return [$this->model->getKeyName() => $conditions];
+        } elseif (is_array($conditions) && !Helper::isAssociative($conditions)) {
+            // 或者不是关联数组查询，也处理为主键查询
+            return [$this->model->getKeyName() => array_values($conditions)];
+        }
+
+        return (array)$conditions;
     }
 
     /**
@@ -959,7 +958,7 @@ abstract class Repository
     /**
      * 获取查询单个字段数据信息
      *
-     * @param $field
+     * @param string $field 查询的字段 （支持 parent.name ）
      *
      * @return array
      */
