@@ -886,6 +886,10 @@ abstract class Repository
         $select     = [];
         $use_select = true;
         foreach ($fields as $i => $field) {
+            if ($field == '*') {
+                continue;
+            }
+
             if (is_int($i) && is_string($field)) {
                 $select[] = isset($columns[$field]) ? $table . '.' . $field : $field;
                 if (substr($field, -6) === '_count') {
