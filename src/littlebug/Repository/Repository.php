@@ -165,17 +165,17 @@ abstract class Repository
     /**
      * 删除数据
      *
-     * @param mixed|array $id_or_array 删除的条件
+     * @param mixed|array $conditions 删除的条件
      *
      * @return array
      */
-    final public function delete($id_or_array)
+    final public function delete($conditions)
     {
         // id 转换
-        if (is_scalar($id_or_array) && preg_match('/^\d+$/', $id_or_array)) {
-            $filters = [$this->model->getKeyName() => $id_or_array];
+        if (is_scalar($$conditions) && preg_match('/^\d+$/', $conditions)) {
+            $filters = [$this->model->getKeyName() => $conditions];
         } else {
-            $filters = $id_or_array;
+            $filters = $conditions;
         }
 
         try {
@@ -189,15 +189,15 @@ abstract class Repository
     /**
      * 查询一条数据
      *
-     * @param array|mixed $filters 查询条件
-     * @param array       $fields  查询字段
+     * @param array|mixed $conditions 查询条件
+     * @param array       $fields     查询字段
      *
      * @return mixed
      */
-    public function one($filters, $fields = [])
+    public function find($conditions, $fields = [])
     {
         /* @var $item Model|object|static|null */
-        if ($item = $this->findCondition($filters, $fields)->first()) {
+        if ($item = $this->findCondition($conditions, $fields)->first()) {
             return $item->toArray();
         }
 
@@ -208,33 +208,46 @@ abstract class Repository
      *
      * 获取一条记录的单个字段结果
      *
-     * @param mixed|array $filters 查询条件
-     * @param string      $field   获取的字段
+     * @param mixed|array $conditions 查询条件
+     * @param string      $field      获取的字段
      *
      * @return bool|mixed
      */
-    public function findBy($filters, $field)
+    public function findBy($conditions, $field)
     {
         // 如果误传数组的话 取数组第一个值
         $field = $this->firstKey($field);
-        $item  = $this->one($filters, $this->firstField($field));
+        $item  = $this->find($conditions, $this->firstField($field));
         return Arr::get($item, $field, false);
+    }
+
+    /**
+     * 查询所有记录
+     *
+     * @param array|mixed $conditions 查询条件
+     * @param array       $fields     查询字段
+     *
+     * @return array
+     */
+    public function all($conditions, $fields = [])
+    {
+        return $this->findCondition($conditions, $fields)->get()->toArray();
     }
 
     /**
      *
      * 获取结果集里的单个字段所有值的数组
      *
-     * @param mixed|array $filters 查询条件
-     * @param string      $field   获取的字段
+     * @param mixed|array $conditions 查询条件
+     * @param string      $field      获取的字段
      *
      * @return array
      */
-    public function findAllBy($filters, $field)
+    public function findAllBy($conditions, $field)
     {
         // 如果误传数组的话 取数组第一个值
         $field = $this->firstKey($field);
-        if (!$data = $this->all($filters, $this->firstField($field))) {
+        if (!$data = $this->all($conditions, $this->firstField($field))) {
             return [];
         }
 
@@ -249,41 +262,40 @@ abstract class Repository
     /**
      * 查询所有记录
      *
-     * @param array|mixed $filters 查询条件
-     * @param array       $fields  查询字段
+     * @param array|mixed $conditions 查询条件
+     * @param array       $fields     查询字段
      *
      * @return array
      */
-    public function all($filters, $fields = [])
+    public function findAll($conditions, $fields = [])
     {
-        return $this->findCondition($filters, $fields)->get()->toArray();
+        return $this->all($conditions, $fields);
     }
 
     /**
-     * 查询所有记录
+     * 过滤查询中的空值查询一条数据
      *
-     * @param array|mixed $filters 查询条件
-     * @param array       $fields  查询字段
+     * @param array|int|string $conditions 查询条件
+     * @param array            $fields     查询的字段
      *
-     * @return array
+     * @return mixed
      */
-    public function findAll($filters, $fields = [])
+    public function filterFind($conditions, $fields = [])
     {
-        return $this->all($filters, $fields);
+        return $this->find($this->filterCondition($conditions), $fields);
     }
-
 
     /**
      * 过滤查询中的空值 查询所有记录
      *
-     * @param array|mixed $filters 查询条件
-     * @param array       $fields  查询字段
+     * @param array|mixed $conditions 查询条件
+     * @param array       $fields     查询字段
      *
      * @return array
      */
-    public function filterFindAll($filters, $fields = [])
+    public function filterFindAll($conditions, $fields = [])
     {
-        return $this->all($this->filterCondition($filters), $fields);
+        return $this->all($this->filterCondition($conditions), $fields);
     }
 
     /**
@@ -300,18 +312,18 @@ abstract class Repository
     }
 
     /**
-     * 获取列表
+     * 获取分页列表
      *
-     * @param array $filters
-     * @param int   $page_size
-     * @param array $fields
-     * @param int   $cur_page
+     * @param array $conditions 查询条件
+     * @param array $fields     查询字段
+     * @param int   $page_size  每页数据数
+     * @param int   $cur_page   当前页
      *
      * @return mixed
      */
-    public function lists($filters = [], $fields = [], $page_size = 10, $cur_page = null)
+    public function lists($conditions = [], $fields = [], $page_size = 10, $cur_page = null)
     {
-        $model = $this->findCondition($filters, $fields);
+        $model = $this->findCondition($conditions, $fields);
         if ($this->paginateStyle == 'simple') {
             $paginate = $model->simplePaginate($page_size, ['*'], 'page', $cur_page);
         } else {
@@ -325,7 +337,7 @@ abstract class Repository
         ];
     }
 
-    /****
+    /**
      *
      * 返回查询条件编译后的sql语句
      *
@@ -338,7 +350,7 @@ abstract class Repository
         return $this->findCondition($filters)->toSql();
     }
 
-    /***
+    /**
      *
      * 获取统计信息
      *
@@ -387,7 +399,7 @@ abstract class Repository
         return (array)$condition;
     }
 
-    /****
+    /**
      *
      * 获取表格字段，并转换为KV格式
      *
