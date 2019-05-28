@@ -59,16 +59,16 @@ class RequestCommand extends CoreCommand
 
         // 查询表结构
         $structure = $this->findTableStructure($table);
-        list($rules, $primary_key) = $this->rules($structure, $table);
+        list($rules, $primary_key, $columns) = $this->rules($structure, $table);
         $file_name = $this->getPath('UpdateRequest.php');
         list($this->namespace) = $this->getNamespaceAndClassName($file_name, 'Requests');
 
         // 编辑
-        $this->renderRequest('UpdateRequest.php', $this->getRules($rules));
+        $this->renderRequest('UpdateRequest.php', $this->getRules($rules), $this->getRules($columns));
         $id_rules = Arr::pull($rules, $primary_key);
         // 删除和新增验证
-        $this->renderRequest('DestroyRequest.php', "['{$primary_key}' => '{$id_rules}']");
-        $this->renderRequest('StoreRequest.php', $this->getRules($rules));
+        $this->renderRequest('DestroyRequest.php', "['{$primary_key}' => '{$id_rules}']", "['{$primary_key}' => '主键信息']");
+        $this->renderRequest('StoreRequest.php', $this->getRules($rules), $this->getRules($columns));
     }
 
     /**
@@ -91,15 +91,16 @@ class RequestCommand extends CoreCommand
     /**
      * 渲染Request
      *
-     * @param string $class_file 类文件名称
-     * @param string $rules      规则
+     * @param string $file    类文件名称
+     * @param string $rules   规则
+     * @param string $columns 字段说明信息
      */
-    private function renderRequest($class_file, $rules)
+    private function renderRequest($file, $rules, $columns)
     {
-        $file_name  = $this->getPath($class_file);
-        $class_name = str_replace('.php', '', $class_file);
+        $file_name  = $this->getPath($file);
+        $class_name = str_replace('.php', '', $file);
         $namespace  = $this->namespace;
-        $this->render($file_name, compact('namespace', 'rules', 'class_name'));
+        $this->render($file_name, compact('namespace', 'rules', 'class_name', 'columns'));
     }
 
     /**
@@ -112,7 +113,7 @@ class RequestCommand extends CoreCommand
      */
     private function rules($array, $table)
     {
-        $rules       = [];
+        $rules       = $columns = [];
         $primary_key = null;
         foreach ($array as $row) {
             $field = Arr::get($row, 'Field');
@@ -147,10 +148,11 @@ class RequestCommand extends CoreCommand
                 $primary_key = $field;
             }
 
-            $rules[$field] = implode('|', $tmp_rules);
+            $rules[$field]   = implode('|', $tmp_rules);
+            $columns[$field] = Arr::get($row, 'Comment');
         }
 
-        return [$rules, $primary_key];
+        return [$rules, $primary_key, $columns];
     }
 
     /**
@@ -174,9 +176,24 @@ class {class_name} extends Request
         return true;
     }
     
+    /**
+     * 定义规则信息
+     *
+     * @return array
+     */
     public function rules()
     {
         return {rules};
+    }
+    
+    /**
+     * 定义字段对应的名称
+     *
+     * @return array
+     */
+    public function attributes()
+    {
+        return {columns};
     }
 }
 html;
