@@ -253,7 +253,7 @@ abstract class Repository
      *
      * @return array
      */
-    public function findAll($conditions, $fields = [])
+    public function findAll($conditions = [], $fields = [])
     {
         return $this->all($conditions, $fields);
     }
