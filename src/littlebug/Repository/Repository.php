@@ -506,22 +506,22 @@ abstract class Repository
 
         // 设置了排序
         if ($order_by = Arr::pull($condition, 'order')) {
-            $this->orderBy($query, $order_by, $table, $columns);
+            $query = $this->orderBy($query, $order_by, $table, $columns);
         }
 
         // 设置了limit
         if ($limit = Arr::pull($condition, 'limit')) {
-            $query->limit(intval($limit));
+            $query = $query->limit(intval($limit));
         }
 
         // 设置了offset
         if ($offset = Arr::pull($condition, 'offset')) {
-            $query->offset(intval($offset));
+            $query = $query->offset(intval($offset));
         }
 
         // 设置了分组
         if ($groupBy = Arr::pull($condition, 'group')) {
-            $query->groupBy($groupBy);
+            $query = $query->groupBy($groupBy);
         }
 
         // 没有查询条件直接退出
@@ -935,7 +935,7 @@ abstract class Repository
                         $table = null;
                     }
 
-                    $query->orderBy($table ? $table . '.' . $k : $k, $v ?: 'desc');
+                    $query = $query->orderBy($table ? $table . '.' . $k : $k, $v ?: 'desc');
                 }
             }
         }
