@@ -557,14 +557,14 @@ abstract class Repository
 
             // 字段直接查询 field1 => value1
             if (isset($columns[$column])) {
-                $this->handleFieldQuery($query, $table . '.' . $column, $bind_value, $or);
+                $query = $this->handleFieldQuery($query, $table . '.' . $column, $bind_value, $or);
                 continue;
             }
 
             // 表达式查询 field1:neq => value1
             list($field, $expression) = array_pad(explode(':', $column, 2), 2, null);
             if ($field && $expression) {
-                $this->handleExpressionConditionQuery($query, [$table . '.' . $field, $expression, $bind_value], $or);
+                $query = $this->handleExpressionConditionQuery($query, [$table . '.' . $field, $expression, $bind_value], $or);
                 continue;
             }
 
@@ -577,7 +577,7 @@ abstract class Repository
                 }
 
                 if ($strMethod) {
-                    $query->{$strMethod}($query, $bind_value);
+                    $query = $query->{$strMethod}($query, $bind_value);
                 }
 
                 continue;
@@ -585,11 +585,11 @@ abstract class Repository
 
             // scope 自定义查询
             try {
-                $query->{$column}($bind_value);
+                $query = $query->{$column}($bind_value);
             } catch (Exception $e) {
                 try {
                     $column = ucfirst(Str::camel($column));
-                    $query->{$column}($bind_value);
+                    $query = $query->{$column}($bind_value);
                 } catch (Exception $e) {
                 }
             }
@@ -779,11 +779,11 @@ abstract class Repository
 
             // 判断是否有关联模型的统计操作
             if ($relation_fields) {
-                $this->addRelationCountSelect($query, $relation_fields, $relation_filters);
+                $query = $this->addRelationCountSelect($query, $relation_fields, $relation_filters);
             }
 
-            $this->select($query, $relation_fields, $table, $columns, $model->getKeyName());
-            $this->handleConditionQuery($relation_filters, $query, $table, $columns);
+            $query = $this->select($query, $relation_fields, $table, $columns, $model->getKeyName());
+            return $this->handleConditionQuery($relation_filters, $query, $table, $columns);
         };
     }
 
