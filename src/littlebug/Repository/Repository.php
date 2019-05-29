@@ -302,8 +302,8 @@ abstract class Repository
      *
      * @param array $conditions 查询条件
      * @param array $fields     查询字段
-     * @param int   $size  每页数据数
-     * @param int   $current   当前页
+     * @param int   $size       每页数据数
+     * @param int   $current    当前页
      *
      * @return mixed
      */
@@ -319,7 +319,7 @@ abstract class Repository
         /* @var $paginate Paginator */
         $items = $paginate->items();
         foreach ($items as &$value) {
-            /* @var $value Model   */
+            /* @var $value Model */
             $value = $value->toArray();
         }
         unset($value);
@@ -970,7 +970,7 @@ abstract class Repository
     {
         $index = strpos($field, '.');
         if ($index === false) {
-            return $field;
+            return [$field];
         }
 
         $field_name  = substr($field, 0, $index);
