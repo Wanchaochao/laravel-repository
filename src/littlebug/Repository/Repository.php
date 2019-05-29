@@ -618,7 +618,7 @@ abstract class Repository
             } else {
                 $strMethod = $or ? 'orWhere' : 'where';
                 if (in_array($expression, ['LIKE', 'NOT LIKE'])) {
-                    $value = '%' . (string)$value . '%';
+                    $value = (string)$value;
                 }
 
                 $query->{$strMethod}($column, $expression, $value);
