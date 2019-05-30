@@ -66,6 +66,8 @@ class RequestCommand extends CoreCommand
         // 编辑
         $this->renderRequest('UpdateRequest.php', $this->getRules($rules), $this->getRules($columns));
         $id_rules = Arr::pull($rules, $primary_key);
+        Arr::pull($columns, $primary_key);
+        
         // 删除和新增验证
         $this->renderRequest('DestroyRequest.php', "['{$primary_key}' => '{$id_rules}']", "['{$primary_key}' => '主键信息']");
         $this->renderRequest('StoreRequest.php', $this->getRules($rules), $this->getRules($columns));
