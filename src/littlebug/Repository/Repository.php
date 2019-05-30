@@ -410,13 +410,13 @@ abstract class Repository
      */
     public function getTableColumns($model = '')
     {
-        $model    = $model && is_object($model) ? $model : $this->model;
-        $_columns = [];
+        $model   = $model && is_object($model) ? $model : $this->model;
+        $columns = [];
         foreach ($model->columns as $column) {
-            $_columns[$column] = $column;
+            $columns[$column] = $column;
         }
 
-        return $_columns;
+        return $columns;
     }
 
     /**
@@ -543,30 +543,24 @@ abstract class Repository
             return $this->select($model, $selectColumns);
         }
 
+        // 处理数据
         $notSelectAll = !in_array('*', $selectColumns) && !empty($selectColumns);
         $with         = $withCount = [];
+        $findModel    = $model->getModel();
+
+        // 开始解析关联关系
         foreach ($relations as $relation => $value) {
             // 判断relations 是否真的存在
-            if (method_exists($model, $relation)) {
-                /* @var $relationModel HasOne|HasMany */
-                $relationModel = $model->getModel()->$relation();
+            if (method_exists($findModel, $relation)) {
 
                 // 防止关联查询，主键没有添加上去
                 if ($notSelectAll) {
-                    $localKey = $relationModel->getQualifiedParentKeyName();
+                    $localKey = $findModel->$relation()->getQualifiedParentKeyName();
                     if (!in_array($localKey, $selectColumns)) {
                         array_push($selectColumns, $localKey);
                     }
                 }
-
-                // 防止本地键没有加进入主键信息
-                if (!empty($value['columns']) && !in_array('*', $value['columns'])) {
-                    $foreignKey = $relationModel->getQualifiedForeignKeyName();
-                    if (!in_array($foreignKey, $value['columns'])) {
-                        array_push($value['columns'], $foreignKey);
-                    }
-                }
-
+                
                 // 获取默认查询条件
                 $defaultConditions   = $this->getRelationDefaultFilters($model, $relation);
                 $value['conditions'] = array_merge($defaultConditions, Arr::get($value, 'conditions', []));
@@ -614,7 +608,9 @@ abstract class Repository
         // 查询条件为
         $conditions = $this->getPrimaryKeyCondition($conditions);
         $model      = $this->model->newModelInstance();
-        return $this->findConditionModel($model, $conditions, $fields);
+        $table      = $model->getTable();
+        $columns    = $this->getTableColumns($model);
+        return $this->findConditionModel($model, $conditions, $fields, $table, $columns);
     }
 
     /**
@@ -625,11 +621,9 @@ abstract class Repository
      *
      * @return mixed
      */
-    protected function findConditionModel($model, $conditions, $fields)
+    protected function findConditionModel($model, $conditions, $fields, $table, $columns)
     {
-        $table   = $model->getTable();
-        $columns = $this->getTableColumns($model);
-        $fields  = (array)$fields;
+        $fields = (array)$fields;
 
         // 解析出查询条件和查询字段中的关联信息
         list($conditionRelations, $findConditions) = $this->parseConditionRelations($conditions);
@@ -638,7 +632,6 @@ abstract class Repository
         // 处理关联信息查询
         $relations = $this->getRelations($conditionRelations, $fieldRelations);
         $model     = $this->getRelationModel($model, $relations, $selectColumns);
-
         return $this->handleConditionQuery($findConditions, $model, $table, $columns);
     }
 
@@ -872,8 +865,17 @@ abstract class Repository
             // 获取relation的表字段
             /* @var $model Model */
             /* @var $query Relation */
-            $model = $query->getRelated();
-            return $this->findConditionModel($model, Arr::get($relations, 'conditions'), Arr::get($relations, 'columns'));
+            $model   = $query->getRelated();
+            $table   = $model->getTable();
+            $columns = $this->getTableColumns($model);
+
+            return $this->findConditionModel(
+                $query,
+                Arr::get($relations, 'conditions'),
+                Arr::get($relations, 'columns'),
+                $table,
+                $columns
+            );
         };
     }
 
