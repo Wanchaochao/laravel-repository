@@ -16,6 +16,7 @@ use ReflectionClass;
 use Closure;
 use Littlebug\Helpers\Helper;
 use \Illuminate\Database\Eloquent\Relations\Relation;
+use \Illuminate\Database\Query\Expression;
 
 /**
  * This is the abstract repository class.
@@ -419,6 +420,186 @@ abstract class Repository
     }
 
     /**
+     * 解析查询条件中的关联关系
+     *
+     * @param array $conditions 查询条件
+     *
+     * @return array
+     */
+    private function parseConditionRelations($conditions)
+    {
+        // 分组，如果是relation的查询条件，需要放在前面build
+        $relations = $findConditions = [];
+        if (empty($conditions)) {
+            return [$relations, $findConditions];
+        }
+
+        // 解析查询条件
+        foreach ($conditions as $field => $value) {
+            // 第一步：检查关联查询
+            $index = strpos($field, '.');
+            if ($index === false) {
+                $findConditions[$field] = $value;
+            } else {
+                // 处理关联名称
+                $relationName = substr($field, 0, $index);
+                $fieldName    = substr($field, $index + 1);
+                $relationName = Str::camel($relationName);
+                if (!isset($relations[$relationName])) {
+                    $relations[$relationName] = [];
+                }
+
+                $relations[$relationName][$fieldName] = $value;
+            }
+        }
+
+        return [$relations, $findConditions];
+    }
+
+    /**
+     * 解析查询字段中的关联关系
+     *
+     * @param array  $fields       查询的字段信息
+     * @param string $table        查询的表
+     * @param array  $tableColumns 表中存在的字段信息
+     *
+     * @return array
+     */
+    private function parseFieldRelations($fields, $table, $tableColumns)
+    {
+        $relations = $columns = [];
+        if (empty($fields)) {
+            return [$relations, $columns];
+        }
+
+        // 解析查询字段信息
+        foreach ($fields as $k => $field) {
+            if (is_int($k) && is_string($field)) { // 第一步，判断字段是否为字符串
+                // 判断是否存在表中
+                if (isset($tableColumns[$field])) {
+                    $columns[] = $table . '.' . $field;
+                } elseif (Str::endsWith($field, '_count')) {
+                    $relationName = Str::replaceLast('_count', '', $field);
+                    if (!isset($relations[$relationName])) {
+                        $relations[$relationName] = ['withCount' => true, 'columns' => [], 'with' => false];
+                    }
+
+                    $relations[$relationName]['withCount'] = true;
+                } else {
+                    $columns[] = $field;
+                }
+            } elseif (!is_int($k) && is_string($k)) { // 如果是key => value 格式 那么认为是 关联查询
+                $relationName = Str::camel($k);
+                if (!isset($relations[$relationName])) {
+                    $relations[$relationName] = ['withCount' => false, 'columns' => [], 'with' => true];
+                }
+
+                $relations[$relationName]['columns'] = $field;
+            } elseif ($field instanceof Expression) { // 表达式查询字段
+                $columns[] = $field;
+            }
+        }
+
+        return [$relations, $columns];
+    }
+
+    /**
+     * 获取关系信息
+     *
+     * @param array $conditionRelations 有查询条件的关联信息
+     * @param array $fieldRelations     有字段查询关联信息
+     *
+     * @return array
+     */
+    private function getRelations(array $conditionRelations, array $fieldRelations)
+    {
+        $relations = [];
+        foreach ($conditionRelations as $relationName => $conditions) {
+            $relations[$relationName] = ['conditions' => $conditions, 'with' => true];
+        }
+
+        foreach ($fieldRelations as $relationName => $relation) {
+            $relations[$relationName] = array_merge($relation, Arr::get($relations, $relationName, []));
+        }
+
+        return $relations;
+    }
+
+    /**
+     * 获取处理查询关联的 model
+     *
+     * @param Model|Builder $model         查询的model
+     * @param array         $relations     关联数据信息
+     * @param array         $selectColumns 查询字段信息
+     *
+     * @return Builder|Model
+     */
+    private function getRelationModel($model, $relations, $selectColumns)
+    {
+        // 没有关联信息
+        if (empty($relations)) {
+            return $model->select($selectColumns);
+        }
+
+        $notSelectAll = !in_array('*', $selectColumns) && !empty($selectColumns);
+        $with         = $withCount = [];
+        foreach ($relations as $relation => $value) {
+            // 判断relations 是否真的存在
+            if (method_exists($model, $relation)) {
+                /* @var $relationModel HasOne|HasMany */
+                $relationModel = $model->getModel()->$relation();
+
+                // 防止关联查询，主键没有添加上去
+                if ($notSelectAll) {
+                    $localKey = $relationModel->getQualifiedParentKeyName();
+                    if (!in_array($localKey, $selectColumns)) {
+                        array_push($selectColumns, $localKey);
+                    }
+                }
+
+                // 防止本地键没有加进入主键信息
+                if (!empty($value['columns']) && !in_array('*', $value['columns'])) {
+                    $foreignKey = $relationModel->getQualifiedForeignKeyName();
+                    if (!in_array($foreignKey, $value['columns'])) {
+                        array_push($value['columns'], $foreignKey);
+                    }
+                }
+
+                // 获取默认查询条件
+                $defaultConditions   = $this->getRelationDefaultFilters($model, $relation);
+                $value['conditions'] = array_merge($defaultConditions, Arr::get($value, 'conditions', []));
+                if ($value['with']) {
+                    $with[$relation] = $this->buildRelation($value);
+                }
+
+                if ($value['withCount']) {
+                    $withCount[$relation] = function ($query) use ($value) {
+                        /* @var $query Builder */
+                        $queryModel = $query->getModel();
+                        return $this->handleConditionQuery(
+                            $value['conditions'],
+                            $query,
+                            $queryModel->getTable(),
+                            $this->getTableColumns($queryModel)
+                        );
+                    };
+                }
+            }
+        }
+
+        if ($with) {
+            $model = $model->with($with);
+        }
+
+        if ($withCount) {
+            $selectColumns = [];
+            $model         = $model->withCount($withCount);
+        }
+
+        return $model->select($selectColumns);
+    }
+
+    /**
      * 设置model 的查询信息
      *
      * @param array $conditions 查询条件
@@ -431,123 +612,32 @@ abstract class Repository
         // 查询条件为
         $conditions = $this->getPrimaryKeyCondition($conditions);
         $model      = $this->model->newModelInstance();
-        $table      = $this->model->getTable();
-        $columns    = $this->getTableColumns($model);
-        $fields     = (array)$fields;
+        return $this->findModel($model, $conditions, $fields);
+    }
 
-        // 分组，如果是relation的查询条件，需要放在前面build
-        $relations = [];
-        foreach ($conditions as $field => $value) {
-            // 第一步：检查关联查询
-            $index = strpos($field, '.');
-            if ($index !== false) {
-                // 处理关联名称
-                $name       = substr($field, 0, $index);
-                $field_name = substr($field, $index + 1);
-                $name       = Str::camel($name);
+    /**
+     *
+     * @param Model $model
+     * @param array $conditions
+     * @param array $fields
+     *
+     * @return mixed
+     */
+    protected function findModel($model, $conditions, $fields)
+    {
+        $table   = $model->getTable();
+        $columns = $this->getTableColumns($model);
+        $fields  = (array)$fields;
 
-                // 不存在，需要定义
-                if (!isset($relations[$name])) {
-                    $relations[$name] = [
-                        'conditions' => [],
-                        'fields'     => [],
-                        'with'       => true,
-                        'withCount'  => false,
-                    ];
-                }
+        // 解析出查询条件和查询字段中的关联信息
+        list($conditionRelations, $findConditions) = $this->parseConditionRelations($conditions);
+        list($fieldRelations, $selectColumns) = $this->parseFieldRelations($fields, $table, $columns);
 
-                $relations[$name]['conditions'][$field_name] = $value;
-                unset($conditions[$field]);
-            }
-        }
+        // 处理关联信息查询
+        $relations = $this->getRelations($conditionRelations, $fieldRelations);
+        $model     = $this->getRelationModel($model, $relations, $selectColumns);
 
-        // 处理字段信息
-        $select = [];
-        foreach ($fields as $k => $field) {
-            if (!is_int($k)) {
-                $name = Str::camel($k);
-                if (!isset($relations[$name])) {
-                    $relations[$name] = [
-                        'conditions' => [],
-                        'fields'     => [],
-                        'with'       => true,
-                        'withCount'  => false,
-                    ];
-                }
-
-                $relations[$name]['fields'] = $field;
-                $relations[$name]['with']   = true;
-                unset($fields[$k]);
-            } elseif (is_string($field) && Str::endsWith($field, '_count')) {
-                $name = Str::replaceLast('_count', '', $field);
-                $name = Str::camel($name);
-                if (!isset($relations[$name])) {
-                    $relations[$name] = [
-                        'conditions' => [],
-                        'fields'     => [],
-                        'with'       => false,
-                        'withCount'  => true,
-                    ];
-                }
-
-                $relations[$name]['withCount'] = true;
-                unset($fields[$k]);
-            } else {
-                $select[] = isset($columns[$field]) ? $table . '.' . $field : $field;
-            }
-        }
-
-        // 关联信息已经全部出来
-        if ($relations) {
-            $not_select_all = !in_array('*', $select) && !empty($select);
-            $with           = $with_count = [];
-            foreach ($relations as $relation => $value) {
-                // 判断relations 是否真的存在
-                if (method_exists($model, $relation)) {
-                    // 防止关联查询，主键没有添加上去
-                    if ($not_select_all) {
-                        /* @var $relation_model HasOne|HasMany */
-                        /* @var $model Model|Builder */
-                        $localKey = $model->getModel()->$relation()->getQualifiedParentKeyName();
-                        if (!in_array($localKey, $select)) {
-                            array_push($select, $localKey);
-                        }
-                    }
-
-                    // 获取默认查询条件
-                    $default_conditions  = $this->getRelationDefaultFilters($model, $relation);
-                    $value['conditions'] = array_merge($default_conditions, $value['conditions']);
-                    if ($value['with']) {
-                        $with[$relation] = $this->buildRelation($value);
-                    }
-
-                    if ($value['withCount']) {
-                        $with_count[$relation] = function ($query) use ($value) {
-                            /* @var $query Builder */
-                            $queryModel = $query->getModel();
-                            return $this->handleConditionQuery(
-                                $value['conditions'],
-                                $query,
-                                $queryModel->getTable(),
-                                $this->getTableColumns($queryModel)
-                            );
-                        };
-                    }
-                }
-            }
-
-            if ($with) {
-                $model = $model->with($with);
-            }
-
-            if ($with_count) {
-                $select = [];
-                $model  = $model->withCount($with_count);
-            }
-        }
-
-        $model = $this->select($model, $select);
-        return $this->handleConditionQuery($conditions, $model, $table, $columns);
+        return $this->handleConditionQuery($findConditions, $model, $table, $columns);
     }
 
     /**
@@ -740,15 +830,15 @@ abstract class Repository
     /**
      * 获取关联查询的默认查询条件
      *
-     * @param model  $model         查询的model
-     * @param string $relation_name 关联查询字段
+     * @param model  $model        查询的model
+     * @param string $relationName 关联查询字段
      *
      * @return array
      */
-    private function getRelationDefaultFilters($model, $relation_name)
+    private function getRelationDefaultFilters($model, $relationName)
     {
         // 添加relation的默认条件，默认条件数组为 “$relationFilters" 的 public 属性
-        $attribute = $relation_name . 'Filters';
+        $attribute = $relationName . 'Filters';
         if (isset($model->{$attribute}) && is_array($model->{$attribute})) {
             return $model->{$attribute};
         }
@@ -780,14 +870,8 @@ abstract class Repository
             // 获取relation的表字段
             /* @var $model Model */
             /* @var $query Relation */
-            $model   = $query->getRelated();
-            $columns = $this->getTableColumns($model);
-            $table   = $model->getTable();
-
-            $conditions = Arr::get($relations, 'conditions');
-//            $fields     = Arr::get($relations, 'field');
-
-            return $this->handleConditionQuery($conditions, $query, $table, $columns);
+            $model = $query->getRelated();
+            return $this->findModel($model, Arr::get($relations, 'conditions'), Arr::get($relations, 'columns'));
         };
     }
 
