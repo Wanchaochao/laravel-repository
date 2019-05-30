@@ -26,7 +26,7 @@
   "minimum-stability": "dev",
   "autoload": {
     "psr-4": {
-      "Littlebug\\": "src/littlebug"
+      "Littlebug\\": "src"
     }
   },
   "extra": {
