@@ -596,7 +596,7 @@ abstract class Repository
             $model         = $model->withCount($withCount);
         }
 
-        return $model->select($selectColumns);
+        return $this->select($model, $selectColumns);
     }
 
     /**
