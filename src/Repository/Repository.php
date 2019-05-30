@@ -605,9 +605,13 @@ abstract class Repository
 
     /**
      *
-     * @param Model $model
-     * @param array $conditions
-     * @param array $fields
+     * 通过查询条件获取查询model
+     *
+     * @param Model|Builder|Relation $model      查询的model
+     * @param array|mixed            $conditions 查询的条件
+     * @param array                  $fields     查询的字段信息
+     * @param string                 $table      表名称
+     * @param array                  $columns    表字段信息
      *
      * @return mixed
      */
@@ -671,8 +675,8 @@ abstract class Repository
         }
 
         // 设置了排序
-        if ($order_by = Arr::pull($condition, 'order')) {
-            $query = $this->orderBy($query, $order_by, $table, $columns);
+        if ($orderBy = Arr::pull($condition, 'order')) {
+            $query = $this->orderBy($query, $orderBy, $table, $columns);
         }
 
         // 设置了limit
@@ -754,7 +758,7 @@ abstract class Repository
                 $query = $query->{$column}($bindValue);
             } catch (Exception $e) {
                 try {
-                    $column = ucfirst(Str::camel($column));
+                    $column = Str::camel($column);
                     $query  = $query->{$column}($bindValue);
                 } catch (Exception $e) {
                 }
@@ -781,6 +785,9 @@ abstract class Repository
             if (in_array($expression, ['In', 'NotIn', 'Between', 'NotBetween'])) {
                 $strMethod = $or ? 'orWhere' . $expression : 'where' . $expression;
                 $query->{$strMethod}($column, (array)$value);
+            } elseif (in_array($expression, ['Exists', 'NotExists'])) {
+                $strMethod = $or ? 'orWhere' . $expression : 'where' . $expression;
+                $query->{$strMethod}($column, $value);
             } else {
                 $strMethod = $or ? 'orWhere' : 'where';
                 if (in_array($expression, ['LIKE', 'NOT LIKE'])) {
@@ -913,15 +920,15 @@ abstract class Repository
      * 排序查询
      *
      * @param mixed|model $query    查询对象
-     * @param string      $order_by 排序信息
+     * @param string      $orderBy 排序信息
      * @param string      $table    表名称
      * @param array       $columns  表字段信息
      *
      * @return mixed
      */
-    private function orderBy($query, $order_by, $table, $columns)
+    private function orderBy($query, $orderBy, $table, $columns)
     {
-        if ($orders = explode(',', $order_by)) {
+        if ($orders = explode(',', $orderBy)) {
             foreach ($orders as $order) {
                 $order = trim($order);
                 list($k, $v) = array_pad(explode(' ', preg_replace('/\s+/', ' ', $order)), 2, null);
@@ -941,17 +948,17 @@ abstract class Repository
     /**
      * 获取传入的当个字段信息
      *
-     * @param $mixed_value
+     * @param $mixedValue
      *
      * @return string
      */
-    private function firstKey($mixed_value)
+    private function firstKey($mixedValue)
     {
-        if (is_array($mixed_value)) {
-            $mixed_value = Arr::get(array_values($mixed_value), 0);
+        if (is_array($mixedValue)) {
+            $mixedValue = Arr::get(array_values($mixedValue), 0);
         }
 
-        return (string)$mixed_value;
+        return (string)$mixedValue;
     }
 
     /**
