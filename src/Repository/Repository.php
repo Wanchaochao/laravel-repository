@@ -766,17 +766,17 @@ abstract class Repository
         if ($expression = Arr::get($this->expression, strtolower($expression))) {
             if (in_array($expression, ['In', 'NotIn', 'Between', 'NotBetween'])) {
                 $strMethod = $or ? 'orWhere' . $expression : 'where' . $expression;
-                $query->{$strMethod}($column, (array)$value);
+                $query = $query->{$strMethod}($column, (array)$value);
             } elseif (in_array($expression, ['Exists', 'NotExists'])) {
                 $strMethod = $or ? 'orWhere' . $expression : 'where' . $expression;
-                $query->{$strMethod}($column, $value);
+                $query = $query->{$strMethod}($column, $value);
             } else {
                 $strMethod = $or ? 'orWhere' : 'where';
                 if (in_array($expression, ['LIKE', 'NOT LIKE'])) {
                     $value = (string)$value;
                 }
 
-                $query->{$strMethod}($column, $expression, $value);
+                $query = $query->{$strMethod}($column, $expression, $value);
             }
         }
 
