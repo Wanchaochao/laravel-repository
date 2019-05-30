@@ -495,6 +495,8 @@ abstract class Repository
                 }
 
                 $relations[$relationName]['columns'] = $field;
+                $relations[$relationName]['with']    = true;
+
             } elseif ($field instanceof Expression) { // 表达式查询字段
                 $columns[] = $field;
             }
@@ -538,7 +540,7 @@ abstract class Repository
     {
         // 没有关联信息
         if (empty($relations)) {
-            return $model->select($selectColumns);
+            return $this->select($model, $selectColumns);
         }
 
         $notSelectAll = !in_array('*', $selectColumns) && !empty($selectColumns);
@@ -612,7 +614,7 @@ abstract class Repository
         // 查询条件为
         $conditions = $this->getPrimaryKeyCondition($conditions);
         $model      = $this->model->newModelInstance();
-        return $this->findModel($model, $conditions, $fields);
+        return $this->findConditionModel($model, $conditions, $fields);
     }
 
     /**
@@ -623,7 +625,7 @@ abstract class Repository
      *
      * @return mixed
      */
-    protected function findModel($model, $conditions, $fields)
+    protected function findConditionModel($model, $conditions, $fields)
     {
         $table   = $model->getTable();
         $columns = $this->getTableColumns($model);
@@ -871,7 +873,7 @@ abstract class Repository
             /* @var $model Model */
             /* @var $query Relation */
             $model = $query->getRelated();
-            return $this->findModel($model, Arr::get($relations, 'conditions'), Arr::get($relations, 'columns'));
+            return $this->findConditionModel($model, Arr::get($relations, 'conditions'), Arr::get($relations, 'columns'));
         };
     }
 
