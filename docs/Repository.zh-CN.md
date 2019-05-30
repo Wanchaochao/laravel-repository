@@ -60,12 +60,18 @@ protected $expression = [
 ];
 
 // 你可以像下面这样使用表达式:
+
 # 查询大于10的账号
-$this->repository->find(['id:gt' => 10]);
+$this->repository->findAll(['id:gt' => 10]);
+
 # 查询不等于10的账号
-$this->repository->find(['id:neq' => 10]);
+$this->repository->findAll(['id:neq' => 10]);
+
 # 查询id是1,2,3,4,5的这些数据
-$this->repository->find(['id:in' => [1,2,3,4,5]);
+$this->repository->findAll(['id:in' => [1, 2, 3, 4, 5]);
+// or
+$this->repository->findAll([1, 2, 3, 4, 5])
+
 # 查询创建时间在2018年的数据
 $this->repository->findAll(['created_at:between' => 
     [
