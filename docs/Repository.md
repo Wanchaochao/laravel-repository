@@ -69,17 +69,21 @@ protected $expression = [
 ];
 
 // you can use the expression like this:
-$this->repository->find(['id:gt' => 10]);
-$this->repository->find(['id:neq' => 10]);
-
-$this->repository->find(['id:in' => [1,2,3,4,5]);
+# find the data where id > 10
+$this->repository->findAll(['id:gt' => 10]);
+# find the data where id != 10
+$this->repository->findAll(['id:neq' => 10]);
+# find the data where id in 1,2,3,4,5
+$this->repository->findAll(['id:in' => [1,2,3,4,5]);
+# find the data where created_at is between 
+# 2019-01-01 00:00:00 and 2020-01-01 00:00:00
 $this->repository->findAll(['created_at:between' => 
     [
         '2019-01-01 00:00:00', 
         '2020-01-01 00:00:00
     ]
 ]);
-// stop the account end with @@@
+# stop the account end with @@@
 $this->repository->update(['name:like' => '%@@@'], ['status' => 0]);
 
 ``` 
