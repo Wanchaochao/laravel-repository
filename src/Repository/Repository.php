@@ -64,6 +64,9 @@ abstract class Repository
         'like'        => 'LIKE',
         'not_like'    => 'NOT LIKE',
         'not like'    => 'NOT LIKE',
+        'exists'      => 'Exists',
+        'not_exists'  => 'NotExists',
+        'not exists'  => 'NotExists',
     ];
 
     /**
@@ -208,7 +211,7 @@ abstract class Repository
         $item  = $this->find($conditions, $this->firstField($field));
         return Arr::get($item, $field, false);
     }
-    
+
     /**
      * 查询所有记录
      *
@@ -235,7 +238,7 @@ abstract class Repository
     {
         // 如果误传数组的话 取数组第一个值
         $field = $this->firstKey($field);
-        if (!$data = $this->all($conditions, $this->firstField($field))) {
+        if (!$data = $this->findAll($conditions, $this->firstField($field))) {
             return [];
         }
 
@@ -270,7 +273,7 @@ abstract class Repository
      */
     public function filterFindAll($conditions, $fields = [])
     {
-        return $this->all($this->filterCondition($conditions), $fields);
+        return $this->findAll($this->filterCondition($conditions), $fields);
     }
 
     /**
@@ -323,39 +326,39 @@ abstract class Repository
      *
      * 返回查询条件编译后的sql语句
      *
-     * @param $filters
+     * @param array|mixed $conditions 查询条件
      *
      * @return mixed
      */
-    public function toSql($filters)
+    public function toSql($conditions)
     {
-        return $this->findCondition($filters)->toSql();
+        return $this->findCondition($conditions)->toSql();
     }
 
     /**
      *
      * 获取统计信息
      *
-     * @param $filters
+     * @param array|mixed $conditions 查询条件
      *
      * @return mixed
      */
-    public function count($filters)
+    public function count($conditions)
     {
-        return $this->findCondition($filters)->count();
+        return $this->findCondition($conditions)->count();
     }
 
     /**
      * 获取最大值
      *
-     * @param $filters
-     * @param $field
+     * @param array|mixed $conditions 查询条件
+     * @param string      $field      查询的字段
      *
      * @return mixed
      */
-    public function max($filters, $field)
+    public function max($conditions, $field)
     {
-        return $this->findCondition($filters)->max($field);
+        return $this->findCondition($conditions)->max($field);
     }
 
     /**
@@ -619,6 +622,8 @@ abstract class Repository
         // 处理关联信息查询
         $relations = $this->getRelations($conditionRelations, $fieldRelations);
         $model     = $this->getRelationModel($model, $relations, $selectColumns);
+
+        // 处理查询条件
         return $this->handleConditionQuery($findConditions, $model, $table, $columns);
     }
 
@@ -637,7 +642,7 @@ abstract class Repository
 
         foreach ($condition as $key => $value) {
             if (strtolower($key) === 'or') {
-                $condition[$key] = $value = $this->filterCondition($value);
+                $condition[$key] = $this->filterCondition($value);
             }
 
             if (Helper::isEmpty($value)) {
@@ -706,11 +711,11 @@ abstract class Repository
      */
     protected function conditionQuery($condition, $query, $table, $columns, $or = false)
     {
-        foreach ($condition as $column => $bind_value) {
+        foreach ($condition as $column => $bindValue) {
             // or 查询
-            if (strtolower($column) === 'or' && is_array($bind_value) && $bind_value) {
-                $query = $query->where(function ($query) use ($bind_value, $table, $columns) {
-                    $this->conditionQuery($bind_value, $query, $table, $columns, true);
+            if (strtolower($column) === 'or' && is_array($bindValue) && $bindValue) {
+                $query = $query->where(function ($query) use ($bindValue, $table, $columns) {
+                    $this->conditionQuery($bindValue, $query, $table, $columns, true);
                 });
 
                 continue;
@@ -718,14 +723,14 @@ abstract class Repository
 
             // 字段直接查询 field1 => value1
             if (isset($columns[$column])) {
-                $query = $this->handleFieldQuery($query, $table . '.' . $column, $bind_value, $or);
+                $query = $this->handleFieldQuery($query, $table . '.' . $column, $bindValue, $or);
                 continue;
             }
 
             // 表达式查询 field1:neq => value1
             list($field, $expression) = array_pad(explode(':', $column, 2), 2, null);
             if ($field && $expression) {
-                $query = $this->handleExpressionConditionQuery($query, [$table . '.' . $field, $expression, $bind_value], $or);
+                $query = $this->handleExpressionConditionQuery($query, [$table . '.' . $field, $expression, $bindValue], $or);
                 continue;
             }
 
@@ -738,7 +743,7 @@ abstract class Repository
                 }
 
                 if ($strMethod) {
-                    $query = $query->{$strMethod}($query, $bind_value);
+                    $query = $query->{$strMethod}($query, $bindValue);
                 }
 
                 continue;
@@ -746,11 +751,11 @@ abstract class Repository
 
             // scope 自定义查询
             try {
-                $query = $query->{$column}($bind_value);
+                $query = $query->{$column}($bindValue);
             } catch (Exception $e) {
                 try {
                     $column = ucfirst(Str::camel($column));
-                    $query  = $query->{$column}($bind_value);
+                    $query  = $query->{$column}($bindValue);
                 } catch (Exception $e) {
                 }
             }
