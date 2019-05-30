@@ -4,6 +4,7 @@ namespace Littlebug\Repository;
 
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Littlebug\Traits\ResponseTrait;
@@ -534,18 +535,21 @@ abstract class Repository
         }
 
         // 处理数据
-        $notSelectAll = !in_array('*', $selectColumns) && !empty($selectColumns);
-        $with         = $withCount = [];
-        $findModel    = $model->getModel();
+        $isNotSelectAll = $this->isNotSelectAll($selectColumns);
+        $with           = $withCount = [];
+        $findModel      = $model->getModel();
 
         // 开始解析关联关系
         foreach ($relations as $relation => $value) {
             // 判断relations 是否真的存在
             if (method_exists($findModel, $relation)) {
 
+                /* @var $relationModel HasOneOrMany */
+                $relationModel = $findModel->$relation();
+
                 // 防止关联查询，主键没有添加上去
-                if ($notSelectAll) {
-                    $localKey = $findModel->$relation()->getQualifiedParentKeyName();
+                if ($isNotSelectAll) {
+                    $localKey = $relationModel->getQualifiedParentKeyName();
                     if (!in_array($localKey, $selectColumns)) {
                         array_push($selectColumns, $localKey);
                     }
@@ -555,7 +559,9 @@ abstract class Repository
                 $defaultConditions   = $this->getRelationDefaultFilters($model, $relation);
                 $value['conditions'] = array_merge($defaultConditions, Arr::get($value, 'conditions', []));
                 if ($value['with']) {
-                    $with[$relation] = $this->buildRelation($value);
+                    // 标记外键,防止查询的时候漏掉该字段
+                    $value['foreignKey'] = $relationModel->getQualifiedForeignKeyName();
+                    $with[$relation]     = $this->buildRelation($value);
                 }
 
                 if ($value['withCount']) {
@@ -600,24 +606,7 @@ abstract class Repository
         $model      = $this->model->newModelInstance();
         $table      = $model->getTable();
         $columns    = $this->getTableColumns($model);
-        return $this->findConditionModel($model, $conditions, $fields, $table, $columns);
-    }
-
-    /**
-     *
-     * 通过查询条件获取查询model
-     *
-     * @param Model|Builder|Relation $model      查询的model
-     * @param array|mixed            $conditions 查询的条件
-     * @param array                  $fields     查询的字段信息
-     * @param string                 $table      表名称
-     * @param array                  $columns    表字段信息
-     *
-     * @return mixed
-     */
-    protected function findConditionModel($model, $conditions, $fields, $table, $columns)
-    {
-        $fields = (array)$fields;
+        $fields     = (array)$fields;
 
         // 解析出查询条件和查询字段中的关联信息
         list($conditionRelations, $findConditions) = $this->parseConditionRelations($conditions);
@@ -864,17 +853,27 @@ abstract class Repository
             // 获取relation的表字段
             /* @var $model Model */
             /* @var $query Relation */
-            $model   = $query->getRelated();
-            $table   = $model->getTable();
-            $columns = $this->getTableColumns($model);
+            $model      = $query->getRelated();
+            $table      = $model->getTable();
+            $columns    = $this->getTableColumns($model);
+            $fields     = (array)Arr::get($relations, 'columns', []);
+            $conditions = Arr::get($relations, 'conditions', []);
 
-            return $this->findConditionModel(
-                $query,
-                Arr::get($relations, 'conditions'),
-                Arr::get($relations, 'columns'),
-                $table,
-                $columns
-            );
+            // 解析出查询条件和查询字段中的关联信息
+            list($conditionRelations, $findConditions) = $this->parseConditionRelations($conditions);
+            list($fieldRelations, $selectColumns) = $this->parseFieldRelations($fields, $table, $columns);
+
+            // 处理关联信息查询
+            $hasRelations = $this->getRelations($conditionRelations, $fieldRelations);
+
+            if (!empty($selectColumns) && !in_array('*', $selectColumns)) {
+                $selectColumns[] = Arr::get($relations, 'foreignKey');
+            }
+
+            $query = $this->getRelationModel($query, $hasRelations, $selectColumns);
+
+            // 处理查询条件
+            return $this->handleConditionQuery($findConditions, $query, $table, $columns);
         };
     }
 
@@ -919,10 +918,10 @@ abstract class Repository
     /**
      * 排序查询
      *
-     * @param mixed|model $query    查询对象
+     * @param mixed|model $query   查询对象
      * @param string      $orderBy 排序信息
-     * @param string      $table    表名称
-     * @param array       $columns  表字段信息
+     * @param string      $table   表名称
+     * @param array       $columns 表字段信息
      *
      * @return mixed
      */
@@ -979,5 +978,17 @@ abstract class Repository
         $field_value = substr($field, $index + 1);
 
         return [$field_name => $this->firstField($field_value)];
+    }
+
+    /**
+     * 是否查询全部字段
+     *
+     * @param array $columns 查询的字段信息
+     *
+     * @return bool
+     */
+    private function isNotSelectAll($columns)
+    {
+        return !empty($columns) && !in_array('*', $columns);
     }
 }
