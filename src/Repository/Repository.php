@@ -208,7 +208,7 @@ abstract class Repository
         $item  = $this->find($conditions, $this->firstField($field));
         return Arr::get($item, $field, false);
     }
-
+    
     /**
      * 查询所有记录
      *
@@ -217,7 +217,7 @@ abstract class Repository
      *
      * @return array
      */
-    public function all($conditions, $fields = [])
+    public function findAll($conditions = [], $fields = [])
     {
         return $this->findCondition($conditions, $fields)->get()->toArray();
     }
@@ -245,19 +245,6 @@ abstract class Repository
         }
 
         return $columns;
-    }
-
-    /**
-     * 查询所有记录
-     *
-     * @param array|mixed $conditions 查询条件
-     * @param array       $fields     查询字段
-     *
-     * @return array
-     */
-    public function findAll($conditions = [], $fields = [])
-    {
-        return $this->all($conditions, $fields);
     }
 
     /**
@@ -560,7 +547,7 @@ abstract class Repository
                         array_push($selectColumns, $localKey);
                     }
                 }
-                
+
                 // 获取默认查询条件
                 $defaultConditions   = $this->getRelationDefaultFilters($model, $relation);
                 $value['conditions'] = array_merge($defaultConditions, Arr::get($value, 'conditions', []));
