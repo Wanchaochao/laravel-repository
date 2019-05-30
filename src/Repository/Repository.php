@@ -2,8 +2,6 @@
 
 namespace Littlebug\Repository;
 
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -19,11 +17,6 @@ use Littlebug\Helpers\Helper;
 use \Illuminate\Database\Eloquent\Relations\Relation;
 use \Illuminate\Database\Query\Expression;
 
-/**
- * This is the abstract repository class.
- *
- * @author Graham Campbell <graham@alt-three.com>
- */
 abstract class Repository
 {
     use ResponseTrait;
@@ -89,6 +82,54 @@ abstract class Repository
     public function getModel()
     {
         return $this->model;
+    }
+
+    /**
+     * 获取主键查询条件
+     *
+     * @param mixed|array $conditions 查询的条件
+     *
+     * @return array
+     */
+    public function getPrimaryKeyCondition($conditions)
+    {
+        // 没有查询条件
+        if (empty($conditions)) {
+            return $conditions;
+        }
+
+        // 标量(数字、字符、布尔值)查询, 处理为主键查询
+        if (is_scalar($conditions)) {
+            if ($this->model->getKeyType() == 'int') {
+                $conditions = intval($conditions);
+            }
+
+            return [$this->model->getKeyName() => $conditions];
+        } elseif (is_array($conditions) && !Helper::isAssociative($conditions)) {
+            // 或者不是关联数组查询，也处理为主键查询
+            return [$this->model->getKeyName() => array_values($conditions)];
+        }
+
+        return (array)$conditions;
+    }
+
+    /**
+     *
+     * 获取表格字段，并转换为KV格式
+     *
+     * @param $model
+     *
+     * @return array
+     */
+    public function getTableColumns($model = '')
+    {
+        $model   = $model && is_object($model) ? $model : $this->model;
+        $columns = [];
+        foreach ($model->columns as $column) {
+            $columns[$column] = $column;
+        }
+
+        return $columns;
     }
 
     /**
@@ -363,51 +404,32 @@ abstract class Repository
     }
 
     /**
-     * 获取主键查询条件
+     * 设置model 的查询信息
      *
-     * @param mixed|array $conditions 查询的条件
+     * @param array $conditions 查询条件
+     * @param array $fields     查询字段
      *
-     * @return array
+     * @return Model|mixed
      */
-    public function getPrimaryKeyCondition($conditions)
+    public function findCondition($conditions = [], $fields = [])
     {
-        // 没有查询条件
-        if (empty($conditions)) {
-            return $conditions;
-        }
+        // 查询条件为
+        $conditions = $this->getPrimaryKeyCondition($conditions);
+        $model      = $this->model->newModelInstance();
+        $table      = $model->getTable();
+        $columns    = $this->getTableColumns($model);
+        $fields     = (array)$fields;
 
-        // 标量(数字、字符、布尔值)查询, 处理为主键查询
-        if (is_scalar($conditions)) {
-            if ($this->model->getKeyType() == 'int') {
-                $conditions = intval($conditions);
-            }
+        // 解析出查询条件和查询字段中的关联信息
+        list($conditionRelations, $findConditions) = $this->parseConditionRelations($conditions);
+        list($fieldRelations, $selectColumns) = $this->parseFieldRelations($fields, $table, $columns);
 
-            return [$this->model->getKeyName() => $conditions];
-        } elseif (is_array($conditions) && !Helper::isAssociative($conditions)) {
-            // 或者不是关联数组查询，也处理为主键查询
-            return [$this->model->getKeyName() => array_values($conditions)];
-        }
+        // 处理关联信息查询
+        $relations = $this->getRelations($conditionRelations, $fieldRelations);
+        $model     = $this->getRelationModel($model, $relations, $selectColumns);
 
-        return (array)$conditions;
-    }
-
-    /**
-     *
-     * 获取表格字段，并转换为KV格式
-     *
-     * @param $model
-     *
-     * @return array
-     */
-    public function getTableColumns($model = '')
-    {
-        $model   = $model && is_object($model) ? $model : $this->model;
-        $columns = [];
-        foreach ($model->columns as $column) {
-            $columns[$column] = $column;
-        }
-
-        return $columns;
+        // 处理查询条件
+        return $this->handleConditionQuery($findConditions, $model, $table, $columns);
     }
 
     /**
@@ -417,7 +439,7 @@ abstract class Repository
      *
      * @return array
      */
-    private function parseConditionRelations($conditions)
+    protected function parseConditionRelations($conditions)
     {
         // 分组，如果是relation的查询条件，需要放在前面build
         $relations = $findConditions = [];
@@ -456,7 +478,7 @@ abstract class Repository
      *
      * @return array
      */
-    private function parseFieldRelations($fields, $table, $tableColumns)
+    protected function parseFieldRelations($fields, $table, $tableColumns)
     {
         $relations = $columns = [];
         if (empty($fields)) {
@@ -504,7 +526,7 @@ abstract class Repository
      *
      * @return array
      */
-    private function getRelations(array $conditionRelations, array $fieldRelations)
+    protected function getRelations(array $conditionRelations, array $fieldRelations)
     {
         $relations = [];
         foreach ($conditionRelations as $relationName => $conditions) {
@@ -527,7 +549,7 @@ abstract class Repository
      *
      * @return Builder|Model
      */
-    private function getRelationModel($model, $relations, $selectColumns)
+    protected function getRelationModel($model, $relations, $selectColumns)
     {
         // 没有关联信息
         if (empty($relations)) {
@@ -589,35 +611,6 @@ abstract class Repository
         }
 
         return $this->select($model, $selectColumns);
-    }
-
-    /**
-     * 设置model 的查询信息
-     *
-     * @param array $conditions 查询条件
-     * @param array $fields     查询字段
-     *
-     * @return Model|mixed
-     */
-    public function findCondition($conditions = [], $fields = [])
-    {
-        // 查询条件为
-        $conditions = $this->getPrimaryKeyCondition($conditions);
-        $model      = $this->model->newModelInstance();
-        $table      = $model->getTable();
-        $columns    = $this->getTableColumns($model);
-        $fields     = (array)$fields;
-
-        // 解析出查询条件和查询字段中的关联信息
-        list($conditionRelations, $findConditions) = $this->parseConditionRelations($conditions);
-        list($fieldRelations, $selectColumns) = $this->parseFieldRelations($fields, $table, $columns);
-
-        // 处理关联信息查询
-        $relations = $this->getRelations($conditionRelations, $fieldRelations);
-        $model     = $this->getRelationModel($model, $relations, $selectColumns);
-
-        // 处理查询条件
-        return $this->handleConditionQuery($findConditions, $model, $table, $columns);
     }
 
     /**
@@ -811,6 +804,26 @@ abstract class Repository
     }
 
     /**
+     *
+     * 根据运行环境上报错误
+     *
+     * @param Exception $e
+     *
+     * @return mixed|string
+     */
+    protected function getError(Exception $e)
+    {
+        // 记录数据库执行错误日志
+        logger()->error('db error', [
+            'message' => $e->getMessage(),
+            'file'    => $e->getFile(),
+            'line'    => $e->getLine(),
+        ]);
+
+        return app()->environment('production') ? '系统错误，请重试' : $e->getMessage();
+    }
+
+    /**
      * 获取关联查询的默认查询条件
      *
      * @param model  $model        查询的model
@@ -875,27 +888,6 @@ abstract class Repository
             // 处理查询条件
             return $this->handleConditionQuery($findConditions, $query, $table, $columns);
         };
-    }
-
-
-    /**
-     *
-     * 根据运行环境上报错误
-     *
-     * @param Exception $e
-     *
-     * @return mixed|string
-     */
-    private function getError(Exception $e)
-    {
-        // 记录数据库执行错误日志
-        logger()->error('db error', [
-            'message' => $e->getMessage(),
-            'file'    => $e->getFile(),
-            'line'    => $e->getLine(),
-        ]);
-
-        return app()->environment('production') ? '系统错误，请重试' : $e->getMessage();
     }
 
     /**
