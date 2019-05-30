@@ -7,7 +7,7 @@
 </p>
 
 
-[切换中文](/README.zh-cn.md)
+[切换中文](/README.zh-CN.md) | [Repository的用法](/docs/Repository.md)
 
 ### clear tree of project
 
