@@ -1,11 +1,11 @@
-### Usage Instructions for Repository
+### Repository 使用说明
 
 ---
 
-#### CURD
+#### 增删改查
 
 ```php
-# create
+# 增
 $this-repository->create([
     'user_name' => 'Tony',
     'age'       => 18,
@@ -15,35 +15,26 @@ $this-repository->create([
 ```
 
 ```php
-# delete
+# 删
 $this->repository->delete(1); //pk = 1
 $this->repository->delete(['id:gt' => 10]); // delete id > 10
 ``` 
 
 ```php
-# update
+# 改
 $this->repository->update(['name:like' => '%555'], [
     'type' => 3,
     'money' => 9999
 ]);
 ```
 
-```php
-# query
-# A piece of data
-$this-repository->find(1);
-# Multiple data
-$this-repository->find(['user_id' => 10])
-``` 
-
-
-#### About filters`s expression
+#### 关于过滤条件的表达式
 ```php
 
 # Repository.php
 
 protected $expression = [
-    // the following expression requires params string or number
+    // 下面的表达式只需要传入字符串或者数字
     'eq'          => '=',
     'neq'         => '!=',
     'ne'          => '!=',
@@ -59,7 +50,7 @@ protected $expression = [
     'not_like'    => 'NOT LIKE',
     'not like'    => 'NOT LIKE',
     
-    // the following expression requires params array
+    // 下面的这些表达式需要传入数组
     'in'          => 'In',
     'not_in'      => 'NotIn',
     'not in'      => 'NotIn',
@@ -68,33 +59,34 @@ protected $expression = [
     'not between' => 'NotBetween',
 ];
 
-// you can use the expression like this:
+// 你可以像下面这样使用表达式:
+# 查询大于10的账号
 $this->repository->find(['id:gt' => 10]);
+# 查询不等于10的账号
 $this->repository->find(['id:neq' => 10]);
-
+# 查询id是1,2,3,4,5的这些数据
 $this->repository->find(['id:in' => [1,2,3,4,5]);
+# 查询创建时间在2018年的数据
 $this->repository->findAll(['created_at:between' => 
     [
         '2019-01-01 00:00:00', 
         '2020-01-01 00:00:00
     ]
 ]);
-// stop the account end with @@@
+// 封停以@@@结尾的账号
 $this->repository->update(['name:like' => '%@@@'], ['status' => 0]);
 
 ``` 
 
 
-#### Advanced usage
+#### 进阶用法
 
 ```php
 # Example 1:
-# For example, you have an users table, 
-# the user`s extension info saved in user_ext table
-# maybe you want to find the users and its extension info 
-# at the same time
+# 举个🌰栗子,你有一张用户表users,用户表的扩展信息存在user_ext里 
+# 也许你想查询用户信息的时候同时查出用户的扩展信息
 
-# step 1.Determining model relationships at Users.php(model)
+# step 1.在模型Users.php中定义模型关系
 
 /**
  * @return \Illuminate\Database\Eloquent\Relations\HasOne
@@ -106,7 +98,7 @@ public function extInfo()
     return $this->hasOne(UsersExt::class, 'user_id');
 }
 
-# step 2.do like this
+# step 2.这样使用
 $this->userRepository->findAll(
     ['status' => 1],  // filters
     [
@@ -123,11 +115,11 @@ $this->userRepository->findAll(
 ```
 ```php
 # Example 2:
-# the same tables, users and user_ext
-# maybe you want to find the users who user_id > 10 and address is NewYork
+# 还是用户表和用户扩展表
+# 也许你想找到id 大于10的用户并且用户的地址是NewYork
 
 # step 1.
-# define scope in users model like this
+# 在users模型中定义scope
 
 /**
  * @param $query
@@ -142,14 +134,12 @@ public function scopeAddress($query, $address)
 }
 
 # step 2.
-# use it like this
+# 像下面这样使用
 
 $users = $this->userRepository->findAll(
     ['user_id:gt' => 10, 'address' => 'NewYork']
 );
 
 ```
-
-Is it very simple? ^_^ 😜
-
-To be continued
+是不是非常简洁方便 ^_^ 😋
+后面会继续补充

@@ -6,10 +6,9 @@
 	</a>
 </p>
 
+[change to English](/README.md) | [Repository的用法](/docs/Repository.zh-CN.md)
 
-[切换中文](/README.zh-CN.md) | [Repository的用法](/docs/Repository.md)
-
-### clear tree of project
+### 清晰的目录结构
 
 * App
     * Http
@@ -47,79 +46,47 @@
         * ...
             
             
-### Install and use it
+### 安装并使用
 
 ```bash
 composer require littlebug/laravel-repository
 
 mkdir app/Http/Requests
 
-# touch a base Request to validate data
+# 创建属于你自己的Request验证基类
 
-# just like this
+# 就像下面这个文件
 ```
 
 [Request.php](https://github.com/Wanchaochao/laravel-repository/blob/master/src/littlebug/Request/Request.php)
 
-```php
-# Add the commands to commands register
-
-# find the app\Console\Kernel.php
-
-# add these codes on the top
-
-use Littlebug\Commands\ControllerCommand;
-use Littlebug\Commands\GenerateCommand;
-use Littlebug\Commands\ModelCommand;
-use Littlebug\Commands\RepositoryCommand;
-use Littlebug\Commands\RequestCommand;
-use Littlebug\Commands\ViewCommand;
-
-# find the property $commands = []
-
-# add these code to it
-    [
-        # your commands
-        ...
-        
-        # litttlebug\commands
-        ControllerCommand::class,
-        GenerateCommand::class,
-        ModelCommand::class,
-        RepositoryCommand::class,
-        RequestCommand::class,
-        ViewCommand::class
-    ]
-    
-```
-
-### About the commands to generate base code
+### 关于一键生成代码
 
 ```bash
 
-# after register commands to your laravel project
+# 在将命令注入到你的laravel 项目以后
 
-# enter 
+# 输入
 
-# php artisan list
+php artisan list
 
-# if you see these , then you can use it to generate code quickly!~
+# 如果你看到下面这些提示，那么可以开始快速生成代码了!~
 ```
 
 ![commands of generate code](/core-commands.jpg 'core of commands')
 
 ```bash
-# let`s use it to generate code 
+# 让我们来试一下
 
-# type code with help of the document of commands
+# 在commands帮助文档的提示下生成代码
 
-# if your project database used prefix, don`t forget to add prefix to app\config\database.php
+# 如果你的项目用到了数据库前缀，不要忘了去database.php中添加，否则会找不到table
 
-# demo, generate code for member_message
+# 举个栗子,以member_message表为例
 
 php artisan core:generate --table=member_message --path=Member --controller=Member/MemberMessageController
 
-# then you can see the result at you terminal
+# 在终端中你可以看到下面的结果
 
 文件 [ /Users/wanchao/www/lara-test/app/Models/Member/MemberMessage.php ] 生成成功
 文件 [ /Users/wanchao/www/lara-test/app/Repositories/Member/MemberMessageRepository.php ] 生成成功
@@ -128,18 +95,16 @@ php artisan core:generate --table=member_message --path=Member --controller=Memb
 文件 [ /Users/wanchao/www/lara-test/app/Http/Requests/Member/MemberMessage/DestroyRequest.php ] 生成成功
 文件 [ /Users/wanchao/www/lara-test/app/Http/Requests/Member/MemberMessage/StoreRequest.php ] 生成成功
 
-
-
-# add route to routes/web.php
+# 添加路由 routes/web.php
 
 Route::group(['namespace' => 'Member','prefix' => 'member'], function ($route) {
     $route->get('index', 'MemberController@indexAction');
     $route->get('message', 'MemberMessageController@indexAction');
 });
 
-# update the MemberMessageController
+# 修改MemberMessageController
 
-# dd the data of list, MemberMessageController
+# 在MemberMessageController中dd打印数据
 
 public function indexAction()
 {
@@ -150,32 +115,30 @@ public function indexAction()
     return view('member.member_message.index', compact('list', 'filters'));
 }
 
-
-
-# terminal
+# 终端
 
 php artisan serve
 
 vist localhost:8001/member/message
 
-# you can also change the table exists in your database
+# 你应该尝试一些你的数据库中存在的表，而不是机械的去复制粘贴我的栗子
  
 ```
 
-![data of member message](/data-list.jpg 'data of member message')
+![member message 的数据](/data-list.jpg 'member message 的数据')
 
 
-### Custom
+### 自定义
 ```bash
 
-# maybe you want to custom your owm Repository
+# 也许你想自定义自己的Repository
 
-# you can touch a Repository.php at app\Repository
+# 创建一个 Repository.php 在 app\Repository
 
-# It can also extends Littlebug\Repository, maybe you don`t want to extends, it`s your choice
+# 它也可以继承 Littlebug\Repository, 或许你不想继承，由你自己来决定
 
 ```
 
-##### thanks for [JinxingLiu](https://mylovegy.github.io/blog/) and seven 💐🌹
+##### 感谢 天下第七 和 [鑫鑫](https://mylovegy.github.io/blog/) 贡献的代码 💐🌹
 
-##### if my repository is helpful to you, give me a star to encourage me~ ✨, I will continue to maintain this project.
+##### 如果这个仓库帮助到了你，给我一个star来鼓励我~ ✨,我会坚持继续维护这个仓库
