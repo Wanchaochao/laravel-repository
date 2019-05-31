@@ -61,38 +61,6 @@ mkdir app/Http/Requests
 
 [Request.php](https://github.com/Wanchaochao/laravel-repository/blob/master/src/littlebug/Request/Request.php)
 
-```php
-# Add the commands to commands register
-
-# find the app\Console\Kernel.php
-
-# add these codes on the top
-
-use Littlebug\Commands\ControllerCommand;
-use Littlebug\Commands\GenerateCommand;
-use Littlebug\Commands\ModelCommand;
-use Littlebug\Commands\RepositoryCommand;
-use Littlebug\Commands\RequestCommand;
-use Littlebug\Commands\ViewCommand;
-
-# find the property $commands = []
-
-# add these code to it
-    [
-        # your commands
-        ...
-        
-        # litttlebug\commands
-        ControllerCommand::class,
-        GenerateCommand::class,
-        ModelCommand::class,
-        RepositoryCommand::class,
-        RequestCommand::class,
-        ViewCommand::class
-    ]
-    
-```
-
 ### About the commands to generate base code
 
 ```bash
@@ -123,12 +91,9 @@ php artisan core:generate --table=member_message --path=Member --controller=Memb
 
 文件 [ /Users/wanchao/www/lara-test/app/Models/Member/MemberMessage.php ] 生成成功
 文件 [ /Users/wanchao/www/lara-test/app/Repositories/Member/MemberMessageRepository.php ] 生成成功
-文件 [ /Users/wanchao/www/lara-test/app/Http/Controllers/Member/MemberMessageController.php ] 生成成功
 文件 [ /Users/wanchao/www/lara-test/app/Http/Requests/Member/MemberMessage/UpdateRequest.php ] 生成成功
 文件 [ /Users/wanchao/www/lara-test/app/Http/Requests/Member/MemberMessage/DestroyRequest.php ] 生成成功
 文件 [ /Users/wanchao/www/lara-test/app/Http/Requests/Member/MemberMessage/StoreRequest.php ] 生成成功
-
-
 
 # add route to routes/web.php
 
@@ -145,12 +110,9 @@ public function indexAction()
 {
     $filters = Helper::filter_array(request()->all());
     $filters['order'] = 'id desc';
-    $list = $this->memberMessageRepository->getList($filters);
-    dd($list);
+    $list = $this->memberMessageRepository->lists($filters);
     return view('member.member_message.index', compact('list', 'filters'));
 }
-
-
 
 # terminal
 
