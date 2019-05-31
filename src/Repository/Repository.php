@@ -346,7 +346,7 @@ abstract class Repository
      *
      * @return mixed
      */
-    public function lists($conditions = [], $fields = [], $size = 10, $current = null)
+    public function paginate($conditions = [], $fields = [], $size = 10, $current = null)
     {
         $model = $this->findCondition($conditions, $fields);
         if ($this->paginateStyle == 'simple') {
