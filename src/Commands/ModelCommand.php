@@ -9,7 +9,7 @@
 
 namespace Littlebug\Commands;
 
-use Littlebug\Traits\Command\CommandTrait;
+use Littlebug\Traits\CommandTrait;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 

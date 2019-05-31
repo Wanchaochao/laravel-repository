@@ -1,6 +1,6 @@
 <?php
 
-namespace Littlebug\Traits\Command;
+namespace Littlebug\Traits;
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
