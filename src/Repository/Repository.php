@@ -900,26 +900,36 @@ abstract class Repository
     /**
      * 排序查询
      *
-     * @param mixed|model $query   查询对象
-     * @param string      $orderBy 排序信息
-     * @param string      $table   表名称
-     * @param array       $columns 表字段信息
+     * @param mixed|model|Builder $query   查询对象
+     * @param string|array        $orderBy 排序信息
+     * @param string              $table   表名称
+     * @param array               $columns 表字段信息
      *
      * @return mixed
      */
     private function orderBy($query, $orderBy, $table, $columns)
     {
-        if ($orders = explode(',', $orderBy)) {
-            foreach ($orders as $order) {
-                $order = trim($order);
-                list($k, $v) = array_pad(explode(' ', preg_replace('/\s+/', ' ', $order)), 2, null);
-                if ($k && in_array(strtolower($v), ['', 'asc', 'desc'])) {
-                    if (!isset($columns[$k])) {
-                        $table = null;
-                    }
+        // 为空，直接返回
+        if (empty($orderBy)) {
+            return $query;
+        }
 
-                    $query = $query->orderBy($table ? $table . '.' . $k : $k, $v ?: 'desc');
+        // 处理多字段的排序情况
+        $orders = is_array($orderBy) ? $orderBy : explode(',', (string)$orderBy);
+        foreach ($orders as $order) {
+
+            // 处理排序字段和排序方式
+            $order     = trim($order);
+            $tmpOrders = explode(' ', preg_replace('/\s+/', ' ', $order));
+            list($column, $direction) = array_pad($tmpOrders, 2, null);
+
+            if ($column && in_array(strtolower($direction), ['', 'asc', 'desc'])) {
+                // 存在表中，添加表名称
+                if (isset($columns[$column])) {
+                    $column = $table . '.' . $column;
                 }
+
+                $query = $query->orderBy($column, $direction ?: 'desc');
             }
         }
 
