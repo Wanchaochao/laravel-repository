@@ -23,6 +23,11 @@ use \Illuminate\Database\Query\Expression;
  * @method Model|null first($conditions, $columns = [])
  * @method Collection get($conditions, $columns = [])
  * @method Collection pluck($conditions, $columns = [], $key = null)
+ * @method int count($conditions)
+ * @method int|mixed max($conditions, $column)
+ * @method int|mixed min($conditions, $column)
+ * @method int|mixed avg($conditions, $column)
+ * @method int|mixed sum($conditions, $column)
  * @package Littlebug\Repository
  */
 abstract class Repository
@@ -383,32 +388,6 @@ abstract class Repository
     public function toSql($conditions)
     {
         return $this->findCondition($conditions)->toSql();
-    }
-
-    /**
-     *
-     * 获取统计信息
-     *
-     * @param array|mixed $conditions 查询条件
-     *
-     * @return mixed
-     */
-    public function count($conditions)
-    {
-        return $this->findCondition($conditions)->count();
-    }
-
-    /**
-     * 获取最大值
-     *
-     * @param array|mixed $conditions 查询条件
-     * @param string      $field      查询的字段
-     *
-     * @return mixed
-     */
-    public function max($conditions, $field)
-    {
-        return $this->findCondition($conditions)->max($field);
     }
 
     /**
