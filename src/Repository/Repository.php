@@ -20,6 +20,9 @@ use \Illuminate\Database\Query\Expression;
 /**
  * Class Repository 基础Repository类
  *
+ * @method Model|null first($conditions, $columns = [])
+ * @method Collection get($conditions, $columns = [])
+ * @method Collection pluck($conditions, $columns = [], $key = null)
  * @package Littlebug\Repository
  */
 abstract class Repository
@@ -987,5 +990,17 @@ abstract class Repository
     private function isNotSelectAll($columns)
     {
         return !empty($columns) && !in_array('*', $columns);
+    }
+
+    /**
+     * 调用 model 的方法
+     *
+     * @param string $name 调用model 自己的方法
+     * @param array  $arguments
+     */
+    public function __call($name, $arguments)
+    {
+        $conditions = Arr::pull($arguments, 0);
+        return $this->findCondition($conditions)->{$name}(...$arguments);
     }
 }
