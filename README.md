@@ -106,7 +106,7 @@ use Littlebug\Commands\ViewCommand;
 # if you see these , then you can use it to generate code quickly!~
 ```
 
-![commands of generate code](/core-commands.jpg 'core of commands')
+![commands of generate code](/docs/core-commands.jpg 'core of commands')
 
 ```bash
 # let`s use it to generate code 
@@ -162,7 +162,7 @@ vist localhost:8001/member/message
  
 ```
 
-![data of member message](/data-list.jpg 'data of member message')
+![data of member message](/docs/data-list.jpg 'data of member message')
 
 
 ### Custom
