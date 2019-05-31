@@ -83,9 +83,6 @@ abstract class Repository
         'like'        => 'LIKE',
         'not_like'    => 'NOT LIKE',
         'not like'    => 'NOT LIKE',
-        'exists'      => 'Exists',
-        'not_exists'  => 'NotExists',
-        'not exists'  => 'NotExists',
     ];
 
     /**
@@ -759,9 +756,6 @@ abstract class Repository
             if (in_array($expression, ['In', 'NotIn', 'Between', 'NotBetween'])) {
                 $strMethod .= $expression;
                 $query     = $query->{$strMethod}($column, (array)$value);
-            } elseif (in_array($expression, ['Exists', 'NotExists'])) {
-                $strMethod .= $expression;
-                $query     = $query->{$strMethod}($column, $value);
             } else {
                 if (in_array($expression, ['LIKE', 'NOT LIKE'])) {
                     $value = (string)$value;
