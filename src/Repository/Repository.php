@@ -593,6 +593,7 @@ abstract class Repository
             $model = $model->with($with);
         }
 
+        // 查询关联的统计信息，那么不需要查询字段信息
         if ($withCount) {
             $selectColumns = [];
             $model         = $model->withCount($withCount);
@@ -824,7 +825,7 @@ abstract class Repository
             return $model->{$attribute};
         }
 
-        // 不是public 属性，可能是protected 属性，通过反射获取
+        // 不是 public 属性，可能是 protected 属性，通过反射获取
         $conditions = [];
         try {
             $properties = (new ReflectionClass($model))->getDefaultProperties();
@@ -857,10 +858,11 @@ abstract class Repository
                 return $query;
             }
 
-            $model   = $query->getRelated();
-            $table   = $model->getTable();
-            $columns = $this->getTableColumns($model);
-
+            $model      = $query->getRelated();
+            $table      = $model->getTable();
+            $columns    = $this->getTableColumns($model);
+            $foreignKey = Arr::get($relations, 'foreignKey');
+            
             // 解析出查询条件和查询字段中的关联信息
             list($conditionRelations, $findConditions) = $this->parseConditionRelations($conditions);
             list($fieldRelations, $selectColumns) = $this->parseFieldRelations($fields, $table, $columns);
@@ -869,8 +871,8 @@ abstract class Repository
             $hasRelations = $this->getRelations($conditionRelations, $fieldRelations);
 
             // 添加关联的外键，防止关联不上
-            if ($this->isNotSelectAll($selectColumns)) {
-                $selectColumns[] = Arr::get($relations, 'foreignKey');
+            if ($this->isNotSelectAll($selectColumns) && !in_array($foreignKey, $selectColumns)) {
+                $selectColumns[] = $foreignKey;
             }
 
             $query = $this->getRelationModel($query, $hasRelations, $selectColumns);
