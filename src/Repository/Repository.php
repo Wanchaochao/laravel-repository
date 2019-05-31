@@ -80,9 +80,13 @@ abstract class Repository
         'between'     => 'Between',
         'not_between' => 'NotBetween',
         'not between' => 'NotBetween',
-        'like'        => 'LIKE',
-        'not_like'    => 'NOT LIKE',
-        'not like'    => 'NOT LIKE',
+        'like'        => 'like',
+        'not_like'    => 'not like',
+        'not like'    => 'not like',
+        'rlike'       => 'rlike',
+        '<>'          => '<>',
+        '<=>'         => '<=>',
+        'auto_like'   => 'like',
     ];
 
     /**
@@ -752,21 +756,38 @@ abstract class Repository
     protected function handleExpressionConditionQuery($query, $condition = [], $or = false)
     {
         list($column, $expression, $value) = $condition;
-        if ($expression = Arr::get($this->expression, strtolower($expression))) {
-            $strMethod = $or ? 'orWhere' : 'where';
-            if (in_array($expression, ['In', 'NotIn', 'Between', 'NotBetween'])) {
-                $strMethod .= $expression;
-                $query     = $query->{$strMethod}($column, (array)$value);
-            } else {
-                if (in_array($expression, ['LIKE', 'NOT LIKE'])) {
-                    $value = (string)$value;
-                }
 
-                $query = $query->{$strMethod}($column, $expression, $value);
+        // 匹配两次，第一次直接使用表达式简写，第二次：直接使用表达式
+        $allowExpression = Arr::get($this->expression, strtolower($expression));
+        if (empty($allowExpression)) {
+            if (in_array($expression, $this->expression)) {
+                $allowExpression = $expression;
             }
         }
 
-        return $query;
+        // 两次都没有匹配到话，直接返回
+        if (empty($allowExpression)) {
+            return $query;
+        }
+
+        // 数组查询方式
+        $strMethod = $or ? 'orWhere' : 'where';
+        if (in_array($allowExpression, ['In', 'NotIn', 'Between', 'NotBetween'])) {
+            $strMethod .= $allowExpression;
+            return $query->{$strMethod}($column, (array)$value);
+        }
+
+        // 其他查询方式
+        if (in_array($allowExpression, ['like', 'not like'])) {
+            $value = (string)$value;
+            
+            // 不存在模糊查询，自动添加模糊查询
+            if ($expression === 'auto_like' && strpos($value, '%') === false) {
+                $value = "%{$value}%";
+            }
+        }
+
+        return $query->{$strMethod}($column, $allowExpression, $value);
     }
 
     /**
@@ -862,7 +883,7 @@ abstract class Repository
             $table      = $model->getTable();
             $columns    = $this->getTableColumns($model);
             $foreignKey = Arr::get($relations, 'foreignKey');
-            
+
             // 解析出查询条件和查询字段中的关联信息
             list($conditionRelations, $findConditions) = $this->parseConditionRelations($conditions);
             list($fieldRelations, $selectColumns) = $this->parseFieldRelations($fields, $table, $columns);
