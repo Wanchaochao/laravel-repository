@@ -56,6 +56,18 @@ list($ok, $msg, $rows) = $this->repository->update(['name:like' => '%555'], [
 
 ### 关于查询数据
 
+#### 查询单条数据
+
+```php
+$item = $this->repository->find(1);  // 主键查询 pk = 1
+```
+
+#### 查询多条数据
+
+```php
+$items = $this->repository->findAll([1, 2, 3, 4]); // 主键查询 pk in (1, 2, 3, 4)
+```
+
 ####  目前支持的表达式
 
 | 表达式 | 含义 | 特别说明 |
