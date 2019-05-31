@@ -29,7 +29,7 @@
                 * Config
                     * ...
                 * Request.php
-    * Models (继承BaseModel)
+    * Models 
         * User
             * User.php    
             * UserExt.php
@@ -57,8 +57,6 @@ mkdir app/Http/Requests
 
 # 就像下面这个文件
 ```
-
-[Request.php](https://github.com/Wanchaochao/laravel-repository/blob/master/src/littlebug/Request/Request.php)
 
 ### 关于一键生成代码
 
@@ -90,7 +88,6 @@ php artisan core:generate --table=member_message --path=Member --controller=Memb
 
 文件 [ /Users/wanchao/www/lara-test/app/Models/Member/MemberMessage.php ] 生成成功
 文件 [ /Users/wanchao/www/lara-test/app/Repositories/Member/MemberMessageRepository.php ] 生成成功
-文件 [ /Users/wanchao/www/lara-test/app/Http/Controllers/Member/MemberMessageController.php ] 生成成功
 文件 [ /Users/wanchao/www/lara-test/app/Http/Requests/Member/MemberMessage/UpdateRequest.php ] 生成成功
 文件 [ /Users/wanchao/www/lara-test/app/Http/Requests/Member/MemberMessage/DestroyRequest.php ] 生成成功
 文件 [ /Users/wanchao/www/lara-test/app/Http/Requests/Member/MemberMessage/StoreRequest.php ] 生成成功
