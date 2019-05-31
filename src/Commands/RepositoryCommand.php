@@ -1,11 +1,4 @@
 <?php
-/**
- *
- * RepositoryCommand.php
- *
- * Create: 2018/8/14 09:46
- * Editor: created by PhpStorm
- */
 
 namespace Littlebug\Commands;
 
@@ -28,7 +21,7 @@ class RepositoryCommand extends CoreCommand
      * @var string
      */
     protected $description = '生成 repository 
-    {--name=}  定义名称 [ --name=Admin\\\\AdminUserRepository 或者 --name=Admin/AdminUserRepository 或者 ]
+    {--name=}  定义名称 [ --name=Admin\\\\AdminUserRepository 或者 --name=Admin/AdminUserRepository ]
     {--path=}  指定目录 [ 没有传递绝对路径，否则使用相对对路径 从 app/Repositories 开始 ]
     {--model=} 指定的model 使用命名空间 [ --model=Admin\\\\AdminUser 或者 --model=Admin/AdminUser ]';
 

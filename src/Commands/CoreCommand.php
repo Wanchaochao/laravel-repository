@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Administrator
- * Date: 2018/8/12 0012
- * Time: 上午 9:56
- */
 
 namespace Littlebug\Commands;
 

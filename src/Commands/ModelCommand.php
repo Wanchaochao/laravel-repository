@@ -1,11 +1,4 @@
 <?php
-/**
- *
- * Model.php
- *
- * Create: 2018/6/27 14:13
- * Editor: created by PhpStorm
- */
 
 namespace Littlebug\Commands;
 

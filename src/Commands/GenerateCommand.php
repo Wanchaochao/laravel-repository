@@ -1,11 +1,4 @@
 <?php
-/**
- *
- * GenerateCommand.php
- *
- * Create: 2018/8/14 15:57
- * Editor: created by PhpStorm
- */
 
 namespace Littlebug\Commands;
 

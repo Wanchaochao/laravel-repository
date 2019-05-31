@@ -107,7 +107,7 @@ public function indexAction()
 {
     $filters = Helper::filter_array(request()->all());
     $filters['order'] = 'id desc';
-    $list = $this->memberMessageRepository->getList($filters);
+    $list = $this->memberMessageRepository->lists($filters);
     dd($list);
     return view('member.member_message.index', compact('list', 'filters'));
 }

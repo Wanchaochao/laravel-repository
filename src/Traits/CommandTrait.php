@@ -119,14 +119,14 @@ trait CommandTrait
      */
     protected function isStartWith($array, $type)
     {
-        $is_start_with = false;
+        $startWith = false;
         foreach ($array as $start) {
             if (Str::startsWith($type, $start)) {
-                $is_start_with = true;
+                $startWith = true;
                 break;
             }
         }
 
-        return $is_start_with;
+        return $startWith;
     }
 }

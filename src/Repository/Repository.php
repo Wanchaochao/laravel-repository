@@ -17,6 +17,11 @@ use Littlebug\Helpers\Helper;
 use \Illuminate\Database\Eloquent\Relations\Relation;
 use \Illuminate\Database\Query\Expression;
 
+/**
+ * Class Repository 基础Repository类
+ *
+ * @package Littlebug\Repository
+ */
 abstract class Repository
 {
     use ResponseTrait;

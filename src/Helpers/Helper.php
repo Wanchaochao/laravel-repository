@@ -4,6 +4,11 @@ namespace Littlebug\Helpers;
 
 use Illuminate\Support\Str;
 
+/**
+ * Class Helper 助手类
+ * 
+ * @package Littlebug\Helpers
+ */
 class Helper
 {
     public static function isCli()

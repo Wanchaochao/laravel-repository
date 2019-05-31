@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: jinxing.liu@verystar.cn
- * Date: 2018/3/7
- * Time: 下午1:53
- */
 
 namespace Littlebug\Providers;
 
