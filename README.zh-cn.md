@@ -29,7 +29,7 @@
                 * Config
                     * ...
                 * Request.php
-    * Models (继承BaseModel)
+    * Models 
         * User
             * User.php    
             * UserExt.php
@@ -58,8 +58,6 @@ mkdir app/Http/Requests
 # 就像下面这个文件
 ```
 
-[Request.php](https://github.com/Wanchaochao/laravel-repository/blob/master/src/littlebug/Request/Request.php)
-
 ### 关于一键生成代码
 
 ```bash
@@ -73,7 +71,7 @@ php artisan list
 # 如果你看到下面这些提示，那么可以开始快速生成代码了!~
 ```
 
-![commands of generate code](/core-commands.jpg 'core of commands')
+![commands of generate code](/docs/core-commands.jpg 'core of commands')
 
 ```bash
 # 让我们来试一下
@@ -90,7 +88,6 @@ php artisan core:generate --table=member_message --path=Member --controller=Memb
 
 文件 [ /Users/wanchao/www/lara-test/app/Models/Member/MemberMessage.php ] 生成成功
 文件 [ /Users/wanchao/www/lara-test/app/Repositories/Member/MemberMessageRepository.php ] 生成成功
-文件 [ /Users/wanchao/www/lara-test/app/Http/Controllers/Member/MemberMessageController.php ] 生成成功
 文件 [ /Users/wanchao/www/lara-test/app/Http/Requests/Member/MemberMessage/UpdateRequest.php ] 生成成功
 文件 [ /Users/wanchao/www/lara-test/app/Http/Requests/Member/MemberMessage/DestroyRequest.php ] 生成成功
 文件 [ /Users/wanchao/www/lara-test/app/Http/Requests/Member/MemberMessage/StoreRequest.php ] 生成成功
@@ -125,7 +122,7 @@ vist localhost:8001/member/message
  
 ```
 
-![member message 的数据](/data-list.jpg 'member message 的数据')
+![member message 的数据](/docs/data-list.jpg 'member message 的数据')
 
 
 ### 自定义
