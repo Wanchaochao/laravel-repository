@@ -20,14 +20,21 @@ use \Illuminate\Database\Query\Expression;
 /**
  * Class Repository 基础Repository类
  *
- * @method Model|null first($conditions, $columns = [])
- * @method Collection get($conditions, $columns = [])
- * @method Collection pluck($conditions, $columns = [], $key = null)
- * @method int count($conditions)
- * @method int|mixed max($conditions, $column)
- * @method int|mixed min($conditions, $column)
- * @method int|mixed avg($conditions, $column)
- * @method int|mixed sum($conditions, $column)
+ * @method Model|null first($conditions = [], $columns = [])
+ * @method Collection get($conditions = [], $columns = [])
+ * @method Collection pluck($conditions = [], $columns = [], $key = null)
+ * @method int count($conditions = [])
+ * @method int|mixed max($conditions = [], $column)
+ * @method int|mixed min($conditions = [], $column)
+ * @method int|mixed avg($conditions = [], $column)
+ * @method int|mixed sum($conditions = [], $column)
+ * @method string toSql($conditions = [])
+ * @method array|mixed getBindings($conditions = [])
+ *
+ * @method array|mixed getConnection()
+ * @method boolean insert(array $insert)
+ * @method int|mixed insertGetId(array $insert)
+ *
  * @package Littlebug\Repository
  */
 abstract class Repository
@@ -40,6 +47,11 @@ abstract class Repository
      * @var Model|Builder
      */
     protected $model;
+
+    /**
+     * @var array 不需要查询条件的方法
+     */
+    protected $passthru = ['insert', 'insertGetId', 'getConnection'];
 
     /**
      * 分页样式
@@ -378,19 +390,6 @@ abstract class Repository
     }
 
     /**
-     *
-     * 返回查询条件编译后的sql语句
-     *
-     * @param array|mixed $conditions 查询条件
-     *
-     * @return mixed
-     */
-    public function toSql($conditions)
-    {
-        return $this->findCondition($conditions)->toSql();
-    }
-
-    /**
      * 设置model 的查询信息
      *
      * @param array $conditions 查询条件
@@ -400,9 +399,14 @@ abstract class Repository
      */
     public function findCondition($conditions = [], $fields = [])
     {
+        $model = $this->model->newModelInstance();
+        // 查询条件为空，直接返回
+        if (empty($conditions) && empty($fields)) {
+            return $model;
+        }
+
         // 查询条件为
         $conditions = $this->getPrimaryKeyCondition($conditions);
-        $model      = $this->model->newModelInstance();
         $table      = $model->getTable();
         $columns    = $this->getTableColumns($model);
         $fields     = (array)$fields;
@@ -853,11 +857,15 @@ abstract class Repository
             // 获取relation的表字段
             /* @var $model Model */
             /* @var $query Relation */
-            $model      = $query->getRelated();
-            $table      = $model->getTable();
-            $columns    = $this->getTableColumns($model);
             $fields     = (array)Arr::get($relations, 'columns', []);
             $conditions = Arr::get($relations, 'conditions', []);
+            if (empty($fields) && empty($conditions)) {
+                return $query;
+            }
+
+            $model   = $query->getRelated();
+            $table   = $model->getTable();
+            $columns = $this->getTableColumns($model);
 
             // 解析出查询条件和查询字段中的关联信息
             list($conditionRelations, $findConditions) = $this->parseConditionRelations($conditions);
@@ -866,7 +874,8 @@ abstract class Repository
             // 处理关联信息查询
             $hasRelations = $this->getRelations($conditionRelations, $fieldRelations);
 
-            if (!empty($selectColumns) && !in_array('*', $selectColumns)) {
+            // 添加关联的外键，防止关联不上
+            if ($this->isNotSelectAll($selectColumns)) {
                 $selectColumns[] = Arr::get($relations, 'foreignKey');
             }
 
@@ -979,7 +988,13 @@ abstract class Repository
      */
     public function __call($name, $arguments)
     {
-        $conditions = Arr::pull($arguments, 0);
+        // 直接使用 model, 不需要查询条件的数据
+        if (in_array($name, $this->passthru)) {
+            return (new $this->model)->{$name}(...$arguments);
+        }
+
+        // 第一个参数传递给自己 findCondition 方法
+        $conditions = Arr::pull($arguments, 0, []);
         return $this->findCondition($conditions)->{$name}(...$arguments);
     }
 }
