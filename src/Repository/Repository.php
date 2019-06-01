@@ -1012,6 +1012,7 @@ abstract class Repository
      *
      * @param string $name 调用model 自己的方法
      * @param array  $arguments
+     * @return mixed
      */
     public function __call($name, $arguments)
     {
