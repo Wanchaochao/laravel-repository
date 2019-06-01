@@ -1,4 +1,7 @@
+
 ### laravel-repository
+
+![Progress](http://progressed.io/bar/90?title=completed)  
 
 <p align="center">
 	<a href="https:www.littlebug.vip">
@@ -107,7 +110,7 @@ public function indexAction()
 {
     $filters = Helper::filter_array(request()->all());
     $filters['order'] = 'id desc';
-    $list = $this->memberMessageRepository->lists($filters);
+    $list = $this->memberMessageRepository->paginate($filters);
     dd($list);
     return view('member.member_message.index', compact('list', 'filters'));
 }
