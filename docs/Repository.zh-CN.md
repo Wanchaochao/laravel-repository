@@ -85,6 +85,15 @@ list($ok, $msg, $rows) = $this->repository->update(['name:like' => '%555'], [
     $usernames = $this->repository->findAllBy([1, 2, 3], 'username'); // 查询某个字段的所有值
     ```
 
+#### 分页查询
+
+分页查询 paginate($conditions = [], $fields = [], $pageSize = 10, $currentPage = null)
+
+```php
+$list = $this->>repository->paginate(['status' => 1], ['id', 'name', ...]);
+```
+
+
 ####  目前支持的表达式
 
 | 表达式 | 含义 | 特别说明 |
