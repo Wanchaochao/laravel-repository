@@ -51,7 +51,7 @@ abstract class Repository
     /**
      * @var array 不需要查询条件的方法
      */
-    protected $passthru = ['insert', 'insertGetId', 'getConnection'];
+    protected $passThru = ['insert', 'insertGetId', 'getConnection'];
 
     /**
      * 分页样式
@@ -253,7 +253,7 @@ abstract class Repository
      *
      * @return mixed
      */
-    public function find($conditions, $fields = [])
+    public function find($conditions = [], $fields = [])
     {
         /* @var $item Model|object|static|null */
         if ($item = $this->findCondition($conditions, $fields)->first()) {
@@ -288,7 +288,7 @@ abstract class Repository
      *
      * @return array
      */
-    public function findAll($conditions = [], $fields = [])
+    public function findAll($conditions, $fields = [])
     {
         return $this->findCondition($conditions, $fields)->get()->toArray();
     }
@@ -1017,7 +1017,7 @@ abstract class Repository
     public function __call($name, $arguments)
     {
         // 直接使用 model, 不需要查询条件的数据
-        if (in_array($name, $this->passthru)) {
+        if (in_array($name, $this->passThru)) {
             return (new $this->model)->{$name}(...$arguments);
         }
 

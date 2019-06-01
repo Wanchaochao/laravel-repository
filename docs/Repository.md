@@ -6,6 +6,13 @@
 
 ```php
 # create
+
+/**
+ * About the res
+ * @param boolean $ok   true: successful, false: failed
+ * @param string  $msg  about the message
+ * @param array   $data the data, it`s null when failed 
+ */
 $this-repository->create([
     'user_name' => 'Tony',
     'age'       => 18,
@@ -16,12 +23,24 @@ $this-repository->create([
 
 ```php
 # delete
+/**
+ * About the res
+ * @param boolean $ok   true: successful, false: failed
+ * @param string  $msg  the message of res
+ * @param int     $rows the number of data were deleted
+ */
 $this->repository->delete(1); //pk = 1
 $this->repository->delete(['id:gt' => 10]); // delete id > 10
 ``` 
 
 ```php
 # update
+/**
+ * About the res
+ * @param boolean $ok   true: successful, false: failed
+ * @param string  $msg  the message of res
+ * @param int     $rows the number of data were updated
+ */
 $this->repository->update(['name:like' => '%555'], [
     'type' => 3,
     'money' => 9999
@@ -30,10 +49,15 @@ $this->repository->update(['name:like' => '%555'], [
 
 ```php
 # query
+# A column of a piece of data
+$id = $this->repository->findBy(1, 'name'); // 查某个字段
 # A piece of data
-$this-repository->find(1);
+$this-repository->find(1); // PK was 1
 # Multiple data
-$this-repository->find(['user_id' => 10])
+$this-repository->findAll(['user_id' => 10])
+# All values of a field in the result set
+$this-repository->findAllBy(['user_id' => 10], 'name');
+
 ``` 
 
 
@@ -42,39 +66,56 @@ $this-repository->find(['user_id' => 10])
 
 # Repository.php
 
-protected $expression = [
-    // the following expression requires params string or number
-    'eq'          => '=',
-    'neq'         => '!=',
-    'ne'          => '!=',
-    'gt'          => '>',
-    'egt'         => '>=',
-    'gte'         => '>=',
-    'ge'          => '>=',
-    'lt'          => '<',
-    'le'          => '<=',
-    'lte'         => '<=',
-    'elt'         => '<=',
-    'like'        => 'LIKE',
-    'not_like'    => 'NOT LIKE',
-    'not like'    => 'NOT LIKE',
-    
-    // the following expression requires params array
-    'in'          => 'In',
-    'not_in'      => 'NotIn',
-    'not in'      => 'NotIn',
-    'between'     => 'Between',
-    'not_between' => 'NotBetween',
-    'not between' => 'NotBetween',
-];
+####  目前支持的表达式
 
+| 表达式 | 含义 | 特别说明 |
+|:------|:--------------|:-----|
+| eq    | 等于(=)      | |
+| neq   | 不等于(!=)   | |
+| ne    | 不等于(!=)   | |
+| gt    | 大于(>)      | |
+| egt    | 大于等于(>=) | |
+| gte    | 大于等于(>=) | |
+| ge     | 大于等于(>=) | |
+| lt     | 小于(<)      | |
+| le     | 小于等于(<=)  | |
+| lte    | 小于等于(<=)  | |
+| elt    | 小于等于(<=)  | |
+| elt    | 小于等于(<=)  | |
+| in     | IN 查询      | 传入数据会强转为数组| 
+| not in | NOT IN 查询  | 传入数据会强转为数组| 
+| not_in | NOT IN 查询  | 传入数据会强转为数组| 
+| between| 区间查询(between)  | 传入数据会强转为数组| 
+| not_between| 不在区间查询(between)  | 传入数据会强转为数组| 
+| not between| 不在区间查询(between)  | 传入数据会强转为数组| 
+| like   | 模糊查询包含(like)  | 传入数据会强转为字符串 | 
+| not_like   | 模糊查询不包含(like)  | 传入数据会强转为字符串 | 
+| not like   | 模糊查询不包含(like)  | 传入数据会强转为字符串 | 
+| rlike      | 模糊查询包含(rlike)   |  | 
+| <>         | 不等于(<>)            |  | 
+| auto_like  | 模糊查询(like)        | 会自动判断添加 % 模糊查询
+```
+
+#### about auto_like 
+```php
+// if there is no '%' at your condition，Repository will auto add '%' ('%test%')
+$this->repository->findAll(['username:auto_like' => 'test']); 
+
+// if you write '%'，Repository won`t add any '%' to your condition
+$this->repository->findAll(['username:auto_like' => 'test%']);
+
+```
+```php
 // you can use the expression like this:
 # find the data where id > 10
 $this->repository->findAll(['id:gt' => 10]);
+
 # find the data where id != 10
 $this->repository->findAll(['id:neq' => 10]);
+
 # find the data where id in 1,2,3,4,5
 $this->repository->findAll(['id:in' => [1,2,3,4,5]);
+
 # find the data where created_at is between 
 # 2019-01-01 00:00:00 and 2020-01-01 00:00:00
 $this->repository->findAll(['created_at:between' => 
@@ -83,6 +124,7 @@ $this->repository->findAll(['created_at:between' =>
         '2020-01-01 00:00:00
     ]
 ]);
+
 # stop the account end with @@@
 $this->repository->update(['name:like' => '%@@@'], ['status' => 0]);
 
@@ -125,6 +167,7 @@ $this->userRepository->findAll(
     ]// fields
 );
 ```
+
 ```php
 # Example 2:
 # the same tables, users and user_ext
