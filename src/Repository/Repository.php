@@ -2,6 +2,7 @@
 
 namespace Littlebug\Repository;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -24,10 +25,10 @@ use \Illuminate\Database\Query\Expression;
  * @method Collection get($conditions = [], $columns = [])
  * @method Collection pluck($conditions = [], $columns = [], $key = null)
  * @method int count($conditions = [])
- * @method int|mixed max($conditions = [], $column)
- * @method int|mixed min($conditions = [], $column)
- * @method int|mixed avg($conditions = [], $column)
- * @method int|mixed sum($conditions = [], $column)
+ * @method int|mixed max($conditions, $column)
+ * @method int|mixed min($conditions, $column)
+ * @method int|mixed avg($conditions, $column)
+ * @method int|mixed sum($conditions, $column)
  * @method string toSql($conditions = [])
  * @method array|mixed getBindings($conditions = [])
  *
