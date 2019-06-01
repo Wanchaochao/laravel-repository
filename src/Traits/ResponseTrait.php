@@ -1,13 +1,12 @@
 <?php
-/**
- *
- * ModelOutputTrait.php
- *
- * Create: 16-9-9 10:30
- * Editor: created by PhpStorm
- */
-namespace Littlebug\Traits\Repository;
 
+namespace Littlebug\Traits;
+
+/**
+ * Trait ResponseTrait Response返回Trait
+ *
+ * @package Littlebug\Traits
+ */
 trait ResponseTrait
 {
     /**

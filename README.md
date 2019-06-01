@@ -10,7 +10,7 @@
 </p>
 
 
-[切换中文](/README.zh-cn.md)
+[切换中文](/README.zh-CN.md) | [Repository的用法](/docs/Repository.md)
 
 ### clear tree of project
 
@@ -64,38 +64,6 @@ mkdir app/Http/Requests
 
 [Request.php](https://github.com/Wanchaochao/laravel-repository/blob/master/src/littlebug/Request/Request.php)
 
-```php
-# Add the commands to commands register
-
-# find the app\Console\Kernel.php
-
-# add these codes on the top
-
-use Littlebug\Commands\ControllerCommand;
-use Littlebug\Commands\GenerateCommand;
-use Littlebug\Commands\ModelCommand;
-use Littlebug\Commands\RepositoryCommand;
-use Littlebug\Commands\RequestCommand;
-use Littlebug\Commands\ViewCommand;
-
-# find the property $commands = []
-
-# add these code to it
-    [
-        # your commands
-        ...
-        
-        # litttlebug\commands
-        ControllerCommand::class,
-        GenerateCommand::class,
-        ModelCommand::class,
-        RepositoryCommand::class,
-        RequestCommand::class,
-        ViewCommand::class
-    ]
-    
-```
-
 ### About the commands to generate base code
 
 ```bash
@@ -109,7 +77,7 @@ use Littlebug\Commands\ViewCommand;
 # if you see these , then you can use it to generate code quickly!~
 ```
 
-![commands of generate code](/core-commands.jpg 'core of commands')
+![commands of generate code](/docs/core-commands.jpg 'core of commands')
 
 ```bash
 # let`s use it to generate code 
@@ -126,12 +94,9 @@ php artisan core:generate --table=member_message --path=Member --controller=Memb
 
 文件 [ /Users/wanchao/www/lara-test/app/Models/Member/MemberMessage.php ] 生成成功
 文件 [ /Users/wanchao/www/lara-test/app/Repositories/Member/MemberMessageRepository.php ] 生成成功
-文件 [ /Users/wanchao/www/lara-test/app/Http/Controllers/Member/MemberMessageController.php ] 生成成功
 文件 [ /Users/wanchao/www/lara-test/app/Http/Requests/Member/MemberMessage/UpdateRequest.php ] 生成成功
 文件 [ /Users/wanchao/www/lara-test/app/Http/Requests/Member/MemberMessage/DestroyRequest.php ] 生成成功
 文件 [ /Users/wanchao/www/lara-test/app/Http/Requests/Member/MemberMessage/StoreRequest.php ] 生成成功
-
-
 
 # add route to routes/web.php
 
@@ -148,12 +113,9 @@ public function indexAction()
 {
     $filters = Helper::filter_array(request()->all());
     $filters['order'] = 'id desc';
-    $list = $this->memberMessageRepository->getList($filters);
-    dd($list);
+    $list = $this->memberMessageRepository->lists($filters);
     return view('member.member_message.index', compact('list', 'filters'));
 }
-
-
 
 # terminal
 
@@ -165,7 +127,7 @@ vist localhost:8001/member/message
  
 ```
 
-![data of member message](/data-list.jpg 'data of member message')
+![data of member message](/docs/data-list.jpg 'data of member message')
 
 
 ### Custom

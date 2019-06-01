@@ -1,7 +1,4 @@
-
 ### laravel-repository
-
-![Progress](http://progressed.io/bar/90?title=completed)  
 
 <p align="center">
 	<a href="https:www.littlebug.vip">

@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Administrator
- * Date: 2018/8/12 0012
- * Time: 上午 9:56
- */
 
 namespace Littlebug\Commands;
 
@@ -12,6 +6,7 @@ use \Illuminate\Console\Command;
 use Illuminate\Support\Str;
 use Littlebug\Helpers\Helper;
 use Throwable;
+
 /**
  * Class CoreCommand core 基础命令
  *
@@ -27,11 +22,11 @@ abstract class CoreCommand extends Command
     /**
      * 获取目录
      *
-     * @param  string $file_name   文件名称
+     * @param string $file_name   文件名称
      *
-     * @param bool    $use_path    是否使用 option path
+     * @param bool   $use_path    是否使用 option path
      *
-     * @param bool    $studly_case 是否转大写
+     * @param bool   $studly_case 是否转大写
      *
      * @return string
      */
@@ -40,10 +35,10 @@ abstract class CoreCommand extends Command
         // 处理路径
         $path = $use_path ? $this->option('path') : '';
         $path = str_replace('\\', '/', $path);
-        if (Helper::is_empty($path) || !Str::startsWith($path, '/')) {
+        if (Helper::isEmpty($path) || !Str::startsWith($path, '/')) {
             $array = explode('/', $path);
             if ($studly_case) {
-                Helper::array_studly_case($array);
+                Helper::arrayStudlyCase($array);
             }
 
             $path = base_path(rtrim($this->basePath, '/') . '/' . implode('/', $array));
@@ -90,7 +85,7 @@ abstract class CoreCommand extends Command
     {
         $input_name = str_replace('\\', '/', $this->option($option) ?: $default_name);
         $array      = explode('/', $input_name);
-        Helper::array_studly_case($array);
+        Helper::arrayStudlyCase($array);
         $name = implode('/', $array);
         if ($suffix && !Str::endsWith($name, $suffix)) {
             $name .= $suffix;
@@ -114,9 +109,9 @@ abstract class CoreCommand extends Command
     /**
      * 渲染生成文件
      *
-     * @param  string $file_name   生成文件名称
-     * @param  array  $params      需要的参数
-     * @param string  $render_view 是否需要通过视图生成
+     * @param string $file_name   生成文件名称
+     * @param array  $params      需要的参数
+     * @param string $render_view 是否需要通过视图生成
      */
     protected function render($file_name, $params, $render_view = '')
     {

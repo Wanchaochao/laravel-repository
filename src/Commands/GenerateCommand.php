@@ -1,16 +1,9 @@
 <?php
-/**
- *
- * GenerateCommand.php
- *
- * Create: 2018/8/14 15:57
- * Editor: created by PhpStorm
- */
 
 namespace Littlebug\Commands;
 
 use Littlebug\Helpers\Helper;
-use Littlebug\Traits\Command\CommandTrait;
+use Littlebug\Traits\CommandTrait;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 
@@ -24,7 +17,7 @@ class GenerateCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'core:generate {--table=} {--controller=} {--model=} {--path=}';
+    protected $signature = 'core:generate {--table=} {--model=} {--path=}';
 
     /**
      * The console command description.
@@ -33,7 +26,6 @@ class GenerateCommand extends Command
      */
     protected $description = '生成 controller|model|repository|request|views 
     {--table=}      指定表名称 [ 支持指定数据库,例如：log.crontabs ]
-    {--controller=} 控制器名称 [ 请使用相对路径 ], 默认使用表名称 [ 大驼峰命名 ]
     {--path=}       指定目录 [ 没有传递绝对路径，否则使用相对对路径 从 app/Models 开始 ]  
     {--model=}      model名称 默认生成使用表名称生成';
 
@@ -57,24 +49,16 @@ class GenerateCommand extends Command
         }
 
         // 生成model 和 repository
-        $this->call('core:model', Helper::filter_array([
+        $this->call('core:model', Helper::filterArray([
             '--table' => $table,
             '--name'  => $this->option('model'),
-            '--path'  => $this->option('path')
+            '--path'  => $this->option('path'),
         ]));
-
-        // 生成控制器
-        $this->call('core:controller', [
-            '--name'  => $controller,
-            '--r'     => $this->getRepositoryName($table),
-            '--pk'    => $this->findPrimaryKey($table),
-            '--table' => $table
-        ]);
 
         // 生成request
         $this->call('core:request', [
             '--table' => $table,
-            '--path'  => str_replace(['Controller', '\\'], ['', '/'], $controller)
+            '--path'  => str_replace(['Controller', '\\'], ['', '/'], $controller),
         ]);
     }
 
@@ -108,7 +92,7 @@ class GenerateCommand extends Command
         }
 
         $repositories = explode('/', $repository);
-        Helper::array_studly_case($repositories);
+        Helper::arrayStudlyCase($repositories);
         return implode('/', $repositories);
     }
 }

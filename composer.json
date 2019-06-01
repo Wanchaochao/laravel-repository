@@ -17,7 +17,8 @@
     }
   ],
   "require": {
-    "php": ">=7.0.0"
+    "php": ">=7.0.0",
+    "ext-json": "*"
   },
   "require-dev": {
     "laravel/framework": "5.5.*"
@@ -25,7 +26,14 @@
   "minimum-stability": "dev",
   "autoload": {
     "psr-4": {
-      "Littlebug\\": "src/littlebug"
+      "Littlebug\\": "src"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Littlebug\\Providers\\CoreCommandServiceProvider"
+      ]
     }
   }
 }
