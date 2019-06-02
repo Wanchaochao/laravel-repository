@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Littlebug\Traits\ResponseTrait;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\Paginator;
@@ -1006,6 +1005,32 @@ abstract class Repository
     private function isNotSelectAll($columns)
     {
         return !empty($columns) && !in_array('*', $columns);
+    }
+
+    /**
+     * 成功返回
+     *
+     * @param array  $data
+     * @param string $success_msg
+     *
+     * @return array
+     */
+    private function success($data = [], $success_msg = 'ok')
+    {
+        return [true, $success_msg, $data];
+    }
+
+    /**
+     * 失败返回
+     *
+     * @param string $error_msg
+     * @param array  $data
+     *
+     * @return array
+     */
+    private function error($error_msg = 'error', $data = [])
+    {
+        return [false, $error_msg, $data];
     }
 
     /**
