@@ -340,6 +340,32 @@ abstract class Repository
     }
 
     /**
+     * 过滤查询条件
+     *
+     * @param mixed|array $condition 查询条件
+     *
+     * @return mixed
+     */
+    public function filterCondition($condition)
+    {
+        if (!is_array($condition)) {
+            return $condition;
+        }
+
+        foreach ($condition as $key => $value) {
+            if (strtolower($key) === 'or') {
+                $condition[$key] = $this->filterCondition($value);
+            }
+
+            if (Helper::isEmpty($value)) {
+                unset($condition[$key]);
+            }
+        }
+
+        return $condition;
+    }
+
+    /**
      * 设置分页样式，目前支持simple和default
      *
      * @param string $style
@@ -426,7 +452,7 @@ abstract class Repository
      *
      * @return array
      */
-    protected function parseConditionRelations($conditions)
+    public function parseConditionRelations($conditions)
     {
         // 分组，如果是relation的查询条件，需要放在前面build
         $relations = $findConditions = [];
@@ -465,7 +491,7 @@ abstract class Repository
      *
      * @return array
      */
-    protected function parseFieldRelations($fields, $table, $tableColumns)
+    public function parseFieldRelations($fields, $table, $tableColumns)
     {
         $relations = $columns = [];
         if (empty($fields)) {
@@ -513,7 +539,7 @@ abstract class Repository
      *
      * @return array
      */
-    protected function getRelations(array $conditionRelations, array $fieldRelations)
+    public function getRelations(array $conditionRelations, array $fieldRelations)
     {
         $relations = [];
         foreach ($conditionRelations as $relationName => $conditions) {
@@ -536,7 +562,7 @@ abstract class Repository
      *
      * @return Builder|Model
      */
-    protected function getRelationModel($model, $relations, $selectColumns)
+    public function getRelationModel($model, $relations, $selectColumns)
     {
         // 没有关联信息
         if (empty($relations)) {
@@ -602,32 +628,6 @@ abstract class Repository
     }
 
     /**
-     * 过滤查询条件
-     *
-     * @param mixed|array $condition 查询条件
-     *
-     * @return mixed
-     */
-    protected function filterCondition($condition)
-    {
-        if (!is_array($condition)) {
-            return $condition;
-        }
-
-        foreach ($condition as $key => $value) {
-            if (strtolower($key) === 'or') {
-                $condition[$key] = $this->filterCondition($value);
-            }
-
-            if (Helper::isEmpty($value)) {
-                unset($condition[$key]);
-            }
-        }
-
-        return $condition;
-    }
-
-    /**
      * 查询处理
      *
      * @param array  $condition 查询条件
@@ -637,7 +637,7 @@ abstract class Repository
      *
      * @return mixed
      */
-    protected function handleConditionQuery($condition, $query, $table, $columns)
+    public function handleConditionQuery($condition, $query, $table, $columns)
     {
         // 添加指定了索引
         if ($force_index = Arr::pull($condition, 'force_index')) {
@@ -683,7 +683,7 @@ abstract class Repository
      *
      * @return Model|mixed
      */
-    protected function conditionQuery($condition, $query, $table, $columns, $or = false)
+    public function conditionQuery($condition, $query, $table, $columns, $or = false)
     {
         foreach ($condition as $column => $bindValue) {
             // or 查询
@@ -748,7 +748,7 @@ abstract class Repository
      *
      * @return Model
      */
-    protected function handleExpressionConditionQuery($query, $condition = [], $or = false)
+    public function handleExpressionConditionQuery($query, $condition = [], $or = false)
     {
         list($column, $expression, $value) = $condition;
 
@@ -795,7 +795,7 @@ abstract class Repository
      *
      * @return mixed
      */
-    protected function handleFieldQuery($query, $field, $value, $or = false)
+    public function handleFieldQuery($query, $field, $value, $or = false)
     {
         $strMethod = is_array($value) ? 'whereIn' : 'where';
         if ($or) {
@@ -813,7 +813,7 @@ abstract class Repository
      *
      * @return mixed|string
      */
-    protected function getError(Exception $e)
+    public function getError(Exception $e)
     {
         // 记录数据库执行错误日志
         logger()->error('db error', [
@@ -833,7 +833,7 @@ abstract class Repository
      *
      * @return array
      */
-    private function getRelationDefaultFilters($model, $relationName)
+    public function getRelationDefaultFilters($model, $relationName)
     {
         // 添加relation的默认条件，默认条件数组为 “$relationFilters" 的 public 属性
         $attribute = $relationName . 'Filters';
@@ -862,7 +862,7 @@ abstract class Repository
      *
      * @return Closure
      */
-    private function buildRelation($relations)
+    public function buildRelation($relations)
     {
         return function ($query) use ($relations) {
             // 获取relation的表字段
@@ -906,7 +906,7 @@ abstract class Repository
      *
      * @return mixed
      */
-    private function select($query, $fields)
+    public function select($query, $fields)
     {
         if ($fields) {
             return $query->select($fields);
@@ -925,7 +925,7 @@ abstract class Repository
      *
      * @return mixed
      */
-    private function orderBy($query, $orderBy, $table, $columns)
+    public function orderBy($query, $orderBy, $table, $columns)
     {
         // 为空，直接返回
         if (empty($orderBy)) {
@@ -961,7 +961,7 @@ abstract class Repository
      *
      * @return string
      */
-    private function firstKey($mixedValue)
+    public function firstKey($mixedValue)
     {
         if (is_array($mixedValue)) {
             $mixedValue = Arr::get(array_values($mixedValue), 0);
@@ -977,7 +977,7 @@ abstract class Repository
      *
      * @return array
      */
-    private function firstField($field)
+    public function firstField($field)
     {
         $index = strpos($field, '.');
         if ($index === false) {
@@ -997,7 +997,7 @@ abstract class Repository
      *
      * @return bool
      */
-    private function isNotSelectAll($columns)
+    public function isNotSelectAll($columns)
     {
         return !empty($columns) && !in_array('*', $columns);
     }
@@ -1011,7 +1011,7 @@ abstract class Repository
      *
      * @return array
      */
-    private function getValidColumns($data, $columns = null, $primary = null)
+    public function getValidColumns($data, $columns = null, $primary = null)
     {
         $columns = $columns ?: $this->getTableColumns();
         $primary = $primary ?: $this->model->getKeyName();
@@ -1034,7 +1034,7 @@ abstract class Repository
      *
      * @return array
      */
-    protected function success($data = [], $message = 'ok')
+    public function success($data = [], $message = 'ok')
     {
         return [true, $message, $data];
     }
@@ -1047,7 +1047,7 @@ abstract class Repository
      *
      * @return array
      */
-    protected function error($message = 'error', $data = [])
+    public function error($message = 'error', $data = [])
     {
         return [false, $message, $data];
     }
