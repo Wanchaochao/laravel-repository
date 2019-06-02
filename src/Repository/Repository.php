@@ -5,6 +5,7 @@ namespace Littlebug\Repository;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
@@ -148,13 +149,11 @@ abstract class Repository
      */
     public function getTableColumns($model = '')
     {
-        $model   = $model && is_object($model) ? $model : $this->model;
-        $columns = [];
-        foreach ($model->columns as $column) {
-            $columns[$column] = $column;
-        }
-
-        return $columns;
+        $model        = $model && is_object($model) ? $model : $this->model;
+        $modelColumns = isset($model->columns) && is_array($model->columns) && !empty($model->columns) ?
+            $model->columns :
+            Schema::setConnection($model->getConnection())->getColumnListing($model->getTable());
+        return array_combine($modelColumns, $modelColumns);
     }
 
     /**
@@ -779,7 +778,7 @@ abstract class Repository
         // 其他查询方式
         if (in_array($allowExpression, ['like', 'not like'])) {
             $value = (string)$value;
-            
+
             // 不存在模糊查询，自动添加模糊查询
             if ($expression === 'auto_like' && strpos($value, '%') === false) {
                 $value = "%{$value}%";
@@ -1009,27 +1008,27 @@ abstract class Repository
     /**
      * 成功返回
      *
-     * @param array  $data
-     * @param string $success_msg
+     * @param array  $data    返回数据信息
+     * @param string $message 返回提示信息
      *
      * @return array
      */
-    protected function success($data = [], $success_msg = 'ok')
+    protected function success($data = [], $message = 'ok')
     {
-        return [true, $success_msg, $data];
+        return [true, $message, $data];
     }
 
     /**
      * 失败返回
      *
-     * @param string $error_msg
-     * @param array  $data
+     * @param string $message 错误提示信息
+     * @param array  $data    返回数据信息
      *
      * @return array
      */
-    protected function error($error_msg = 'error', $data = [])
+    protected function error($message = 'error', $data = [])
     {
-        return [false, $error_msg, $data];
+        return [false, $message, $data];
     }
 
     /**
@@ -1037,6 +1036,7 @@ abstract class Repository
      *
      * @param string $name 调用model 自己的方法
      * @param array  $arguments
+     *
      * @return mixed
      */
     public function __call($name, $arguments)
