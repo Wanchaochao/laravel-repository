@@ -93,8 +93,31 @@ list($ok, $msg, $rows) = $this->repository->update(['name:like' => '%555'], [
 $list = $this->>repository->paginate(['status' => 1], ['id', 'name', ...]);
 ```
 
+#### 使用表达式查询数据
 
-####  目前支持的表达式
+> 下面列出查询方法，都支持表达式查询
+
+1. find
+2. findBy
+3. findAll
+4. findAllBy
+5. paginate
+
+> 使用方式
+
+字段:表达式 => 对应查询的值
+
+```php
+
+$items = $this->repository->findAll([
+    'id:neq'    => 1,
+    'name:like' => '%test%'
+]);
+
+// 对应生成的sql: `id` != 1 and `name` like '%test%' 
+```
+
+#####  目前支持的表达式
 
 | 表达式 | 含义 | 特别说明 |
 |:------|:--------------|:-----|
@@ -124,6 +147,7 @@ $list = $this->>repository->paginate(['status' => 1], ['id', 'name', ...]);
 | auto_like  | 模糊查询(like)        | 会自动判断添加 % 模糊查询
 
 #### 关于auto_like 查询说明
+
 ```php
 // 没有添加前后模糊查询，会自动加上 username like '%test%'
 $this->repository->findAll(['username:auto_like' => 'test']); 
@@ -158,6 +182,18 @@ $this->repository->findAll(['created_at:between' =>
 $this->repository->update(['name:like' => '%@@@'], ['status' => 0]);
 
 ``` 
+
+#### 如果你记不住表达式，那么你同样可以直接使用操作符查询也是一样的
+
+```php
+$item = $this->repository->findAll([
+    'id:!='         => 2,
+    'username:like' => '%test%',
+    'status:>='     => 4,
+])
+```
+
+同样是 查询字段:操作符 => '查询的值'
 
 #### 进阶用法
 
