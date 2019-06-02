@@ -54,21 +54,36 @@ list($ok, $msg, $rows) = $this->repository->update(['name:like' => '%555'], [
 
 ```
 
-### 关于查询数据
+### 查询数据
 
 #### 查询单条数据
 
-```php
-$id = $this->repository->findBy(1, 'name'); // 查某个字段
-$item = $this->repository->find(1);  // 主键查询 pk = 1
-```
+1. 查询单条数据 find($conditions, $fields)
+
+    ```php
+    $item = $this->repository->find(1);  // 主键查询 pk = 1
+    
+    ```
+
+2. 查询单个字段 findBy($conditions, $field)
+
+    ```php
+    $name = $this->repository->findBy(1, 'name'); // 查某个字段
+    ```
 
 #### 查询多条数据
 
-```php
-$items = $this->repository->findAll([1, 2, 3, 4]); // 主键查询 pk in (1, 2, 3, 4)
-$items = $this->repository->findAllBy([1,2,3], 'username'); // 查询某个字段的所有值
-```
+1. 查询多条数据 findAll($conditions, $fields)
+
+    ```php
+    $items = $this->repository->findAll([1, 2, 3, 4]); // 主键查询 pk in (1, 2, 3, 4)
+    ```
+
+2. 查询多条数据的单个字段 findAllBy($conditions, $filed)
+
+    ```php
+    $usernames = $this->repository->findAllBy([1, 2, 3], 'username'); // 查询某个字段的所有值
+    ```
 
 ####  目前支持的表达式
 

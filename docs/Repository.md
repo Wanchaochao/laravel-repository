@@ -62,9 +62,6 @@ $this-repository->findAllBy(['user_id' => 10], 'name');
 
 
 #### About filters`s expression
-```php
-
-# Repository.php
 
 ####  目前支持的表达式
 
@@ -94,9 +91,9 @@ $this-repository->findAllBy(['user_id' => 10], 'name');
 | rlike      | 模糊查询包含(rlike)   |  | 
 | <>         | 不等于(<>)            |  | 
 | auto_like  | 模糊查询(like)        | 会自动判断添加 % 模糊查询
-```
 
 #### about auto_like 
+
 ```php
 // if there is no '%' at your condition，Repository will auto add '%' ('%test%')
 $this->repository->findAll(['username:auto_like' => 'test']); 
@@ -105,6 +102,7 @@ $this->repository->findAll(['username:auto_like' => 'test']);
 $this->repository->findAll(['username:auto_like' => 'test%']);
 
 ```
+
 ```php
 // you can use the expression like this:
 # find the data where id > 10
