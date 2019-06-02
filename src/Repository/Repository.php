@@ -163,8 +163,11 @@ abstract class Repository
      *
      * @return array
      */
-    final public function create($data)
+    final public function create(array $data)
     {
+        // 过滤非法字段，禁止新增主键
+        $data = $this->getValidColumns($data);
+
         // 不能是空数组
         if (empty($data) || !is_array($data)) {
             return $this->error('创建失败');
@@ -190,7 +193,7 @@ abstract class Repository
      *
      * @return array
      */
-    final public function update($conditions, $data)
+    final public function update($conditions, array $data)
     {
         // 根据pk更新单条记录
         $conditions = $this->getPrimaryKeyCondition($conditions);
@@ -199,13 +202,7 @@ abstract class Repository
         }
 
         // 过滤非法字段，禁止更新主键
-        $columns = $this->getTableColumns();
-        Arr::pull($data, $this->model->getKeyName());
-        foreach ($data as $k => $v) {
-            if (!isset($columns[$k])) {
-                unset($data[$k]);
-            }
-        }
+        $data = $this->getValidColumns($data);
 
         // 空值判断
         if (empty($data)) {
@@ -1003,6 +1000,30 @@ abstract class Repository
     private function isNotSelectAll($columns)
     {
         return !empty($columns) && !in_array('*', $columns);
+    }
+
+    /**
+     * 获取有效的新增和修改字段信息
+     *
+     * @param array  $data    新增或者修改的数据
+     * @param array  $columns 表中的字段
+     * @param string $primary 表的主键信息
+     *
+     * @return array
+     */
+    private function getValidColumns($data, $columns = null, $primary = null)
+    {
+        $columns = $columns ?: $this->getTableColumns();
+        $primary = $primary ?: $this->model->getKeyName();
+        // 过滤非法字段，禁止更新主键
+        Arr::pull($data, $primary);
+        foreach ($data as $k => $v) {
+            if (!isset($columns[$k])) {
+                unset($data[$k]);
+            }
+        }
+
+        return $data;
     }
 
     /**
