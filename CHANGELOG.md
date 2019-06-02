@@ -1,6 +1,10 @@
 更新记录
 =======
 
+v1.0.6 2019
+-----------------
+- add: repository 添加 getFilterModel($conditions, $fields) 方法
+
 v1.0.5 2019-06-02
 -----------------
 
