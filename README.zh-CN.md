@@ -6,7 +6,7 @@
 	</a>
 </p>
 
-[change to English](/README.md) | [Repository的用法](/docs/Repository.zh-CN.md)
+[change to English](/README.md) | [instruction of Repository](/docs/Repository.zh-CN.md) |
 
 ### 清晰的目录结构
 
