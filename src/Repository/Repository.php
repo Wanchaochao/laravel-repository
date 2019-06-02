@@ -39,7 +39,6 @@ use \Illuminate\Database\Query\Expression;
  */
 abstract class Repository
 {
-    use ResponseTrait;
 
     /**
      * The model to provide.
@@ -1015,7 +1014,7 @@ abstract class Repository
      *
      * @return array
      */
-    private function success($data = [], $success_msg = 'ok')
+    protected function success($data = [], $success_msg = 'ok')
     {
         return [true, $success_msg, $data];
     }
@@ -1028,7 +1027,7 @@ abstract class Repository
      *
      * @return array
      */
-    private function error($error_msg = 'error', $data = [])
+    protected function error($error_msg = 'error', $data = [])
     {
         return [false, $error_msg, $data];
     }
