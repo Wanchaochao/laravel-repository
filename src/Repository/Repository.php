@@ -340,6 +340,19 @@ abstract class Repository
     }
 
     /**
+     * 获取过滤查询条件查询的 model
+     *
+     * @param array|mixed $conditions 查询条件
+     * @param array       $fields     查询的字段
+     *
+     * @return Model|mixed
+     */
+    public function getFilterModel($conditions, $fields = [])
+    {
+        return $this->findCondition($this->filterCondition($conditions), $fields);
+    }
+
+    /**
      * 过滤查询条件
      *
      * @param mixed|array $conditions 查询条件
