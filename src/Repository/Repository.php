@@ -342,27 +342,27 @@ abstract class Repository
     /**
      * 过滤查询条件
      *
-     * @param mixed|array $condition 查询条件
+     * @param mixed|array $conditions 查询条件
      *
      * @return mixed
      */
-    public function filterCondition($condition)
+    public function filterCondition($conditions)
     {
-        if (!is_array($condition)) {
-            return $condition;
+        if (!is_array($conditions) || !Helper::isAssociative($conditions)) {
+            return $conditions;
         }
 
-        foreach ($condition as $key => $value) {
+        foreach ($conditions as $key => $value) {
             if (strtolower($key) === 'or') {
-                $condition[$key] = $this->filterCondition($value);
+                $conditions[$key] = $this->filterCondition($value);
             }
 
             if (Helper::isEmpty($value)) {
-                unset($condition[$key]);
+                unset($conditions[$key]);
             }
         }
 
-        return $condition;
+        return $conditions;
     }
 
     /**
