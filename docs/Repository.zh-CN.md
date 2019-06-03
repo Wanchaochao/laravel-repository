@@ -91,7 +91,7 @@ list($ok, $msg, $rows) = $this->repository->update(['name:like' => '%555'], [
 分页查询 paginate($conditions = [], $fields = [], $pageSize = 10, $currentPage = null)
 
 ```php
-$list = $this->>repository->paginate(['status' => 1], ['id', 'name', ...]);
+$list = $this->repository->paginate(['status' => 1], ['id', 'name', ...]);
 ```
 
 #### 使用表达式查询数据
@@ -139,16 +139,15 @@ $items = $this->repository->findAll([
 | le     | 小于等于(<=)  | |
 | lte    | 小于等于(<=)  | |
 | elt    | 小于等于(<=)  | |
-| elt    | 小于等于(<=)  | |
 | in     | IN 查询      | 传入数据会强转为数组| 
 | not in | NOT IN 查询  | 传入数据会强转为数组| 
 | not_in | NOT IN 查询  | 传入数据会强转为数组| 
 | between| 区间查询(between)  | 传入数据会强转为数组| 
-| not_between| 不在区间查询(between)  | 传入数据会强转为数组| 
-| not between| 不在区间查询(between)  | 传入数据会强转为数组| 
+| not_between| 不在区间查询(not between)  | 传入数据会强转为数组| 
+| not between| 不在区间查询(not between)  | 传入数据会强转为数组| 
 | like   | 模糊查询包含(like)  | 传入数据会强转为字符串 | 
-| not_like   | 模糊查询不包含(like)  | 传入数据会强转为字符串 | 
-| not like   | 模糊查询不包含(like)  | 传入数据会强转为字符串 | 
+| not_like   | 模糊查询不包含(not like)  | 传入数据会强转为字符串 | 
+| not like   | 模糊查询不包含(not like)  | 传入数据会强转为字符串 | 
 | rlike      | 模糊查询包含(rlike)   |  | 
 | <>         | 不等于(<>)            |  | 
 | auto_like  | 模糊查询(like)        | 会自动判断添加 % 模糊查询

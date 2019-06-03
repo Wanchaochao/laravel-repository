@@ -62,37 +62,71 @@ $this-repository->findAllBy(['user_id' => 10], 'name');
 
 ``` 
 
+#### page data
 
-#### About filters`s expression
+Repository->paginate($conditions = [], $fields = [], $pageSize = 10, $currentPage = null)
 
-####  目前支持的表达式
+```php
+$list = $this->repository->paginate(['status' => 1], ['id', 'name', ...]);
+```
 
-| 表达式 | 含义 | 特别说明 |
-|:------|:--------------|:-----|
-| eq    | 等于(=)      | |
-| neq   | 不等于(!=)   | |
-| ne    | 不等于(!=)   | |
-| gt    | 大于(>)      | |
-| egt    | 大于等于(>=) | |
-| gte    | 大于等于(>=) | |
-| ge     | 大于等于(>=) | |
-| lt     | 小于(<)      | |
-| le     | 小于等于(<=)  | |
-| lte    | 小于等于(<=)  | |
-| elt    | 小于等于(<=)  | |
-| elt    | 小于等于(<=)  | |
-| in     | IN 查询      | 传入数据会强转为数组| 
-| not in | NOT IN 查询  | 传入数据会强转为数组| 
-| not_in | NOT IN 查询  | 传入数据会强转为数组| 
-| between| 区间查询(between)  | 传入数据会强转为数组| 
-| not_between| 不在区间查询(between)  | 传入数据会强转为数组| 
-| not between| 不在区间查询(between)  | 传入数据会强转为数组| 
-| like   | 模糊查询包含(like)  | 传入数据会强转为字符串 | 
-| not_like   | 模糊查询不包含(like)  | 传入数据会强转为字符串 | 
-| not like   | 模糊查询不包含(like)  | 传入数据会强转为字符串 | 
-| rlike      | 模糊查询包含(rlike)   |  | 
-| <>         | 不等于(<>)            |  | 
-| auto_like  | 模糊查询(like)        | 会自动判断添加 % 模糊查询
+#### use expression to query data
+
+> The following methods support expression queries
+
+1. find
+2. findBy
+3. findAll
+4. findAllBy
+5. paginate
+6. update
+7. delete
+8. filterFind
+9. filterFindAll
+10. getFilterModel
+11. findCondition
+
+> usage
+
+'column:expression' => 'value'
+
+```php
+
+$items = $this->repository->findAll([
+    'id:neq'    => 1,
+    'name:like' => '%test%'
+]);
+
+// result condition : `id` != 1 and `name` like '%test%' 
+```
+
+#### the expressions we support
+
+| expression |    meaning   |      desc     |
+|:------     |:-------------|:--------------|
+| eq         |       =      |               |
+| neq        |      !=      |               |
+| ne         |      !=      |               |
+| gt         |      >       |               |
+| egt        |      >=      |               |
+| gte        |      >=      |               |
+| ge         |      >=      |               |
+| lt         |      <       |               |
+| le         |      <=      |               |
+| lte        |      <=      |               |
+| elt        |      <=      |               |
+| in         |      IN      | need an array | 
+| not in     |    NOT IN    | need an array | 
+| not_in     |    NOT IN    | need an array | 
+| between    |    between   | need an array | 
+| not_between| not between  | need an array | 
+| not between| not between  | need an array | 
+| like       |     like     | need a string | 
+| not_like   |    not like  | need a string | 
+| not like   |    not like  | need a string | 
+| rlike      |     rlike    |               | 
+| <>         |      <>      |               | 
+| auto_like  |     like     |   auto add %  |
 
 #### about auto_like 
 
