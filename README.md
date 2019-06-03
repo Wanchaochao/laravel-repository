@@ -77,7 +77,7 @@ mkdir app/Http/Requests
 # if you see these , then you can use it to generate code quickly!~
 ```
 
-![commands of generate code](/docs/core-commands.jpg 'core of commands')
+![commands of generate code](/docs/core-commands.png 'core of commands')
 
 ```bash
 # let`s use it to generate code 

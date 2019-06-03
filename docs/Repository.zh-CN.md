@@ -95,13 +95,19 @@ $list = $this->>repository->paginate(['status' => 1], ['id', 'name', ...]);
 
 #### 使用表达式查询数据
 
-> 下面列出查询方法，都支持表达式查询
+> 下面列出查询方法，均支持表达式查询
 
 1. find
 2. findBy
 3. findAll
 4. findAllBy
 5. paginate
+6. update
+7. delete
+8. filterFind
+9. filterFindAll
+10. getFilterModel
+11. findCondition
 
 > 使用方式
 
