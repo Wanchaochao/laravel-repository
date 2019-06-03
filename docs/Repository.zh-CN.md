@@ -1,6 +1,8 @@
 Repository 使用说明
 ==================
 
+[change to English](./Repository.md)
+
 ## 增删改查
 
 ### 新增数据
@@ -18,7 +20,6 @@ list($ok, $msg, $data) = $this-repository->create([
     'sex'       => 1,
     'address    => 'America'
 ]);
-
 
 ```
 

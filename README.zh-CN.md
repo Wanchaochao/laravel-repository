@@ -71,7 +71,7 @@ php artisan list
 # 如果你看到下面这些提示，那么可以开始快速生成代码了!~
 ```
 
-![commands of generate code](/docs/core-commands.jpg 'core of commands')
+![commands of generate code](/docs/core-commands.png 'core of commands')
 
 ```bash
 # 让我们来试一下

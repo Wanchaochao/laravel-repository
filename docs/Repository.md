@@ -1,5 +1,7 @@
 ### Usage Instructions for Repository
 
+[切换中文](./Repository.zh-CN.md)
+
 ---
 
 #### CURD
