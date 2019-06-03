@@ -23,7 +23,7 @@ use \Illuminate\Database\Query\Expression;
  *
  * @method Model|null first($conditions = [], $columns = [])
  * @method Collection get($conditions = [], $columns = [])
- * @method Collection pluck($conditions = [], $columns = [], $key = null)
+ * @method Collection pluck($conditions, $column, $key = null)
  * @method int count($conditions = [])
  * @method int|mixed max($conditions, $column)
  * @method int|mixed min($conditions, $column)

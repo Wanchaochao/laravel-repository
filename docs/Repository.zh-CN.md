@@ -351,7 +351,7 @@ $items = $this->repositpry->filterFindAll([
 
 1. first($conditions, $columns = []) 
 2. get($conditions, $columns = [])
-3. pluck($conditions, $column, $key)
+3. pluck($conditions, $column, $key = null)
 
 ##### 统计、聚合查询
 
