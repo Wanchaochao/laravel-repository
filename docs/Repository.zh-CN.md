@@ -265,5 +265,108 @@ $users = $this->userRepository->findAll(
 );
 
 ```
+
+#### 过滤空值查询
+
+**空字符串、空数组、null会被认为空值**
+
+1. 查询单个 filterFind($conditions, $fields = [])
+
+    ```php
+    $item = $this->repositpry->filterFind([
+        'username:like' => request()->input('username'),
+        'status'        => request()->input('status')
+    ]);
+    ```
+
+2. 查询多个 filterFindAll($conditions, $fields = [])
+
+    ```php
+    $items = $this->repositpry->filterFindAll([
+        'username:like' => request()->input('username'),
+        'status'        => request()->input('status')
+    ]);
+    ```
+3. 获取过滤空值查询的model getFilterModel($conditions, $fields = [])
+
+    ```php
+    $model = $this->repositpry->getFilterModel([
+        'username:like' => request()->input('username'),
+        'status'        => request()->input('status')
+    ]);
+    ```
+    
+>这几个方法，相当于 [when 条件查询](https://learnku.com/docs/laravel/5.5/queries/1327#conditional-clauses)
+在和前端交互时，不确定前端是否传递值来进行查询时候，比较方便
+
+```php
+// 平时写法
+$conditions = [];
+
+if ($username = request()->input('username')) {
+    $conditions['username:like'] = $username;
+}
+
+if ($status = request()->input('status')) {
+    $conditions['status'] = $status;
+}
+
+$items = $this->repository->findAll($conditions);
+
+// 使用 filter 过滤查询
+$items = $this->repositpry->filterFindAll([
+    'username:like' => request()->input('username'),
+    'status'        => request()->input('status')
+]);
+```
+
+### 其他比较常用方法
+
+#### 通过处理表达式查询、自动关联查询 findCondition() 之后的其他查询
+
+这些方法都是通过 $this->findCondition($conditions) 之后直接调用 model 的方法
+
+```php
+    /**
+     * 调用 model 的方法
+     *
+     * @param string $name 调用model 自己的方法
+     * @param array  $arguments
+     * @return mixed
+     */
+    public function __call($name, $arguments)
+    {
+        // 直接使用 model, 不需要查询条件的数据
+        if (in_array($name, $this->passThru)) {
+            return (new $this->model)->{$name}(...$arguments);
+        }
+
+        // 第一个参数传递给自己 findCondition 方法
+        $conditions = Arr::pull($arguments, 0, []);
+        return $this->findCondition($conditions)->{$name}(...$arguments);
+    }
+```
+
+##### 查询方法
+1. first($conditions, $columns = []) 
+2. get($conditions, $columns = [])
+3. pluck($conditions, $column, $key)
+
+##### 统计、聚合查询
+
+1. count($conditions)
+2. max($conditions, $column)
+3. min($conditions, $column)
+4. sum($conditions, $column)
+5. avg($conditions, $column)
+6. toSql($conditions)
+7. getBindings($conditions)
+
+#### 其他方法
+
+1. getConnection()
+2. insert(array $insert)
+3. insertGetId(array $insert)
+
 是不是非常简洁方便 ^_^ 😋
 后面会继续补充
