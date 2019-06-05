@@ -254,14 +254,14 @@ abstract class Repository
      * 查询一条数据
      *
      * @param array|mixed $conditions 查询条件
-     * @param array       $fields     查询字段
+     * @param array       $columns    查询字段
      *
      * @return mixed
      */
-    public function find($conditions = [], $fields = [])
+    public function find($conditions = [], $columns = [])
     {
         /* @var $item Model|object|static|null */
-        if ($item = $this->findCondition($conditions, $fields)->first()) {
+        if ($item = $this->findCondition($conditions, $columns)->first()) {
             return $item->toArray();
         }
 
