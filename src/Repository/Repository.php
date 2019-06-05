@@ -40,7 +40,7 @@ use Illuminate\Database\Query\Expression;
  * @method Model updateOrCreate(array $attributes, array $value = [])
  * @method Model findOrFail($id, $columns = ['*'])
  * @method Model findOrNew($id, $columns = ['*'])
- * @method Model findMany($ids, $columns = ['*'])
+ * @method Collection findMany($ids, $columns = ['*'])
  *
  * @package Littlebug\Repository
  */
