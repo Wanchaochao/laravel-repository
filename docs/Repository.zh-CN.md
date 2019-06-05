@@ -367,6 +367,12 @@ $items = $this->repositpry->filterFindAll([
 1. getConnection()
 2. insert(array $insert)
 3. insertGetId(array $insert)
+4. firstOrCreate(array $attributes, array $value = [])
+5. firstOrNew(array $attributes, array $value = [])
+6. updateOrCreate(array $attributes, array $value = [])
+7. findOrFail($id, $columns = ['*'])
+8. findOrNew($id, $columns = ['*'])
+9. findMany($ids, $columns = ['*'])
 
 是不是非常简洁方便 ^_^ 😋
 后面会继续补充
