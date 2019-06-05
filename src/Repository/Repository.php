@@ -529,6 +529,7 @@ abstract class Repository
                     $columns[] = $table . '.' . $field;
                 } elseif (Str::endsWith($field, '_count')) {
                     $relationName = Str::replaceLast('_count', '', $field);
+                    $relationName = Str::camel($relationName);
                     if (!isset($relations[$relationName])) {
                         $relations[$relationName] = ['withCount' => true, 'columns' => [], 'with' => false];
                     }
