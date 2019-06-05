@@ -462,7 +462,7 @@ abstract class Repository
 
         // 处理关联信息查询
         $relations = $this->getRelations($conditionRelations, $fieldRelations);
-        $model     = $this->getRelationModel($model, $relations, $selectColumns);
+        $model     = $this->getRelationModel($model, $relations, $selectColumns, $table);
 
         // 处理查询条件
         return $this->handleConditionQuery($findConditions, $model, $table, $tableColumns);
@@ -583,10 +583,11 @@ abstract class Repository
      * @param Model|Builder $model         查询的model
      * @param array         $relations     关联数据信息
      * @param array         $selectColumns 查询字段信息
+     * @param string        $table         表名称
      *
      * @return Builder|Model
      */
-    public function getRelationModel($model, $relations, $selectColumns)
+    public function getRelationModel($model, $relations, $selectColumns, $table)
     {
         // 没有关联信息
         if (empty($relations)) {
@@ -594,7 +595,7 @@ abstract class Repository
         }
 
         // 处理数据
-        $isNotSelectAll = $this->isNotSelectAll($selectColumns);
+        $isNotSelectAll = $this->isNotSelectAll($selectColumns, $table);
         $with           = $withCount = [];
         $findModel      = $model->getModel();
 
@@ -911,11 +912,11 @@ abstract class Repository
             $hasRelations = $this->getRelations($conditionRelations, $fieldRelations);
 
             // 添加关联的外键，防止关联不上
-            if ($this->isNotSelectAll($selectColumns) && !in_array($foreignKey, $selectColumns)) {
+            if ($this->isNotSelectAll($selectColumns, $table) && !in_array($foreignKey, $selectColumns)) {
                 $selectColumns[] = $foreignKey;
             }
 
-            $query = $this->getRelationModel($query, $hasRelations, $selectColumns);
+            $query = $this->getRelationModel($query, $hasRelations, $selectColumns, $table);
 
             // 处理查询条件
             return $this->handleConditionQuery($findConditions, $query, $table, $columns);
@@ -1015,15 +1016,16 @@ abstract class Repository
     }
 
     /**
-     * 是否查询全部字段
+     * 是否没有查询全部字段
      *
-     * @param array $columns 查询的字段信息
+     * @param array  $columns 查询的字段信息
+     * @param string $table   表名称
      *
      * @return bool
      */
-    public function isNotSelectAll($columns)
+    public function isNotSelectAll($columns, $table)
     {
-        return !empty($columns) && !in_array('*', $columns);
+        return !empty($columns) && !in_array('*', $columns) && !in_array($table . '.*', $columns);
     }
 
     /**
