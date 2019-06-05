@@ -6,9 +6,9 @@ Repository 使用说明
 `Repository` 是对 `laravel model` 的一个补充，优化了`laravel model` 的 `CURD` 操作，
 并提供更多的方法，以及更友好的编辑器提示
 
-## 增删改查
+## 一 增删改查
 
-### 新增数据
+### 1.1 新增数据
 
 ```php
 /**
@@ -26,7 +26,7 @@ list($ok, $msg, $data) = $this-repository->create([
 
 ```
 
-### 删除数据
+### 1.2 删除数据
 
 ```php
 /**
@@ -42,7 +42,7 @@ $this->repository->delete(['id:gt' => 10]);  // 条件删除 id > 10
 $this->>repository->delete([1, 2, 3, 4, 5]); // 主键删除 pk in (1, 2, 3, 4)
 ``` 
 
-### 编辑数据
+### 1.3 编辑数据
 
 ```php
 /**
@@ -58,7 +58,7 @@ list($ok, $msg, $rows) = $this->repository->update(['name:like' => '%555'], [
 
 ```
 
-### 查询数据
+### 1.4 查询数据
 
 #### 查询单条数据
 
@@ -322,7 +322,7 @@ $items = $this->repositpry->filterFindAll([
 ]);
 ```
 
-### 其他比较常用方法
+### 1.5 其他比较常用方法
 
 #### 通过处理表达式查询、自动关联查询 findCondition() 之后的其他查询
 
@@ -379,3 +379,25 @@ $items = $this->repositpry->filterFindAll([
 
 是不是非常简洁方便 ^_^ 😋
 后面会继续补充
+
+## 二 方法列表
+
+### 2.1 方法列表
+
+>repository所有方法都是对外的，这里只列出常用方法
+
+|方法名称|返回值|方法说明|
+|-------|-----|-------|
+|`find($conditions, $columns = [])`|`array or false`|查询一条数据|
+|`findBy($conditions, $column)`|`mixed`|查询单条数据的单个字段|
+|`findAll($conditions, $columns = [])`|`array`|查询多条数据|
+|`findAllBy($conditions, $column)`|`array`|查询多条数组的单个字段数组|
+|`filterFind($conditions, $columns = [])`|`array or false`|过滤查询条件中的空值查询一条数据|
+|`filterFindAll($condtions, $columns = [])`|`array`|过滤查询条件中的空值查询多条数据|
+|`paginate($conditions = [], $columns = [], $size = 10, $current = null)`|`array`|分页查询数据|
+|`getFilterModel($conditions, $columns = [])`|`Illuminate\Database\Eloquent\Model`|获取已经过滤处理查询条件的`model`|
+|`findCondition($conditions = [], $columns = [])`|`Illuminate\Database\Eloquent\Model`|获取已经处理查询条件的`model`(**上面所有查询方法都基于这个方法**)|
+|`create(array $data)`|`array`|添加数据|
+|`update($conditions, $data)`|`array`|修改数据(使用的是批量修改)|
+|`delete($conditions)`|`array`|删除数据(使用的是批量删除)|
+
