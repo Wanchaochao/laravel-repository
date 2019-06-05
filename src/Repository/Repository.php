@@ -35,6 +35,12 @@ use Illuminate\Database\Query\Expression;
  * @method array|mixed getConnection()
  * @method boolean insert(array $insert)
  * @method int|mixed insertGetId(array $insert)
+ * @method Model firstOrCreate(array $attributes, array $value = [])
+ * @method Model firstOrNew(array $attributes, array $value = [])
+ * @method Model updateOrCreate(array $attributes, array $value = [])
+ * @method Model findOrFail($id, $columns = ['*'])
+ * @method Model findOrNew($id, $columns = ['*'])
+ * @method Model findMany($ids, $columns = ['*'])
  *
  * @package Littlebug\Repository
  */
@@ -51,7 +57,11 @@ abstract class Repository
     /**
      * @var array 不需要查询条件的方法
      */
-    protected $passThru = ['insert', 'insertGetId', 'getConnection'];
+    protected $passThru = [
+        'insert', 'insertGetId', 'getConnection',
+        'firstOrCreate', 'firstOrNew', 'updateOrCreate',
+        'findOrFail', 'findOrNew', 'findMany',
+    ];
 
     /**
      * 分页样式

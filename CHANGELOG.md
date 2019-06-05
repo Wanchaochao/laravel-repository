@@ -6,6 +6,13 @@ v1.0.7 2019-06-05
 
 - add: repository 支持更多的 model 原生方法
 
+     * @method Model firstOrCreate(array $attributes, array $value = [])
+     * @method Model firstOrNew(array $attributes, array $value = [])
+     * @method Model updateOrCreate(array $attributes, array $value = [])
+     * @method Model findOrFail($id, $columns = ['*'])
+     * @method Model findOrNew($id, $columns = ['*'])
+     * @method Model findMany($ids, $columns = ['*'])
+
 
 v1.0.6 2019-06-03
 -----------------
