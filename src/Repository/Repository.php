@@ -508,25 +508,25 @@ abstract class Repository
     /**
      * 解析查询字段中的关联关系
      *
-     * @param array  $fields       查询的字段信息
+     * @param array  $columns      查询的字段信息
      * @param string $table        查询的表
      * @param array  $tableColumns 表中存在的字段信息
      *
      * @return array
      */
-    public function parseFieldRelations($fields, $table, $tableColumns)
+    public function parseFieldRelations($columns, $table, $tableColumns)
     {
-        $relations = $columns = [];
-        if (empty($fields)) {
-            return [$relations, $columns];
+        $relations = $selectColumns = [];
+        if (empty($columns)) {
+            return [$relations, $selectColumns];
         }
 
         // 解析查询字段信息
-        foreach ($fields as $k => $field) {
+        foreach ($columns as $k => $field) {
             if (is_int($k) && is_string($field)) { // 第一步，判断字段是否为字符串
                 // 判断是否存在表中
                 if (isset($tableColumns[$field])) {
-                    $columns[] = $table . '.' . $field;
+                    $selectColumns[] = $table . '.' . $field;
                 } elseif (Str::endsWith($field, '_count')) {
                     $relationName = Str::replaceLast('_count', '', $field);
                     $relationName = Str::camel($relationName);
@@ -536,7 +536,7 @@ abstract class Repository
 
                     $relations[$relationName]['withCount'] = true;
                 } else {
-                    $columns[] = $field;
+                    $selectColumns[] = $field;
                 }
             } elseif (!is_int($k) && is_string($k)) { // 如果是key => value 格式 那么认为是 关联查询
                 $relationName = Str::camel($k);
@@ -548,11 +548,11 @@ abstract class Repository
                 $relations[$relationName]['with']    = true;
 
             } elseif ($field instanceof Expression) { // 表达式查询字段
-                $columns[] = $field;
+                $selectColumns[] = $field;
             }
         }
 
-        return [$relations, $columns];
+        return [$relations, $selectColumns];
     }
 
     /**
@@ -664,8 +664,8 @@ abstract class Repository
     public function handleConditionQuery($condition, $query, $table, $columns)
     {
         // 添加指定了索引
-        if ($force_index = Arr::pull($condition, 'force_index')) {
-            $query = $query->from(DB::raw("{$this->model->getTable()} FORCE INDEX ({$force_index})"));
+        if ($forceIndex = Arr::pull($condition, 'force')) {
+            $query = $query->from(DB::raw("{$this->model->getTable()} FORCE INDEX ({$forceIndex})"));
         }
 
         // 设置了排序
@@ -925,15 +925,15 @@ abstract class Repository
     /**
      * 查询字段信息
      *
-     * @param mixed|model $query  查询对象
-     * @param array       $fields 查询的字段
+     * @param mixed|model|Builder $query   查询对象
+     * @param array               $columns 查询的字段
      *
      * @return mixed
      */
-    public function select($query, $fields)
+    public function select($query, $columns)
     {
-        if ($fields) {
-            return $query->select($fields);
+        if ($columns) {
+            return $query->select($columns);
         }
 
         return $query;
@@ -997,21 +997,21 @@ abstract class Repository
     /**
      * 获取查询单个字段数据信息
      *
-     * @param string $field 查询的字段 （支持 parent.name ）
+     * @param string $column 查询的字段 （支持 parent.name ）
      *
      * @return array
      */
-    public function firstField($field)
+    public function firstField($column)
     {
-        $index = strpos($field, '.');
+        $index = strpos($column, '.');
         if ($index === false) {
-            return [$field];
+            return [$column];
         }
 
-        $field_name  = substr($field, 0, $index);
-        $field_value = substr($field, $index + 1);
+        $columnName  = substr($column, 0, $index);
+        $columnValue = substr($column, $index + 1);
 
-        return [$field_name => $this->firstField($field_value)];
+        return [$columnName => $this->firstField($columnValue)];
     }
 
     /**
