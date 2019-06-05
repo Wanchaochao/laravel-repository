@@ -458,7 +458,7 @@ abstract class Repository
 
         // 解析出查询条件和查询字段中的关联信息
         list($conditionRelations, $findConditions) = $this->parseConditionRelations($conditions);
-        list($fieldRelations, $selectColumns) = $this->parseFieldRelations($columns, $table, $tableColumns);
+        list($fieldRelations, $selectColumns) = $this->parseColumnRelations($columns, $table, $tableColumns);
 
         // 处理关联信息查询
         $relations = $this->getRelations($conditionRelations, $fieldRelations);
@@ -514,7 +514,7 @@ abstract class Repository
      *
      * @return array
      */
-    public function parseFieldRelations($columns, $table, $tableColumns)
+    public function parseColumnRelations($columns, $table, $tableColumns)
     {
         $relations = $selectColumns = [];
         if (empty($columns)) {
@@ -905,7 +905,7 @@ abstract class Repository
 
             // 解析出查询条件和查询字段中的关联信息
             list($conditionRelations, $findConditions) = $this->parseConditionRelations($conditions);
-            list($fieldRelations, $selectColumns) = $this->parseFieldRelations($fields, $table, $columns);
+            list($fieldRelations, $selectColumns) = $this->parseColumnRelations($fields, $table, $columns);
 
             // 处理关联信息查询
             $hasRelations = $this->getRelations($conditionRelations, $fieldRelations);
