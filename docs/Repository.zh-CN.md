@@ -401,3 +401,51 @@ $items = $this->repositpry->filterFindAll([
 |`update($conditions, $data)`|`array`|修改数据(使用的是批量修改)|
 |`delete($conditions)`|`array`|删除数据(使用的是批量删除)|
 
+### 2.2 支持`model`自带方法
+
+|方法名称    |返回值| 方法说明 |
+|---------------|-------------|----------|
+|`getConnection()`|`Illuminate\Database\Connection`|获取连接信息|
+|`insert(array $values)`|`boolean`|新增数据(支持批量新增)|
+|`insertGetId(array $values)`|`int`|新增数据并获取新增ID|
+|`firstOrCreate(array $attributes, array $value = [])`|`Illuminate\Database\Eloquent\Model`|查询数据，不存在那么新增一条数据|
+|`firstOrNew(array $attributes, array $value = [])`|`Illuminate\Database\Eloquent\Model`|查询数据、不存在那么`new`出来|
+|`updateOrCreate(array $attributes, array $value = [])`|`Illuminate\Database\Eloquent\Model`|修改数据，不存在那么新增一条数据|
+|`findOrFail($id, $columns = ['*'])`|`Illuminate\Database\Eloquent\Model`|通过主键查询数据，不存在抛出错误|
+|`findOrNew($id, $columns = ['*'])` |`Illuminate\Database\Eloquent\Model`|通过主键查询数据，不存在`new`出来|
+|`findMany($ids, $columns = ['*'])`|`\Illuminate\Database\Eloquent\Collection`|通过主键数组查询多条数据|
+
+#### 参数说明
+
+|参数名称    |参数类型| 参数说明 |
+|---------------|-------------|----------|
+|`$attributes`|`array`|`model`的字段信息(查询条件)|
+|`$value`|`array or null`|`model`的其他字段信息(不参与查询、参与新增和`new`)
+|`$values`|`array`|新增数据需要的字段 => 值 数组信息
+|`$id`|`int or string`|主键ID值|
+|`$ids`|`array`|主键ID数组|
+|`$columns`|`array`|查询的字段信息|
+
+### 2.3 通过`findCondition($conditions)`查询后转换为`model`查询方法
+
+|方法名称|返回值|方法说明|
+|---------------|-------------|----------|
+|`first($conditions, $columns = ['*'])`|`Illuminate\Database\Eloquent\Model or null`| 查询一条数据|
+|`pluck($conditions, $column, $key = null)`|`Illuminate\Support\Collection`|查询单个字段信息|
+|`firstOrFail($conditions)`|`Illuminate\Database\Eloquent\Model`|查询一条数据、没有那么抛出错误|
+|`count($conditions = [])`|`int`|统计查询|
+|`max($conditions, $column)`|`int or mixed`|最大值查询|
+|`min($conditions, $column)`|`int or mixed`|最小值查询|
+|`avg($conditions, $column)`|`int or mixed`|平均值查询|
+|`sum($conditions, $column)`|`int or mixed`|求和查询|
+|`toSql($conditions)`|`string`|获取执行的`SQL`|
+|`getBindings($conditions = [])`|`array or mixed`|获取查询绑定的参数|
+
+#### 参数说明
+
+|参数名称    |参数类型| 参数说明 |
+|---------------|-------------|----------|
+|`$conditions`|`array or string or int`|查询条件(`string|int`会自动转换为主键查询)|
+|`$columns`|`array`|查询的字段数组|
+|`$column`|`string`|查询的字段名称|
+|`$key`|`string or null`|查询单个字段组成数组的`key`(索引下标使用字段)|
