@@ -3,6 +3,9 @@ Repository 使用说明
 
 [change to English](./Repository.md)
 
+`Repository` 是对 `laravel model` 的一个补充，优化了`laravel model` 的 `CURD` 操作，
+并提供更多的方法，以及更友好的编辑器提示
+
 ## 增删改查
 
 ### 新增数据
@@ -12,7 +15,7 @@ Repository 使用说明
  * 返回值说明
  * @param boolean $ok   true 表示成功
  * @param string  $msg  操作的提示信息
- * @param array   $data 新增后台调用 model->toArray() 返回的数据， 失败为null 
+ * @param array   $data 新增成功后调用 model->toArray() 返回的数据， 失败为null 
  */
 list($ok, $msg, $data) = $this-repository->create([
     'user_name' => 'Tony',

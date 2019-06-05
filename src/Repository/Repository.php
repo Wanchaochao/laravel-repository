@@ -33,8 +33,8 @@ use Illuminate\Database\Query\Expression;
  * @method array|mixed getBindings($conditions = [])
  *
  * @method array|mixed getConnection()
- * @method boolean insert(array $insert)
- * @method int|mixed insertGetId(array $insert)
+ * @method boolean insert(array $values)
+ * @method int|mixed insertGetId(array $valuse, $sequence = null)
  * @method Model firstOrCreate(array $attributes, array $value = [])
  * @method Model firstOrNew(array $attributes, array $value = [])
  * @method Model updateOrCreate(array $attributes, array $value = [])
@@ -153,7 +153,7 @@ abstract class Repository
      *
      * 获取表格字段，并转换为KV格式
      *
-     * @param $model
+     * @param Model|null|string $model 指定使用model
      *
      * @return array
      */
@@ -273,29 +273,29 @@ abstract class Repository
      * 获取一条记录的单个字段结果
      *
      * @param mixed|array $conditions 查询条件
-     * @param string      $field      获取的字段
+     * @param string      $column     获取的字段
      *
      * @return bool|mixed
      */
-    public function findBy($conditions, $field)
+    public function findBy($conditions, $column)
     {
         // 如果误传数组的话 取数组第一个值
-        $field = $this->firstKey($field);
-        $item  = $this->find($conditions, $this->firstField($field));
-        return Arr::get($item, $field, false);
+        $column = $this->firstKey($column);
+        $item   = $this->find($conditions, $this->firstField($column));
+        return Arr::get($item, $column, false);
     }
 
     /**
      * 查询所有记录
      *
      * @param array|mixed $conditions 查询条件
-     * @param array       $fields     查询字段
+     * @param array       $columns    查询字段
      *
      * @return array
      */
-    public function findAll($conditions, $fields = [])
+    public function findAll($conditions, $columns = [])
     {
-        return $this->findCondition($conditions, $fields)->get()->toArray();
+        return $this->findCondition($conditions, $columns)->get()->toArray();
     }
 
     /**
@@ -303,21 +303,21 @@ abstract class Repository
      * 获取结果集里的单个字段所有值的数组
      *
      * @param mixed|array $conditions 查询条件
-     * @param string      $field      获取的字段
+     * @param string      $column     获取的字段
      *
      * @return array
      */
-    public function findAllBy($conditions, $field)
+    public function findAllBy($conditions, $column)
     {
         // 如果误传数组的话 取数组第一个值
-        $field = $this->firstKey($field);
-        if (!$data = $this->findAll($conditions, $this->firstField($field))) {
+        $column = $this->firstKey($column);
+        if (!$data = $this->findAll($conditions, $this->firstField($column))) {
             return [];
         }
 
         $columns = [];
         foreach ($data as $value) {
-            $columns[] = Arr::get($value, $field);
+            $columns[] = Arr::get($value, $column);
         }
 
         return $columns;
@@ -327,39 +327,39 @@ abstract class Repository
      * 过滤查询中的空值查询一条数据
      *
      * @param array|int|string $conditions 查询条件
-     * @param array            $fields     查询的字段
+     * @param array            $columns    查询的字段
      *
      * @return mixed
      */
-    public function filterFind($conditions, $fields = [])
+    public function filterFind($conditions, $columns = [])
     {
-        return $this->find($this->filterCondition($conditions), $fields);
+        return $this->find($this->filterCondition($conditions), $columns);
     }
 
     /**
      * 过滤查询中的空值 查询所有记录
      *
      * @param array|mixed $conditions 查询条件
-     * @param array       $fields     查询字段
+     * @param array       $columns    查询字段
      *
      * @return array
      */
-    public function filterFindAll($conditions, $fields = [])
+    public function filterFindAll($conditions, $columns = [])
     {
-        return $this->findAll($this->filterCondition($conditions), $fields);
+        return $this->findAll($this->filterCondition($conditions), $columns);
     }
 
     /**
      * 获取过滤查询条件查询的 model
      *
      * @param array|mixed $conditions 查询条件
-     * @param array       $fields     查询的字段
+     * @param array       $columns    查询的字段
      *
      * @return Model|mixed
      */
-    public function getFilterModel($conditions, $fields = [])
+    public function getFilterModel($conditions, $columns = [])
     {
-        return $this->findCondition($this->filterCondition($conditions), $fields);
+        return $this->findCondition($this->filterCondition($conditions), $columns);
     }
 
     /**
@@ -405,15 +405,15 @@ abstract class Repository
      * 获取分页列表
      *
      * @param array $conditions 查询条件
-     * @param array $fields     查询字段
+     * @param array $columns    查询字段
      * @param int   $size       每页数据数
      * @param int   $current    当前页
      *
      * @return mixed
      */
-    public function paginate($conditions = [], $fields = [], $size = 10, $current = null)
+    public function paginate($conditions = [], $columns = [], $size = 10, $current = null)
     {
-        $model = $this->findCondition($conditions, $fields);
+        $model = $this->findCondition($conditions, $columns);
         if ($this->paginateStyle == 'simple') {
             $paginate = $model->simplePaginate($size, ['*'], 'page', $current);
         } else {
@@ -438,34 +438,34 @@ abstract class Repository
      * 设置model 的查询信息
      *
      * @param array $conditions 查询条件
-     * @param array $fields     查询字段
+     * @param array $columns    查询字段
      *
      * @return Model|mixed
      */
-    public function findCondition($conditions = [], $fields = [])
+    public function findCondition($conditions = [], $columns = [])
     {
         $model = $this->model->newModelInstance();
         // 查询条件为空，直接返回
-        if (empty($conditions) && empty($fields)) {
+        if (empty($conditions) && empty($columns)) {
             return $model;
         }
 
         // 查询条件为
-        $conditions = $this->getPrimaryKeyCondition($conditions);
-        $table      = $model->getTable();
-        $columns    = $this->getTableColumns($model);
-        $fields     = (array)$fields;
+        $conditions   = $this->getPrimaryKeyCondition($conditions);
+        $table        = $model->getTable();
+        $tableColumns = $this->getTableColumns($model);
+        $columns      = (array)$columns;
 
         // 解析出查询条件和查询字段中的关联信息
         list($conditionRelations, $findConditions) = $this->parseConditionRelations($conditions);
-        list($fieldRelations, $selectColumns) = $this->parseFieldRelations($fields, $table, $columns);
+        list($fieldRelations, $selectColumns) = $this->parseFieldRelations($columns, $table, $tableColumns);
 
         // 处理关联信息查询
         $relations = $this->getRelations($conditionRelations, $fieldRelations);
         $model     = $this->getRelationModel($model, $relations, $selectColumns);
 
         // 处理查询条件
-        return $this->handleConditionQuery($findConditions, $model, $table, $columns);
+        return $this->handleConditionQuery($findConditions, $model, $table, $tableColumns);
     }
 
     /**
