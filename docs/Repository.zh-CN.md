@@ -218,10 +218,22 @@ $item = $this->repository->findAll([
             'created_at',
             'updated_at',
         ];
+     
+      
+        /**
+         * 定义关联扩展信息
+         * 
+         * return Illuminate\Database\Eloquent\Relations\HasOne
+         */
+        public function extInfo()
+        {
+          return $this->hasOne(UserExt::class, 'user_id', 'user_id');
+        }
+     
     
         /**
          * 根据地址查询
-         
+         *
          * @param \Illuminate\Database\Eloquent\Builder $query   查询对象
          * @param string                                $address 地址信息
          * @return \Illuminate\Database\Eloquent\Builder
@@ -276,40 +288,17 @@ $this->userRepository->findAll([
 
 当我们查询数据时候，也想把关联数据查询出来的时候，就会用到关联查询
 
+使用的是`model`的`with`方法
+
 >举个🌰栗子,你有一张用户表users,用户表的扩展信息存在user_ext里 
 也许你想查询用户信息的时候同时查出用户的扩展信息
 
 要求`model`定义了关联
 
-1. model
-
-    ```php
-    class User extends Model
-    {
-        protected $table      = 'users';
-        protected $primaryKey = 'user_id';
-        public    $columns    = [
-            'user_id',
-            'username',
-            //...
-            'created_at',
-            'updated_at',
-        ];
-    
-        /**
-         * 定义关联扩展信息
-         * 
-         * return Illuminate\Database\Eloquent\Relations\HasOne
-         */
-        public function extInfo()
-        {
-            return $this->hasOne(UserExt::class, 'user_id', 'user_id');
-        }
-    }   
-    ```
-
 2. 使用 `repository` 获取关联数据信息, 通过查询字段，自动处理关联
 
+    查询字段中添加 `关联关系` => [`关联查询的字段信息`]
+    
     ```php
         $users = $this->repository->findAll(['status' => 1], ['*', 'extInfo' => ['*']]);
     ```
@@ -354,11 +343,36 @@ $this->userRepository->findAll([
    
    >这可能会让人认为我明明只查询了`username`字段，怎么还查出了其他字段信息
    
+   **只有在关联查询的时候，没有指定查询关联字段，才会自动加上关联字段**
+   
 #### 1.5.5 获取 `model` 的 `relation` 关联统计数据信息
+
+这个功能比较适合一对多的时候，我想知道关联的其他信息有多少
+
+只要定义了`model`的关联信息，就可以直接使用了，其实就是 `model` 的 `withCount`
+
+>`model`定义的`关联方法名称_count`
+
+```php
+$user = $this->repositoy->find(['status' => 1], ['id', 'username', 'extInfo_count']);
+```
+
+执行SQL以及数据
+
+![关联的数据](./relation-2.png '关联的数据')
 
 #### 1.5.6 给 `model` 的 `relation` 关联查询添加查询条件
 
-#### 过滤空值查询
+查询条件中添加 `model定义关联方法名称.字段` => '查询的值'
+
+`model` 使用上面定义的 `User` [](#)
+
+例如：
+
+
+
+
+#### 1.5.7 过滤空值查询
 
 **空字符串、空数组、null会被认为空值**
 
