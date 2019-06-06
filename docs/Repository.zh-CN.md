@@ -259,7 +259,7 @@ $item = $this->repository->findAll([
 
 3. 查询的SQL
 
-    ```SQL
+    ```sql
     
     select 
         * 
@@ -295,7 +295,9 @@ $this->userRepository->findAll([
 
 要求`model`定义了关联
 
-2. 使用 `repository` 获取关联数据信息, 通过查询字段，自动处理关联
+`model` 使用上面定义的 [`User`](./#152-使用-model-的-scope-查询)
+
+1. 使用 `repository` 获取关联数据信息, 通过查询字段，自动处理关联
 
     查询字段中添加 `关联关系` => [`关联查询的字段信息`]
     
@@ -303,17 +305,17 @@ $this->userRepository->findAll([
         $users = $this->repository->findAll(['status' => 1], ['*', 'extInfo' => ['*']]);
     ```
 
-3. 查询SQL 
+2. 查询SQL 
 
     [这里使用预加载数据](https://learnku.com/docs/laravel/5.5/eloquent-relationships/1333#012e7e), 避免N+1问题
 
-    ```SQL
+    ```sql
     select * from `users` where `users`.`status` = 1
     
     select * from `user_ext` where `user_id` in (1, 2, 3, 4)
     ```
 
-4. 数据信息
+3. 数据信息
 
     ![关联的数据](./relation.png '关联的数据')
 
@@ -353,6 +355,8 @@ $this->userRepository->findAll([
 
 >`model`定义的`关联方法名称_count`
 
+`model` 使用上面定义的 [`User`](./#152-使用-model-的-scope-查询)
+
 ```php
 $user = $this->repositoy->find(['status' => 1], ['id', 'username', 'extInfo_count']);
 ```
@@ -361,16 +365,32 @@ $user = $this->repositoy->find(['status' => 1], ['id', 'username', 'extInfo_coun
 
 ![关联的数据](./relation-2.png '关联的数据')
 
-#### 1.5.6 给 `model` 的 `relation` 关联查询添加查询条件
+#### 1.5.6 给 `model` 的 `relation` 关联查询动态添加查询条件
 
 查询条件中添加 `model定义关联方法名称.字段` => '查询的值'
 
-`model` 使用上面定义的 `User` [](#)
+`model` 使用上面定义的 [`User`](./#152-使用-model-的-scope-查询)
 
 例如：
 
+```php
 
+$users = $this->repository->findAll([
+    'status'                => 1,
+    'extInfo.address'       => '北京',
+    'extInfo.created_at:gt' => '2019-02-01 00:00:00', // 同样支持表达式查询
+], ['extInfo' => ['*']])
 
+```
+执行的SQL：
+```sql
+select * from `users` where `users`.`status` = 1
+
+select * from `user_ext` where 
+    `user_ext`.`address` = '北京' and 
+    `user_ext`.`created_at` > '2019-02-01 00:00:00' and 
+    `user_ext`.`user_id` in (1, 2, 3, 4)
+```
 
 #### 1.5.7 过滤空值查询
 
