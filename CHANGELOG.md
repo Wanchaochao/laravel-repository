@@ -12,7 +12,14 @@ v1.0.7 2019-06-06
      * @method Model findOrFail($id, $columns = ['*'])
      * @method Model findOrNew($id, $columns = ['*'])
      * @method Model findMany($ids, $columns = ['*'])
-
+     
+- add: repository 添加事件处理方法
+    - beforeCreate(array $data)
+    - afterCreate(array $data, array $news)
+    - beforeUpdate(array $conditions, array $data)
+    - afterUpdate(array $conditions, array $data, $row)
+    - beforeDelete(array $conditions)
+    - afterDelete(array $conditions, $row)
 
 v1.0.6 2019-06-03
 -----------------
