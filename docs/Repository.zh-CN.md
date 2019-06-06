@@ -392,6 +392,79 @@ select * from `user_ext` where
     `user_ext`.`user_id` in (1, 2, 3, 4)
 ```
 
+##### 1.5.6.1 model 也可以定义默认关联的查询条件
+
+需要在`model`里面定义 `关联方法名称Filters` 的属性信息
+
+```php
+    class User extends Model
+    {
+        protected $table      = 'users';
+        protected $primaryKey = 'user_id';
+        public    $columns    = [
+            'user_id',
+            'username',
+            //...
+            'created_at',
+            'updated_at',
+        ];
+        
+        /**
+         * 为关联定义默认查询条件
+         *
+         * @var array
+         */
+        public $extInfoFilters = [
+            'address' => '北京', 
+            // 'ddress:like' => '北京', // 允许使用表达式方式
+        ];
+     
+        /**
+         * 定义关联扩展信息
+         * 
+         * return Illuminate\Database\Eloquent\Relations\HasOne
+         */
+        public function extInfo()
+        {
+          return $this->hasOne(UserExt::class, 'user_id', 'user_id');
+        }
+     
+    
+        /**
+         * 根据地址查询
+         *
+         * @param \Illuminate\Database\Eloquent\Builder $query   查询对象
+         * @param string                                $address 地址信息
+         * @return \Illuminate\Database\Eloquent\Builder
+         */
+        public function scopeAddress($query, $address)
+        {
+            return $query->leftJoin('user_ext', 'user_ext.user_id', '=', 'users.user_id')
+                ->where('user_ext.address', '=', $address);
+        }
+    }   
+```
+  
+说明： 关联查询、统计查询都会添加默认关联查询条件
+
+使用定义了默认关联查询条件进行查询
+
+```php
+$users = $this->repository->findAll(['status' => 1], ['extInfo' => ['*']])
+```
+
+执行的SQL：
+
+```sql
+select * from `users` where `users`.`status` = 1
+
+select * from `user_ext` where 
+    `user_ext`.`address` = '北京' 
+    `user_ext`.`user_id` in (1, 2, 3, 4)
+```
+
+**默认关联查询条件和动态关联查询条件是叠加的**
+
 #### 1.5.7 过滤空值查询
 
 **空字符串、空数组、null会被认为空值**
