@@ -225,7 +225,7 @@ public function extInfo()
 
 # step 2.这样使用
 $this->userRepository->findAll(
-    ['status' => 1],  // filters
+    ['status' => 1],  // conditions
     [
         '*', // users columns
         'extInfo' => [
@@ -267,6 +267,9 @@ $users = $this->userRepository->findAll(
 );
 
 ```
+
+是不是非常简洁方便 ^_^ 😋
+后面会继续补充
 
 #### 过滤空值查询
 
@@ -321,64 +324,6 @@ $items = $this->repositpry->filterFindAll([
     'status'        => request()->input('status')
 ]);
 ```
-
-### 1.5 其他比较常用方法
-
-#### 通过处理表达式查询、自动关联查询 findCondition() 之后的其他查询
-
-这些方法都是通过 $this->findCondition($conditions) 之后直接调用 model 的方法
-
-```php
-    /**
-     * 调用 model 的方法
-     *
-     * @param string $name 调用model 自己的方法
-     * @param array  $arguments
-     * @return mixed
-     */
-    public function __call($name, $arguments)
-    {
-        // 直接使用 model, 不需要查询条件的数据
-        if (in_array($name, $this->passThru)) {
-            return (new $this->model)->{$name}(...$arguments);
-        }
-
-        // 第一个参数传递给自己 findCondition 方法
-        $conditions = Arr::pull($arguments, 0, []);
-        return $this->findCondition($conditions)->{$name}(...$arguments);
-    }
-```
-
-##### 查询方法
-
-1. first($conditions, $columns = []) 
-2. get($conditions, $columns = [])
-3. pluck($conditions, $column, $key = null)
-
-##### 统计、聚合查询
-
-1. count($conditions)
-2. max($conditions, $column)
-3. min($conditions, $column)
-4. sum($conditions, $column)
-5. avg($conditions, $column)
-6. toSql($conditions)
-7. getBindings($conditions)
-
-#### 其他方法
-
-1. getConnection()
-2. insert(array $insert)
-3. insertGetId(array $insert)
-4. firstOrCreate(array $attributes, array $value = [])
-5. firstOrNew(array $attributes, array $value = [])
-6. updateOrCreate(array $attributes, array $value = [])
-7. findOrFail($id, $columns = ['*'])
-8. findOrNew($id, $columns = ['*'])
-9. findMany($ids, $columns = ['*'])
-
-是不是非常简洁方便 ^_^ 😋
-后面会继续补充
 
 ## 二 方法列表
 
