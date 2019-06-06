@@ -189,7 +189,7 @@ abstract class Repository
             $new = $this->runEventFunction(function ($data) {
                 // 创建数据
                 if (!$model = $this->model->create($data)) {
-                    throw Exception('创建失败');
+                    throw new Exception('创建失败');
                 }
 
                 return $model->toArray();
