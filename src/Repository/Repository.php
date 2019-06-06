@@ -185,23 +185,17 @@ abstract class Repository
 
         try {
 
-            // 前置方法执行
-            if (method_exists($this, 'beforeCreate')) {
-                $this->beforeCreate($data);
-            }
+            // 执行新增数据，并执行前置、后置方法
+            $new = $this->runEventFunction(function ($data) {
+                // 创建数据
+                if (!$model = $this->model->create($data)) {
+                    throw Exception('创建失败');
+                }
 
-            // 创建数据
-            if (!$model = $this->model->create($data)) {
-                return $this->error('创建失败');
-            }
+                return $model->toArray();
+            }, 'create', $data);
 
-            $data = $model->toArray();
-            // 后置方法执行
-            if (method_exists($this, 'afterCreate')) {
-                $this->afterCreate($data);
-            }
-
-            return $this->success($data, '创建成功');
+            return $this->success($new, '创建成功');
         } catch (Exception $e) {
             return $this->error($this->getError($e));
         }
@@ -233,21 +227,14 @@ abstract class Repository
 
         try {
 
-            // 前置方法执行
-            if (method_exists($this, 'beforeUpdate')) {
-                $this->beforeUpdate($conditions, $data);
-            }
-
-            $rows = $this->findCondition($conditions)->update($data);
-
-            // 后置方法执行
-            if (method_exists($this, 'afterUpdate')) {
-                $this->afterUpdate($conditions, $data);
-            }
+            // 执行修改，并且执行前置和后置方法
+            $rows = $this->runEventFunction(function ($conditions, $data) {
+                return $this->findCondition($conditions)->update($data);
+            }, 'update', $conditions, $data);
 
             return $this->success($rows, '更新成功');
         } catch (Exception $e) {
-            return $this->error($this->getError($e));
+            return $this->error($this->getError($e), 0);
         }
     }
 
@@ -268,22 +255,48 @@ abstract class Repository
 
         try {
 
-            // 前置方法执行
-            if (method_exists($this, 'beforeDelete')) {
-                $this->beforeDelete($conditions);
-            }
+            // 执行删除，并且执行前置和后置方法
+            $rows = $this->runEventFunction(function ($conditions) {
+                return $this->findCondition($conditions)->delete();
+            }, 'delete', $conditions);
 
-            $affected_rows = $this->findCondition($conditions)->delete();
-
-            // 前置方法执行
-            if (method_exists($this, 'afterDelete')) {
-                $this->afterDelete($conditions);
-            }
-
-            return $this->success($affected_rows, '删除成功');
+            return $this->success($rows, '删除成功');
         } catch (Exception $e) {
             return $this->error($this->getError($e));
         }
+    }
+
+    /**
+     * 运行带前置和后置的方法
+     *
+     * @param callable $func    需要执行的方法
+     * @param sting    $method  方法名称
+     * @param mixed    ...$args 需要执行的参数
+     *
+     * @return mixed
+     */
+    final public function runEventFunction(callable $func, $method, ...$args)
+    {
+        // 处理方法
+        $method = ucfirst($method);
+
+        // 执行前置函数
+        $beforeMethod = 'before' . $method;
+        if (method_exists($this, $beforeMethod)) {
+            $this->{$beforeMethod}(...$args);
+        }
+
+        // 执行函数
+        $result = $func(...$args);
+
+        // 执行后置函数
+        $afterMethod = 'after' . $method;
+        if (method_exists($this, $afterMethod)) {
+            array_push($args, $result);
+            $this->{$afterMethod}(...$args);
+        }
+
+        return $result;
     }
 
     /**
