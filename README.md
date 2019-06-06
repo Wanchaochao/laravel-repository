@@ -109,12 +109,12 @@ Route::group(['namespace' => 'Member','prefix' => 'member'], function ($route) {
 
 # dd the data of list, MemberMessageController
 
-public function indexAction()
+public function index()
 {
     $filters = Helper::filter_array(request()->all());
     $filters['order'] = 'id desc';
     $list = $this->memberMessageRepository->paginate($filters);
-    return view('member.member_message.index', compact('list', 'filters'));
+    dd($list);
 }
 
 # terminal

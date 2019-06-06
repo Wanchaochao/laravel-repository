@@ -673,7 +673,7 @@ abstract class Repository
                     $with[$relation]     = $this->buildRelation($value);
                 }
 
-                if ($value['withCount']) {
+                if (Arr::get($value, 'withCount')) {
                     $withCount[$relation] = function ($query) use ($value) {
                         /* @var $query Builder */
                         $queryModel = $query->getModel();

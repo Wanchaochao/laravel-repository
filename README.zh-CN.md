@@ -103,12 +103,11 @@ Route::group(['namespace' => 'Member','prefix' => 'member'], function ($route) {
 
 # 在MemberMessageController中dd打印数据
 
-public function indexAction()
+public function index()
 {
     $filters = Helper::filter_array(request()->all());
     $filters['order'] = 'id desc';
-    $list = $this->memberMessageRepository->lists($filters);
-    dd($list);
+    $list = $this->memberMessageRepository->paginate($filters);
     return view('member.member_message.index', compact('list', 'filters'));
 }
 
