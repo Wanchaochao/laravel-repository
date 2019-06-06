@@ -1,4 +1,5 @@
-### laravel-repository
+laravel-repository
+==================
 
 <p align="center">
 	<a href="https:www.littlebug.vip">
@@ -8,58 +9,75 @@
 
 [change to English](/README.md) | [instruction of Repository](/docs/Repository.zh-CN.md) |
 
-### 清晰的目录结构
-
-* App
-    * Http
-        * Controller
-            * Admin
-                * IndexController
-                * UserController
-                * ConfigController
-                * ...
-        * Request
-            * Admin
-                * Index
-                    * StoreRequest
-                    * UpdateRequest
-                    * DestroyRequest
-                * User
-                    * ...
-                * Config
-                    * ...
-                * Request.php
-    * Models 
-        * User
-            * User.php    
-            * UserExt.php
-            * UserMessage.php
-        * Config
-            * Config.php
-            * ...
-        * BaseModel.php
-    * Repositories (目录结构应与model一致,结构清晰)
-        * User
-            * UserRepository.php
-            * UserExtRepository.php
-            * UserMessageRepository.php
-        * ...
-            
-            
 ### 安装并使用
+
+#### 安装包文件
 
 ```bash
 composer require littlebug/laravel-repository
-
-mkdir app/Http/Requests
-
-# 创建属于你自己的Request验证基类
-
-# 就像下面这个文件
 ```
 
-### 关于一键生成代码
+#### 使用命令生成 `model` 和 `repository`
 
+假设你的数据库中存在 users, 或者你将 users 替换为你数据库中的表名称
+
+```bash
+php artisan core:model --table=users --name=User
+```
+该命令会在:
+
+- `app/Models/` 文件下生成 `User` 文件
+- `app/Repositories/` 文件下生成 `UserRepository`  文件 
+
+#### 在控制器中使用 `repository`
+
+```php
+
+use App\Repositories\UserRepository;
+
+class UsersController extends Controller 
+{
+    /**
+     * @var UserRepository
+     */
+    private $userRepository;
+    
+    public function __construct(UserRepository $userRepository)
+    {
+        $this->userRepository   = $userRepository;
+    }
+    
+    public function index()
+    {
+        // 分页查询
+        $list = $this->userRepository->paginate([
+            'name:like' => 'test123', 
+            'status:in' => [1, 2],
+        ]);
+        
+        return view('users.index');
+    }
+    
+    public function create()
+    {
+        list($ok, $msg, $row) = $this->userRepository->create(request()->all());
+        // 你的逻辑
+    }
+    
+    public function update()
+    {
+        list($ok, $msg, $row) = $this->userRepository->update(request()->input('id'), request()->all());
+        // 你的逻辑
+    }
+    
+    public function delete()
+    {
+        list($ok, $msg, $row) = $this->userRepository->delete(request()->input('id'));
+        // 你的逻辑
+    }
+}
+
+```
 ```bash
 
 # 在将命令注入到你的laravel 项目以后

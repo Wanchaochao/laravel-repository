@@ -21,6 +21,8 @@ v1.0.7 2019-06-06
     - beforeDelete(array $conditions)
     - afterDelete(array $conditions, $row)
 
+- fix: 修复 withCount 不存在报的错误
+
 v1.0.6 2019-06-03
 -----------------
 - add: repository 添加 getFilterModel($conditions, $fields) 方法
