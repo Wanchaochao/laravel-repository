@@ -78,6 +78,11 @@ class UsersController extends Controller
 }
 
 ```
+
+## [关于`repository`更多使用方法请查看](./docs/Repository.zh-CN.md)
+
+
+
 ```bash
 
 # 在将命令注入到你的laravel 项目以后
