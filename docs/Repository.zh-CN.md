@@ -8,7 +8,7 @@ Repository 使用说明
 
 ## 一 增删改查
 
-### 1.1 新增数据
+### 1.1 新增数据 `create(array $data)`
 
 ```php
 /**
@@ -17,7 +17,7 @@ Repository 使用说明
  * @param string  $msg  操作的提示信息
  * @param array   $data 新增成功后调用 model->toArray() 返回的数据， 失败为null 
  */
-list($ok, $msg, $data) = $this-repository->create([
+list($ok, $msg, $data) = $this->repository->create([
     'user_name' => 'Tony',
     'age'       => 18,
     'sex'       => 1,
@@ -26,7 +26,7 @@ list($ok, $msg, $data) = $this-repository->create([
 
 ```
 
-### 1.2 删除数据
+### 1.2 删除数据 `delete($conditions)`
 
 ```php
 /**
@@ -37,12 +37,12 @@ list($ok, $msg, $data) = $this-repository->create([
  */
 list($ok, $msg, $rows) = $this->repository->delete(1); // 主键删除 pk = 1
 
-$this->repository->delete(['id:gt' => 10]);  // 条件删除 id > 10
+// $this->repository->delete(['id:gt' => 10]);  // 条件删除 id > 10
 
-$this->>repository->delete([1, 2, 3, 4, 5]); // 主键删除 pk in (1, 2, 3, 4)
+// $this->>repository->delete([1, 2, 3, 4, 5]); // 主键删除 pk in (1, 2, 3, 4)
 ``` 
 
-### 1.3 编辑数据
+### 1.3 编辑数据 `update($conditions, array $data)`
 
 ```php
 /**
@@ -51,22 +51,21 @@ $this->>repository->delete([1, 2, 3, 4, 5]); // 主键删除 pk in (1, 2, 3, 4)
  * @param string  $msg  操作的提示信息
  * @param int     $rows 表示修改数据条数
  */
-list($ok, $msg, $rows) = $this->repository->update(['name:like' => '%555'], [
-    'type' => 3,
-    'money' => 9999
-]);
+list($ok, $msg, $rows) = $this->repository->update(1, ['type' => 3, 'money' => 9999]); // 主键修改 pk = 1
 
+// $this->repository->update(['id:gt' => 10], ['type' => 3, 'money' => 9999]);  // 条件修改 id > 10
+
+// $this->repository->update([1, 2, 3, 4], ['type' => 3, 'money' => 9999]); // 主键修改 pk in (1, 2, 3, 4)
 ```
 
 ### 1.4 查询数据
 
 #### 1.4.1 查询单条数据
 
-1. 查询单条数据 find($conditions, $columns)
+1. 查询单条数据 find($conditions, $columns = [])
 
     ```php
     $item = $this->repository->find(1);  // 主键查询 pk = 1
-    
     ```
 
 2. 查询单个字段 findBy($conditions, $column)
@@ -77,13 +76,13 @@ list($ok, $msg, $rows) = $this->repository->update(['name:like' => '%555'], [
 
 #### 1.4.2 查询多条数据
 
-1. 查询多条数据 findAll($conditions, $columns)
+1. 查询多条数据 findAll($conditions, $columns = [])
 
     ```php
     $items = $this->repository->findAll([1, 2, 3, 4]); // 主键查询 pk in (1, 2, 3, 4)
     ```
 
-2. 查询多条数据的单个字段 findAllBy($conditions, $filed)
+2. 查询多条数据的单个字段 findAllBy($conditions, $column)
 
     ```php
     $usernames = $this->repository->findAllBy([1, 2, 3], 'username'); // 查询某个字段的所有值
@@ -91,17 +90,21 @@ list($ok, $msg, $rows) = $this->repository->update(['name:like' => '%555'], [
 
 #### 1.4.3 分页查询
 
-分页查询 paginate($conditions = [], $columns = [], $pageSize = 10, $currentPage = null)
+分页查询 paginate($conditions = [], $columns = [], $size = 10, $current = null)
 
 ```php
 $list = $this->repository->paginate(['status' => 1], ['id', 'name', ...]);
 ```
 
-#### 使用表达式查询数据
+### 1.5 查询进阶使用
+
+#### 1.5.1 使用表达式查询
 
 > 使用方式
 
-字段:表达式 => 对应查询的值
+`字段`:`表达式` => `对应查询的值`
+
+例如:
 
 ```php
 
@@ -113,7 +116,7 @@ $items = $this->repository->findAll([
 // 对应生成的sql: `id` != 1 and `name` like '%test%' 
 ```
 
-#####  目前支持的表达式
+##### 1.5.1.1  目前支持的表达式
 
 | 表达式 | 含义 | 特别说明 |
 |:------|:--------------|:-----|
@@ -141,7 +144,7 @@ $items = $this->repository->findAll([
 | <>         | 不等于(<>)            |  | 
 | auto_like  | 模糊查询(like)        | 会自动判断添加 % 模糊查询
 
-#### 关于auto_like 查询说明
+##### 1.5.1.2 关于 `auto_like` 查询说明
 
 ```php
 // 没有添加前后模糊查询，会自动加上 username like '%test%'
@@ -151,7 +154,8 @@ $this->repository->findAll(['username:auto_like' => 'test']);
 $this->repository->findAll(['username:auto_like' => 'test%']);
 
 ```
-#### 你可以像下面这样使用表达式:
+
+##### 1.5.1.3 你可以像下面这样使用表达式:
 
 ```php
 // 查询大于10的账号
@@ -169,16 +173,12 @@ $this->repository->findAll(['id' => [1, 2, 3, 4, 5]])
 $this->repository->findAll(['created_at:between' => 
     [
         '2019-01-01 00:00:00', 
-        '2020-01-01 00:00:00
+        '2020-01-01 00:00:00',
     ]
 ]);
-
-// 封停以@@@结尾的账号
-$this->repository->update(['name:like' => '%@@@'], ['status' => 0]);
-
 ``` 
 
-#### 如果你记不住表达式，那么你同样可以直接使用操作符查询也是一样的
+##### 1.5.1.4 如果你记不住表达式,那么你同样可以直接使用操作符查询也是一样的
 
 ```php
 $item = $this->repository->findAll([
@@ -188,7 +188,28 @@ $item = $this->repository->findAll([
 ])
 ```
 
-同样是 查询字段:操作符 => '查询的值'
+**同样是 查询字段:操作符 => '查询的值'**
+
+##### 1.5.1.5 其他说明
+
+`update` 和 `delete` 方法同样支持表达式查询，都是使用`findCondition($condiitons)` 方法处理
+
+[update](./#1.2 修改数据)
+[delete](./#1.2 删除数据)
+
+#### 1.5.2 使用 `model` 的 `scope` 查询
+
+>要求model定义了`scope`查询
+
+1. model 
+
+```php
+    
+```
+
+#### 1.5.3 获取 `model` 的 `relation` 关联查询统计字段
+
+#### 1.5.4 获取 `model` 的 `relation` 关联数据信息
 
 #### 进阶用法
 
@@ -240,17 +261,17 @@ $this->userRepository->findAll(
  */
 public function scopeAddress($query, $address)
 {
-    return $query->leftJoin('user_ext', function ($join) use ($address) {
-        $join->on('user_ext.user_id', '=', 'users.user_id');
-    })->where('user_ext.address', '=', $address);
+    return $query->leftJoin('user_ext', 'user_ext.user_id', '=', 'users.user_id')
+    ->where('user_ext.address', '=', $address);
 }
 
 # step 2.
 # 像下面这样使用
 
-$users = $this->userRepository->findAll(
-    ['user_id:gt' => 10, 'address' => 'NewYork']
-);
+$users = $this->userRepository->findAll([
+    'user_id:gt' => 10, 
+    'address'    => 'NewYork'
+]);
 
 ```
 
