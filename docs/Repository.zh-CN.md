@@ -194,8 +194,8 @@ $item = $this->repository->findAll([
 
 `update` 和 `create` 方法同样支持表达式查询，都是使用`findCondition($condiitons)` 方法处理
 
-1. [update 的使用说明](./#12-编辑数据-updateconditions-array-data)
-2. [delete 的使用说明](./#13-删除数据-deleteconditions)
+1. [update 的使用说明](#12-编辑数据-updateconditions-array-data)
+2. [delete 的使用说明](#13-删除数据-deleteconditions)
 
 #### 1.5.2 使用 `model` 的 `scope` 查询
 
@@ -295,7 +295,7 @@ $this->userRepository->findAll([
 
 要求`model`定义了关联
 
-`model` 使用上面定义的 [`User`](./#152-使用-model-的-scope-查询)
+`model` 使用上面定义的 [`User`](#152-使用-model-的-scope-查询)
 
 1. 使用 `repository` 获取关联数据信息, 通过查询字段，自动处理关联
 
@@ -355,7 +355,7 @@ $this->userRepository->findAll([
 
 >`model`定义的`关联方法名称_count`
 
-`model` 使用上面定义的 [`User`](./#152-使用-model-的-scope-查询)
+`model` 使用上面定义的 [`User`](#152-使用-model-的-scope-查询)
 
 ```php
 $user = $this->repositoy->find(['status' => 1], ['id', 'username', 'extInfo_count']);
@@ -369,7 +369,7 @@ $user = $this->repositoy->find(['status' => 1], ['id', 'username', 'extInfo_coun
 
 查询条件中添加 `model定义关联方法名称.字段` => '查询的值'
 
-`model` 使用上面定义的 [`User`](./#152-使用-model-的-scope-查询)
+`model` 使用上面定义的 [`User`](#152-使用-model-的-scope-查询)
 
 例如：
 
