@@ -197,7 +197,7 @@ abstract class Repository
 
             return $this->success($new, '创建成功');
         } catch (Exception $e) {
-            return $this->error($this->getError($e));
+            return $this->error($this->getError($e), null);
         }
     }
 
@@ -262,7 +262,7 @@ abstract class Repository
 
             return $this->success($rows, '删除成功');
         } catch (Exception $e) {
-            return $this->error($this->getError($e));
+            return $this->error($this->getError($e), 0);
         }
     }
 
