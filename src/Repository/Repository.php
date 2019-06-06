@@ -270,7 +270,7 @@ abstract class Repository
      * 运行带前置和后置的方法
      *
      * @param callable $func    需要执行的方法
-     * @param sting    $method  方法名称
+     * @param string   $method  方法名称
      * @param mixed    ...$args 需要执行的参数
      *
      * @return mixed
