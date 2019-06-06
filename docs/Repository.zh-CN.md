@@ -519,6 +519,81 @@ $items = $this->repositpry->filterFindAll([
 ]);
 ```
 
+## 二 关于查询中的`$conditions`和`$columns`信息说明
+
+>`$conditions`为`sql`查询定义查询条件，`$columns`为`sql`的`select`添加指定的查询字段
+
+### 2.1 `$conditions` 查询条件
+
+1. 支持字段精准查询(表中字段的查询)
+2. 预定有字段查询[参考](#211-预定义的字段)
+3. 支持表达式查询[参考](#15-查询进阶使用)
+4. 支持关联条件查询[参考](#156-给-model-的-relation-关联查询动态添加查询条件)
+5. 支持`model`的`scope`[参考](#152-使用-model-的-scope-查询)
+
+例如：
+
+```php
+$conditions = [
+    // 表中字段精准查询
+    'status' => 1,
+    'id'     => [1, 2, 3, 4], // 值为数组会自动转为in查询 `id` in (1, 2, 3, 4)
+    
+    // 预定义字段查询
+    'order' => 'id desc' // 指定排序字段和方式
+    'limit' => 10,       // 限制查询条件
+    'group' => 'id',     // 指定分组条件
+    ...
+    
+    // 表达式查询
+    'username:like'      => 'test',                                         // 模糊查询
+    'created_at:between' => ['2019-01-02 00:00:00', '2019-01-03 23:59:59'], // 区间查询
+    'id:ge'              => 12, // id > 12
+    ...
+    
+    // relation 关联查询,查询条件只对当前relation关联查询限制
+    'extInfo.address:like'   => '北京',
+    'extInfo.created_at:gte' => '2019-01-01 00:00:00',
+    
+    // scope 自定义查询
+    'address'  => '北京',     // 查找`scopeAddress($query, $address)`方法
+    'children' => [1, 2, 3],  // 查找`scopeChildren($query, $childrenIds)`方法
+];
+```
+
+#### 2.1.1 预定义的字段
+
+|字段名称|字段值类型|说明|
+|-------|---------|----|
+|`force`|`string`|强制走指定索引|
+|`order`|`string or array`|指定排序条件|
+|`limit`|`int`|指定查询条数|
+|`offset`|`int`|指定跳转位置|
+|`group`|`string`|指定分组字段|
+
+### 2.2 `$columns` 查询的字段信息
+
+1. 支持本表字段查询
+2. 支持关联统计字段查询
+3. 支持关联数据字段查询
+
+```php
+$columns = [
+
+    // 本表的字段查询
+    'id',
+    'username',
+    
+    // 关联统计字段查询
+    'extInfo_count',  // 对应`model`定义的 extInfo 关联
+    'children_count', // 对应`model`定义的 children 关联
+    
+    // 关联表字段查询
+    'extInfo'  => ['*'], // 对应`model`定义的 extInfo 关联
+    'children' => ['*'], // 对应`model`定义的 children 关联
+];
+```
+
 ## 三 方法列表
 
 ### 3.1 方法列表
