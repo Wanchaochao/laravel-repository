@@ -325,9 +325,9 @@ $items = $this->repositpry->filterFindAll([
 ]);
 ```
 
-## 二 方法列表
+## 三 方法列表
 
-### 2.1 方法列表
+### 3.1 方法列表
 
 >repository所有方法都是对外的，这里只列出常用方法
 
@@ -343,10 +343,19 @@ $items = $this->repositpry->filterFindAll([
 |`getFilterModel($conditions, $columns = [])`|`Illuminate\Database\Eloquent\Model`|获取已经过滤处理查询条件的`model`|
 |`findCondition($conditions = [], $columns = [])`|`Illuminate\Database\Eloquent\Model`|获取已经处理查询条件的`model`(**上面所有查询方法都基于这个方法**)|
 |`create(array $data)`|`array`|添加数据|
-|`update($conditions, $data)`|`array`|修改数据(使用的是批量修改)|
+|`update($conditions, array $data)`|`array`|修改数据(使用的是批量修改)|
 |`delete($conditions)`|`array`|删除数据(使用的是批量删除)|
 
-### 2.2 支持`model`自带方法
+#### 参数说明
+
+|参数名称    |参数类型| 参数说明 |
+|---------------|-------------|----------|
+|`$conditions`|`array or string or int`|查询条件(`string or int or 索引数组[1, 2, 3, 4]`会自动转换为主键查询)|
+|`$columns`|`array`|查询的字段数组|
+|`$column`|`string`|查询的字段名称|
+|`$data`|`array`|创建或者修改的数组数据信息|
+
+### 3.2 支持`model`自带方法
 
 |方法名称    |返回值| 方法说明 |
 |---------------|-------------|----------|
@@ -371,11 +380,12 @@ $items = $this->repositpry->filterFindAll([
 |`$ids`|`array`|主键ID数组|
 |`$columns`|`array`|查询的字段信息|
 
-### 2.3 通过`findCondition($conditions)`查询后转换为`model`查询方法
+### 3.3 通过`findCondition($conditions)`查询后转换为`model`查询方法
 
 |方法名称|返回值|方法说明|
 |---------------|-------------|----------|
-|`first($conditions, $columns = ['*'])`|`Illuminate\Database\Eloquent\Model or null`| 查询一条数据|
+|`first($conditions, $columns = ['*'])`|`Illuminate\Database\Eloquent\Model or null`|查询一条数据|
+|`get($conditions, $columns = ['*'])`|`Illuminate\Database\Eloquent\Collection`|查询多条数据|
 |`pluck($conditions, $column, $key = null)`|`Illuminate\Support\Collection`|查询单个字段信息|
 |`firstOrFail($conditions)`|`Illuminate\Database\Eloquent\Model`|查询一条数据、没有那么抛出错误|
 |`count($conditions = [])`|`int`|统计查询|
