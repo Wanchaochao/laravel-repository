@@ -184,12 +184,24 @@ abstract class Repository
         }
 
         try {
+
+            // 前置方法执行
+            if (method_exists($this, 'beforeCreate')) {
+                $this->beforeCreate($data);
+            }
+
             // 创建数据
             if (!$model = $this->model->create($data)) {
                 return $this->error('创建失败');
             }
 
-            return $this->success($model->toArray());
+            $data = $model->toArray();
+            // 后置方法执行
+            if (method_exists($this, 'afterCreate')) {
+                $this->afterCreate($data);
+            }
+
+            return $this->success($data, '创建成功');
         } catch (Exception $e) {
             return $this->error($this->getError($e));
         }
@@ -220,7 +232,19 @@ abstract class Repository
         }
 
         try {
+
+            // 前置方法执行
+            if (method_exists($this, 'beforeUpdate')) {
+                $this->beforeUpdate($conditions, $data);
+            }
+
             $rows = $this->findCondition($conditions)->update($data);
+
+            // 后置方法执行
+            if (method_exists($this, 'afterUpdate')) {
+                $this->afterUpdate($conditions, $data);
+            }
+
             return $this->success($rows, '更新成功');
         } catch (Exception $e) {
             return $this->error($this->getError($e));
@@ -243,7 +267,19 @@ abstract class Repository
         }
 
         try {
+
+            // 前置方法执行
+            if (method_exists($this, 'beforeDelete')) {
+                $this->beforeDelete($conditions);
+            }
+
             $affected_rows = $this->findCondition($conditions)->delete();
+
+            // 前置方法执行
+            if (method_exists($this, 'afterDelete')) {
+                $this->afterDelete($conditions);
+            }
+
             return $this->success($affected_rows, '删除成功');
         } catch (Exception $e) {
             return $this->error($this->getError($e));
