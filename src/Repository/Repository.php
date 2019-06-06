@@ -616,7 +616,7 @@ abstract class Repository
     {
         $relations = [];
         foreach ($conditionRelations as $relationName => $conditions) {
-            $relations[$relationName] = ['conditions' => $conditions, 'with' => true];
+            $relations[$relationName] = ['conditions' => $conditions, 'with' => true, 'withCount' => false];
         }
 
         foreach ($fieldRelations as $relationName => $relation) {
