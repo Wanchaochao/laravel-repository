@@ -60,24 +60,24 @@ list($ok, $msg, $rows) = $this->repository->update(['name:like' => '%555'], [
 
 ### 1.4 查询数据
 
-#### 查询单条数据
+#### 1.4.1 查询单条数据
 
-1. 查询单条数据 find($conditions, $fields)
+1. 查询单条数据 find($conditions, $columns)
 
     ```php
     $item = $this->repository->find(1);  // 主键查询 pk = 1
     
     ```
 
-2. 查询单个字段 findBy($conditions, $field)
+2. 查询单个字段 findBy($conditions, $column)
 
     ```php
     $name = $this->repository->findBy(1, 'name'); // 查某个字段
     ```
 
-#### 查询多条数据
+#### 1.4.2 查询多条数据
 
-1. 查询多条数据 findAll($conditions, $fields)
+1. 查询多条数据 findAll($conditions, $columns)
 
     ```php
     $items = $this->repository->findAll([1, 2, 3, 4]); // 主键查询 pk in (1, 2, 3, 4)
@@ -89,29 +89,15 @@ list($ok, $msg, $rows) = $this->repository->update(['name:like' => '%555'], [
     $usernames = $this->repository->findAllBy([1, 2, 3], 'username'); // 查询某个字段的所有值
     ```
 
-#### 分页查询
+#### 1.4.3 分页查询
 
-分页查询 paginate($conditions = [], $fields = [], $pageSize = 10, $currentPage = null)
+分页查询 paginate($conditions = [], $columns = [], $pageSize = 10, $currentPage = null)
 
 ```php
 $list = $this->repository->paginate(['status' => 1], ['id', 'name', ...]);
 ```
 
 #### 使用表达式查询数据
-
-> 下面列出查询方法，均支持表达式查询
-
-1. find
-2. findBy
-3. findAll
-4. findAllBy
-5. paginate
-6. update
-7. delete
-8. filterFind
-9. filterFindAll
-10. getFilterModel
-11. findCondition
 
 > 使用方式
 
@@ -275,7 +261,7 @@ $users = $this->userRepository->findAll(
 
 **空字符串、空数组、null会被认为空值**
 
-1. 查询单个 filterFind($conditions, $fields = [])
+1. 查询单个 filterFind($conditions, $columns = [])
 
     ```php
     $item = $this->repositpry->filterFind([
@@ -284,7 +270,7 @@ $users = $this->userRepository->findAll(
     ]);
     ```
 
-2. 查询多个 filterFindAll($conditions, $fields = [])
+2. 查询多个 filterFindAll($conditions, $columns = [])
 
     ```php
     $items = $this->repositpry->filterFindAll([
@@ -292,7 +278,7 @@ $users = $this->userRepository->findAll(
         'status'        => request()->input('status')
     ]);
     ```
-3. 获取过滤空值查询的model getFilterModel($conditions, $fields = [])
+3. 获取过滤空值查询的model getFilterModel($conditions, $columns = [])
 
     ```php
     $model = $this->repositpry->getFilterModel([
