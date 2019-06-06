@@ -189,7 +189,7 @@ abstract class Repository
             $new = $this->runEventFunction(function ($data) {
                 // 创建数据
                 if (!$model = $this->model->create($data)) {
-                    throw Exception('创建失败');
+                    throw new Exception('创建失败');
                 }
 
                 return $model->toArray();
@@ -197,7 +197,7 @@ abstract class Repository
 
             return $this->success($new, '创建成功');
         } catch (Exception $e) {
-            return $this->error($this->getError($e));
+            return $this->error($this->getError($e), null);
         }
     }
 
@@ -262,7 +262,7 @@ abstract class Repository
 
             return $this->success($rows, '删除成功');
         } catch (Exception $e) {
-            return $this->error($this->getError($e));
+            return $this->error($this->getError($e), 0);
         }
     }
 
