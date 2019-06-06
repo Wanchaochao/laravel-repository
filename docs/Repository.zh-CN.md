@@ -199,17 +199,140 @@ $item = $this->repository->findAll([
 
 #### 1.5.2 使用 `model` 的 `scope` 查询
 
->要求model定义了`scope`查询
+>举个🌰栗子,你有一张用户表 users, 用户表的扩展信息存在 user_ext 里;
+现在你想查询用户地址在指定位置信息的所有用户信息, 那么就需要使用`scope` 查询了
+
+要求model定义了`scope`查询
 
 1. model 
 
-```php
+    ```php
+    class User extends Model
+    {
+        protected $table      = 'users';
+        protected $primaryKey = 'user_id';
+        public    $columns    = [
+            'user_id',
+            'username',
+            //...
+            'created_at',
+            'updated_at',
+        ];
     
+        /**
+         * 根据地址查询
+         
+         * @param \Illuminate\Database\Eloquent\Builder $query   查询对象
+         * @param string                                $address 地址信息
+         * @return \Illuminate\Database\Eloquent\Builder
+         */
+        public function scopeAddress($query, $address)
+        {
+            return $query->leftJoin('user_ext', 'user_ext.user_id', '=', 'users.user_id')
+                ->where('user_ext.address', '=', $address);
+        }
+    }   
+    ```
+
+2. 使用 `repository` 查询
+
+    ```php
+    
+    $this->userRepositoy->findAll([
+        'status'  => 1,
+        'address' => '北京'
+    ]);
+    
+    ```
+
+3. 查询的SQL
+
+    ```SQL
+    
+    select 
+        * 
+    from 
+        `users` 
+    left join 
+        `user_ext` on (`user_ext`.`user_id` = `users`.`user_id`) 
+    where 
+        `users.status` = 1 and `user_ext`.`address` = '北京'
+        
+    ```
+##### 1.5.2.1 使用说明
+
+从上面的SQL和容易发现一个问题，没有指定查询字段，默认查询的 `*` 所有字段，如果`users`表和`user_ext`
+表的字段没有冲突，那么没有什么问题，但如果有冲突，那么查询出来的数据可能和你想象的不一样，特别在还有
+关联查询的时候，这个问题更容易凸显出来，所以建议在有连表查询的时候，最好有加上你需要查询的字段信息
+
+```php
+$this->userRepository->findAll([
+    'status'  => 1,
+    'address' => '北京',
+], ['users.*'])
 ```
 
-#### 1.5.3 获取 `model` 的 `relation` 关联查询统计字段
-
 #### 1.5.4 获取 `model` 的 `relation` 关联数据信息
+
+当我们查询数据时候，也想把关联数据查询出来的时候，就会用到关联查询
+
+>举个🌰栗子,你有一张用户表users,用户表的扩展信息存在user_ext里 
+也许你想查询用户信息的时候同时查出用户的扩展信息
+
+要求`model`定义了关联
+
+1. model
+
+    ```php
+    class User extends Model
+    {
+        protected $table      = 'users';
+        protected $primaryKey = 'user_id';
+        public    $columns    = [
+            'user_id',
+            'username',
+            //...
+            'created_at',
+            'updated_at',
+        ];
+    
+        /**
+         * 定义关联扩展信息
+         * 
+         * return Illuminate\Database\Eloquent\Relations\HasOne
+         */
+        public function extInfo()
+        {
+            return $this->hasOne(UserExt::class, 'user_id', 'user_id');
+        }
+    }   
+    ```
+
+2. 使用 `repository` 获取关联数据信息, 通过查询字段，自动处理关联
+
+    ```php
+        $this->repository->findAll(['status' => 1], ['*', 'extInfo' => ['*']]);
+    ```
+
+3. 查询SQL 
+
+    [这里使用预加载数据](https://learnku.com/docs/laravel/5.5/eloquent-relationships/1333#012e7e), 避免N+1问题
+
+    ```SQL
+    select * from `users` where `users`.`status` = 1
+    
+    select * from `user_ext` where `user_id` in (1, 2, 3, 4)
+    ```
+
+4. 数据信息
+
+    ![关联的数据](./relation.png '关联的数据')
+
+
+#### 1.5.5 获取 `model` 的 `relation` 关联统计数据信息
+
+#### 1.5.6 给 `model` 的 `relation` 关联查询添加查询条件
+
 
 #### 进阶用法
 
@@ -244,35 +367,6 @@ $this->userRepository->findAll(
         ] 
     ]// fields
 );
-```
-
-```php
-# Example 2:
-# 还是用户表和用户扩展表
-# 也许你想找到id 大于10的用户并且用户的地址是NewYork
-
-# step 1.
-# 在users模型中定义scope
-
-/**
- * @param $query
- * @param $address
- * @return mixed
- */
-public function scopeAddress($query, $address)
-{
-    return $query->leftJoin('user_ext', 'user_ext.user_id', '=', 'users.user_id')
-    ->where('user_ext.address', '=', $address);
-}
-
-# step 2.
-# 像下面这样使用
-
-$users = $this->userRepository->findAll([
-    'user_id:gt' => 10, 
-    'address'    => 'NewYork'
-]);
-
 ```
 
 是不是非常简洁方便 ^_^ 😋
