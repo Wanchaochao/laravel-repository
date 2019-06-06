@@ -684,17 +684,54 @@ $columns = [
 
 2. `afterCreate($data)`  新增之后
 
+#### 4.1.1 参数说明
+
+`beforeCreate($data)` 中的 `$data` 为排除掉干扰数据(非表中字段的数据)后的数组
+
+`afterCreate($data)` 中的 `$data` 为 `$model->toArray()` 的数据信息
+
 ### 4.2 修改的事件 在`update($conditions, array $data)` 执行的时候触发
 
 1. `beforeUpdate($conditions, $data)` 修改之前
  
 2. `afterUpdate($conditions, $data)` 修改之后
 
+#### 4.2.1 参数说明
+
+`$conditions` 为处理了主键查询后的查询条件数组
+
+`$data` 为排除了干扰数据(非表中字段的数据)后的数组
+
 ### 4.3 删除的事件 在`delete($conditions)` 执行的时候触发
 
 1. `beforeDelete($conditions)` 删除之前
 
 2. `afterDelete($conditions)` 删除之后
+
+#### 4.3.1 参数说明
+
+`$conditions` 为处理了主键查询后的查询条件数组
+
+### 4.4 关于`$conditions` 处理为主键查询
+
+不为空的 字符串、整数、浮点数、索引数组 都会被转为主键查询
+
+```php
+// 假设表的主键为id
+
+$conditions = 1;            // 会被转为 ['id' => 1]
+$conditions = '1';          // 会被转为 ['id' => '1']
+$conditions = [1, 2, 3];    // 会被转为 ['id' => [1, 2, 3, 4]]
+
+// 关联数组中，只要有一个元素为索引下标的，会被认为是 索引数组
+
+$conditions = ['id' => 1, 'name' => '123', '789']
+
+同样会被认为是索引数组，会转为
+
+$conditions = ['id' => [1, '123', '789']]
+
+```
 
 是不是非常简洁方便 ^_^ 😋
 后面会继续补充
