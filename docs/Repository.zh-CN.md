@@ -192,10 +192,10 @@ $item = $this->repository->findAll([
 
 ##### 1.5.1.5 其他说明
 
-`update` 和 `delete` 方法同样支持表达式查询，都是使用`findCondition($condiitons)` 方法处理
+`delete` 和 `update` 方法同样支持表达式查询，都是使用`findCondition($condiitons)` 方法处理
 
-[update](./#1.2 修改数据)
-[delete](./#1.2 删除数据)
+1. [delete 的使用说明](./#12-删除数据-deleteconditions)
+2. [update 的使用说明](./#13-编辑数据-updateconditions-array-data)
 
 #### 1.5.2 使用 `model` 的 `scope` 查询
 
