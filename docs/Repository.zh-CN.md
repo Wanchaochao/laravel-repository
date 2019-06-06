@@ -26,23 +26,7 @@ list($ok, $msg, $data) = $this->repository->create([
 
 ```
 
-### 1.2 删除数据 `delete($conditions)`
-
-```php
-/**
- * 返回值说明
- * @param boolean $ok   true 表示成功
- * @param string  $msg  操作的提示信息
- * @param int     $rows 表示删除数据条数
- */
-list($ok, $msg, $rows) = $this->repository->delete(1); // 主键删除 pk = 1
-
-// $this->repository->delete(['id:gt' => 10]);  // 条件删除 id > 10
-
-// $this->>repository->delete([1, 2, 3, 4, 5]); // 主键删除 pk in (1, 2, 3, 4)
-``` 
-
-### 1.3 编辑数据 `update($conditions, array $data)`
+### 1.2 编辑数据 `update($conditions, array $data)`
 
 ```php
 /**
@@ -57,6 +41,22 @@ list($ok, $msg, $rows) = $this->repository->update(1, ['type' => 3, 'money' => 9
 
 // $this->repository->update([1, 2, 3, 4], ['type' => 3, 'money' => 9999]); // 主键修改 pk in (1, 2, 3, 4)
 ```
+
+### 1.3 删除数据 `delete($conditions)`
+
+```php
+/**
+ * 返回值说明
+ * @param boolean $ok   true 表示成功
+ * @param string  $msg  操作的提示信息
+ * @param int     $rows 表示删除数据条数
+ */
+list($ok, $msg, $rows) = $this->repository->delete(1); // 主键删除 pk = 1
+
+// $this->repository->delete(['id:gt' => 10]);  // 条件删除 id > 10
+
+// $this->>repository->delete([1, 2, 3, 4, 5]); // 主键删除 pk in (1, 2, 3, 4)
+``` 
 
 ### 1.4 查询数据
 
@@ -192,10 +192,10 @@ $item = $this->repository->findAll([
 
 ##### 1.5.1.5 其他说明
 
-`delete` 和 `update` 方法同样支持表达式查询，都是使用`findCondition($condiitons)` 方法处理
+`update` 和 `create` 方法同样支持表达式查询，都是使用`findCondition($condiitons)` 方法处理
 
-1. [delete 的使用说明](./#12-删除数据-deleteconditions)
-2. [update 的使用说明](./#13-编辑数据-updateconditions-array-data)
+1. [update 的使用说明](./#12-编辑数据-updateconditions-array-data)
+2. [delete 的使用说明](./#13-删除数据-deleteconditions)
 
 #### 1.5.2 使用 `model` 的 `scope` 查询
 
