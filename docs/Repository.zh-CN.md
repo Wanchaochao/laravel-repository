@@ -445,7 +445,7 @@ $items = $this->repositpry->filterFindAll([
 
 |参数名称    |参数类型| 参数说明 |
 |---------------|-------------|----------|
-|`$conditions`|`array or string or int`|查询条件(`string|int`会自动转换为主键查询)|
+|`$conditions`|`array or string or int`|查询条件(`string or int or 索引数组[1, 2, 3, 4]`会自动转换为主键查询)|
 |`$columns`|`array`|查询的字段数组|
 |`$column`|`string`|查询的字段名称|
 |`$key`|`string or null`|查询单个字段组成数组的`key`(索引下标使用字段)|
