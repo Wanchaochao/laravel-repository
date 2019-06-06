@@ -682,35 +682,41 @@ $columns = [
 
 1. `beforeCreate($data)` 新增之前
 
-2. `afterCreate($data)`  新增之后
+2. `afterCreate($data, $news)`  新增之后
 
 #### 4.1.1 参数说明
 
-`beforeCreate($data)` 中的 `$data` 为排除掉干扰数据(非表中字段的数据)后的数组
-
-`afterCreate($data)` 中的 `$data` 为 `$model->toArray()` 的数据信息
+|参数名称    |参数类型| 参数说明 |
+|---------------|-------------|----------|
+|`$data`|`array`|过滤掉干扰数据(非表中字段的数据)的数组|
+|`$news`|`array`|新增成功调用 `model->toArray()` 数组|
 
 ### 4.2 修改的事件 在`update($conditions, array $data)` 执行的时候触发
 
 1. `beforeUpdate($conditions, $data)` 修改之前
  
-2. `afterUpdate($conditions, $data)` 修改之后
+2. `afterUpdate($conditions, $data, $row)` 修改之后
 
 #### 4.2.1 参数说明
 
-`$conditions` 为处理了主键查询后的查询条件数组
-
-`$data` 为排除了干扰数据(非表中字段的数据)后的数组
+|参数名称    |参数类型| 参数说明 |
+|---------------|-------------|----------|
+|`$conditions`|`array`|处理了主键查询后的查询条件数组|
+|`$data`|`array`|过滤掉干扰数据(非表中字段的数据)的数组|
+|`$row`|`int`|修改受影响的行数|
 
 ### 4.3 删除的事件 在`delete($conditions)` 执行的时候触发
 
 1. `beforeDelete($conditions)` 删除之前
 
-2. `afterDelete($conditions)` 删除之后
+2. `afterDelete($conditions, $row)` 删除之后
 
 #### 4.3.1 参数说明
 
-`$conditions` 为处理了主键查询后的查询条件数组
+|参数名称    |参数类型| 参数说明 |
+|---------------|-------------|----------|
+|`$conditions`|`array`|处理了主键查询后的查询条件数组|
+|`$row`       |`int`  |删除受影响的行数|
 
 ### 4.4 关于`$conditions` 处理为主键查询
 
