@@ -3,7 +3,6 @@
 namespace Littlebug\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Littlebug\Commands\GenerateCommand;
 use Littlebug\Commands\ModelCommand;
 use Littlebug\Commands\RepositoryCommand;
 use Littlebug\Commands\RequestCommand;
@@ -25,7 +24,6 @@ class CoreCommandServiceProvider extends ServiceProvider
         // 添加命名行
         if ($this->app->runningInConsole()) {
             $this->commands([
-                GenerateCommand::class,
                 ModelCommand::class,
                 RepositoryCommand::class,
                 RequestCommand::class,
