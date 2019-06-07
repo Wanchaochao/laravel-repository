@@ -1,6 +1,18 @@
 laravel-repository
 ==================
 
+`laravel-repository` 提供了基础的 `repository` 类, 对[laravel](https://laravel.com/) 的 
+[model](https://learnku.com/docs/laravel/5.5/eloquent/1332) 进行了的封装，提供更
+多的对外的方法，以及更友好的编辑器提示；对代码进行了的分层，`repository` 负责对外的业务逻辑处理，
+`model` 只负责对数据表的字段、属性、查询条件、返回值的定义，不参与具体的逻辑运算，不对控制层服务
+
+### 相对于直接使用`model`优势：
+
+- 解决`model`在新增、修改时不自动处理多余字段问题
+- 优化`model`查询时的链式调用，直接使用数组的方式进行查询
+- 通过查询条件和查询字段，自动处理对应的关联数据查询
+- 提供了更友好的编辑器提示
+
 <p align="center">
 	<a href="https:www.littlebug.vip">
 		<img src="http://littlebug.oss-cn-beijing.aliyuncs.com/www.littlebug.vip/favicon.ico" width="75">
@@ -8,6 +20,8 @@ laravel-repository
 </p>
 
 [change to English](/README.md) | [instruction of Repository](/docs/Repository.zh-CN.md) |
+
+
 
 ## 一 安装使用
 
