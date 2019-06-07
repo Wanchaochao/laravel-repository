@@ -11,12 +11,6 @@ laravel-repository
 [![GitHub forks](https://img.shields.io/github/forks/Wanchaochao/laravel-repository.svg)](https://github.com/Wanchaochao/laravel-repository/network)
 [![Laravel](https://img.shields.io/badge/Laravel%20%5E5.5-support-brightgreen.svg)](https://github.com/laravel/laravel)
 
-<p align="center">
-	<a href="https:www.littlebug.vip">
-		<img src="http://littlebug.oss-cn-beijing.aliyuncs.com/www.littlebug.vip/favicon.ico" width="75">
-	</a>
-</p>
-
 [change to English](/README.md) | [instruction of Repository](/docs/Repository.zh-CN.md) 
 
 ## 简介
