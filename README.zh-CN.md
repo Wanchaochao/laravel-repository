@@ -1,13 +1,9 @@
 laravel-repository
 ==================
 
-<p align="center">
-	<a href="https:www.littlebug.vip">
-		<img src="http://littlebug.oss-cn-beijing.aliyuncs.com/www.littlebug.vip/favicon.ico" width="75">
-	</a>
-</p>
+![Progress](http://progressed.io/bar/100?title=completed)  [![GitHub license](https://img.shields.io/github/license/Wanchaochao/laravel-repository.svg)](https://github.com/Wanchaochao/laravel-repository/blob/master/LICENSE.md) [![GitHub stars](https://img.shields.io/github/stars/Wanchaochao/laravel-repository.svg)](https://github.com/Wanchaochao/laravel-repository/stargazers) [![Laravel](https://img.shields.io/badge/Laravel%20%5E5.5-support-brightgreen.svg)](https://github.com/laravel/laravel)
 
-[change to English](/README.md) | [instruction of Repository](/docs/Repository.zh-CN.md) |
+[change to English](/README.md) | [Repository使用说明](/docs/Repository.zh-CN.md) |
 
 ## 安装并使用
 
@@ -158,6 +154,6 @@ vist localhost:8001/member/message
 
 ```
 
-##### 感谢 天下第七 和 [鑫鑫](https://mylovegy.github.io/blog/) 贡献的代码 💐🌹
+##### 感谢 seven 和 [鑫鑫](https://mylovegy.github.io/blog/) 贡献的代码 💐🌹
 
 ##### 如果这个仓库帮助到了你，给我一个star来鼓励我~ ✨,我会坚持继续维护这个仓库

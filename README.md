@@ -1,16 +1,12 @@
 
 ### laravel-repository
 
-![Progress](http://progressed.io/bar/100?title=completed)  
-
-<p align="center">
-	<a href="https:www.littlebug.vip">
-		<img src="http://littlebug.oss-cn-beijing.aliyuncs.com/www.littlebug.vip/favicon.ico" width="75">
-	</a>
-</p>
-
+![Progress](http://progressed.io/bar/100?title=completed)  [![GitHub license](https://img.shields.io/github/license/Wanchaochao/laravel-repository.svg)](https://github.com/Wanchaochao/laravel-repository/blob/master/LICENSE.md) [![GitHub stars](https://img.shields.io/github/stars/Wanchaochao/laravel-repository.svg)](https://github.com/Wanchaochao/laravel-repository/stargazers) [![Laravel](https://img.shields.io/badge/Laravel%20%5E5.5-support-brightgreen.svg)](https://github.com/laravel/laravel)
 
 [切换中文](/README.zh-CN.md) | [Repository的用法](/docs/Repository.md)
+
+![Progress](http://progressed.io/bar/100?title=completed)  
+
 
 ### clear tree of project
 
