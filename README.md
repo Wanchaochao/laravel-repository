@@ -12,7 +12,7 @@ laravel-repository
 [![Laravel](https://img.shields.io/badge/Laravel%20%5E5.5-support-brightgreen.svg)](https://github.com/laravel/laravel)
 
 
-[切换中文](/README.zh-CN.md) | [Repository的用法](/docs/Repository.md)
+[切换中文](/README.zh-CN.md) | [Usage of Repository](/docs/Repository.md)
 
 ## Introduction
 
