@@ -23,8 +23,6 @@ laravel-repository
 
 [change to English](/README.md) | [instruction of Repository](/docs/Repository.zh-CN.md) |
 
-
-
 ## 安装使用
 
 ### 1.1 安装包文件
