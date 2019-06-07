@@ -50,7 +50,7 @@ class ModelCommand extends CoreCommand
             return;
         }
 
-        $array      = $this->getTableAndConnection($table);
+        $array = $this->getTableAndConnection($table);
 
         $table_name = Arr::get($array, 'table');
         if ($connection = Arr::get($array, 'connection')) {
@@ -79,7 +79,7 @@ class ModelCommand extends CoreCommand
             $model_class .= $class_name;
             $arguments   = [
                 '--model' => $model_class,
-                '--name'  => $model_class
+                '--name'  => $model_class,
             ];
 
             if (($path = $this->option('path')) && Str::startsWith($path, '/')) {
