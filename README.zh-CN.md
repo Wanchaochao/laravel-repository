@@ -10,6 +10,14 @@ laravel-repository
 [![GitHub issues](https://img.shields.io/github/issues/Wanchaochao/laravel-repository.svg)](https://github.com/Wanchaochao/laravel-repository/issues)
 [![GitHub forks](https://img.shields.io/github/forks/Wanchaochao/laravel-repository.svg)](https://github.com/Wanchaochao/laravel-repository/network)
 
+<p align="center">
+	<a href="https:www.littlebug.vip">
+		<img src="http://littlebug.oss-cn-beijing.aliyuncs.com/www.littlebug.vip/favicon.ico" width="75">
+	</a>
+</p>
+
+[change to English](/README.md) | [instruction of Repository](/docs/Repository.zh-CN.md) 
+
 ## 简介
 
 `laravel-repository` 提供了基础的 `repository` 类, 对[laravel](https://laravel.com/) 的 
@@ -24,15 +32,12 @@ laravel-repository
 - 通过查询条件和查询字段，自动处理对应的关联数据查询
 - 提供了更友好的编辑器提示
 
-<p align="center">
-	<a href="https:www.littlebug.vip">
-		<img src="http://littlebug.oss-cn-beijing.aliyuncs.com/www.littlebug.vip/favicon.ico" width="75">
-	</a>
-</p>
-
-[change to English](/README.md) | [instruction of Repository](/docs/Repository.zh-CN.md) |
-
 ## 安装使用
+
+### 安装要求
+
+- PHP >= 7.0.0
+- Laravel >= 5.5.0
 
 ### 1.1 安装包文件
 

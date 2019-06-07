@@ -10,6 +10,15 @@ laravel-repository
 [![GitHub issues](https://img.shields.io/github/issues/Wanchaochao/laravel-repository.svg)](https://github.com/Wanchaochao/laravel-repository/issues)
 [![GitHub forks](https://img.shields.io/github/forks/Wanchaochao/laravel-repository.svg)](https://github.com/Wanchaochao/laravel-repository/network)
 
+<p align="center">
+	<a href="https:www.littlebug.vip">
+		<img src="http://littlebug.oss-cn-beijing.aliyuncs.com/www.littlebug.vip/favicon.ico" width="75">
+	</a>
+</p>
+
+
+[切换中文](/README.zh-CN.md) | [Repository的用法](/docs/Repository.md)
+
 ## Introduction
 
 `laravel-repository` provides the basic `repository` class for [laravel](https://laravel.com/)
@@ -27,16 +36,12 @@ participate in specific logical operations, and does not serve the control layer
 - Automatically process corresponding associated data queries through query conditions and query fields
 - Provides a more friendly editor prompt
 
-<p align="center">
-	<a href="https:www.littlebug.vip">
-		<img src="http://littlebug.oss-cn-beijing.aliyuncs.com/www.littlebug.vip/favicon.ico" width="75">
-	</a>
-</p>
-
-
-[切换中文](/README.zh-CN.md) | [Repository的用法](/docs/Repository.md)
-
 ## Install
+
+### Installation requirements
+
+- PHP >= 7.0.0
+- Laravel >= 5.5.0
 
 ### 1.1 Install package
 
