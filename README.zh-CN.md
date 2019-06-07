@@ -87,8 +87,31 @@ class UsersController extends Controller
 
 ## 三 更多的代码生成命令
 
-![commands of generate code](./docs/core-commands.png 'core of commands')
+>命令都支持指定数据库连接 例如 --table=dev.users  
 
-##### 感谢 天下第七 和 [jinxing.liu](https://mylovegy.github.io/blog/) 贡献的代码 💐🌹
+1. `core:model` 通过查询数据库表信息生成 `model` 类文件 和 `repository` 类文件
 
-##### 如果这个仓库帮助到了你，给我一个star来鼓励我~ ✨,我会坚持继续维护这个仓库
+    ```bash
+    php artisan core:model --table=users --name=User
+    ```
+
+2. `core:repository` 生成 `repository` 类文件 
+
+    ```bash
+    php artisan core:repository --model=User --name=UserRepository  
+    ```
+
+3. `core:request` 通过查询数据库表信息生成 `request` 验证类文件
+
+    ```bash
+    php artisan core:request --table=users --path=Users
+    ```
+
+### 命令参数详情
+
+![commands of generate code](./docs/commands.png 'core of commands')
+
+
+#### 感谢 天下第七 和 [jinxing.liu](https://mylovegy.github.io/blog/) 贡献的代码 💐🌹
+
+#### 如果这个仓库帮助到了你，给我一个star来鼓励我~ ✨,我会坚持继续维护这个仓库
