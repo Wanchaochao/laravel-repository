@@ -9,7 +9,7 @@ laravel-repository
 [![GitHub stars](https://img.shields.io/github/stars/Wanchaochao/laravel-repository.svg)](https://github.com/Wanchaochao/laravel-repository/stargazers)
 [![GitHub issues](https://img.shields.io/github/issues/Wanchaochao/laravel-repository.svg)](https://github.com/Wanchaochao/laravel-repository/issues)
 [![GitHub forks](https://img.shields.io/github/forks/Wanchaochao/laravel-repository.svg)](https://github.com/Wanchaochao/laravel-repository/network)
-
+[![Laravel](https://img.shields.io/badge/Laravel%20%5E5.5-support-brightgreen.svg)](https://github.com/laravel/laravel)
 ## 简介
 
 `laravel-repository` 提供了基础的 `repository` 类, 对[laravel](https://laravel.com/) 的 
@@ -23,12 +23,6 @@ laravel-repository
 - 优化`model`查询时的链式调用，直接使用数组的方式进行查询
 - 通过查询条件和查询字段，自动处理对应的关联数据查询
 - 提供了更友好的编辑器提示
-
-<p align="center">
-	<a href="https:www.littlebug.vip">
-		<img src="http://littlebug.oss-cn-beijing.aliyuncs.com/www.littlebug.vip/favicon.ico" width="75">
-	</a>
-</p>
 
 [change to English](/README.md) | [instruction of Repository](/docs/Repository.zh-CN.md) |
 

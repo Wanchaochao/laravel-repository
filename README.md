@@ -9,7 +9,7 @@ laravel-repository
 [![GitHub stars](https://img.shields.io/github/stars/Wanchaochao/laravel-repository.svg)](https://github.com/Wanchaochao/laravel-repository/stargazers)
 [![GitHub issues](https://img.shields.io/github/issues/Wanchaochao/laravel-repository.svg)](https://github.com/Wanchaochao/laravel-repository/issues)
 [![GitHub forks](https://img.shields.io/github/forks/Wanchaochao/laravel-repository.svg)](https://github.com/Wanchaochao/laravel-repository/network)
-
+[![Laravel](https://img.shields.io/badge/Laravel%20%5E5.5-support-brightgreen.svg)](https://github.com/laravel/laravel)
 ## Introduction
 
 `laravel-repository` provides the basic `repository` class for [laravel](https://laravel.com/)
@@ -26,13 +26,6 @@ participate in specific logical operations, and does not serve the control layer
 - Optimize chained calls for `model` queries, query directly using arrays
 - Automatically process corresponding associated data queries through query conditions and query fields
 - Provides a more friendly editor prompt
-
-<p align="center">
-	<a href="https:www.littlebug.vip">
-		<img src="http://littlebug.oss-cn-beijing.aliyuncs.com/www.littlebug.vip/favicon.ico" width="75">
-	</a>
-</p>
-
 
 [切换中文](/README.zh-CN.md) | [Repository的用法](/docs/Repository.md)
 
