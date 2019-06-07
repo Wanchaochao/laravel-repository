@@ -1,6 +1,8 @@
 laravel-repository
 ==================
 
+## 简介
+
 `laravel-repository` 提供了基础的 `repository` 类, 对[laravel](https://laravel.com/) 的 
 [model](https://learnku.com/docs/laravel/5.5/eloquent/1332) 进行了的封装，提供更
 多的对外的方法，以及更友好的编辑器提示；对代码进行了的分层，`repository` 负责对外的业务逻辑处理，
@@ -23,7 +25,7 @@ laravel-repository
 
 
 
-## 一 安装使用
+## 安装使用
 
 ### 1.1 安装包文件
 
@@ -74,7 +76,7 @@ class UsersController extends Controller
     
     public function create()
     {
-        list($ok, $msg, $row) = $this->userRepository->create(request()->all());
+        list($ok, $msg, $user) = $this->userRepository->create(request()->all());
         // 你的逻辑
     }
     
@@ -97,9 +99,9 @@ class UsersController extends Controller
 
 ![member message 的数据](./docs/data-list.jpg 'member message 的数据')
 
-## 二 [关于`repository`更多使用方法请查看](./docs/Repository.zh-CN.md)
+## [关于`repository`更多使用方法请查看](./docs/Repository.zh-CN.md)
 
-## 三 更多的代码生成命令
+## 更多的代码生成命令
 
 >命令都支持指定数据库连接 例如 --table=dev.users  
 

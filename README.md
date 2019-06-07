@@ -1,7 +1,24 @@
+laravel-repository
+==================
 
-### laravel-repository
+![Progress](http://progressed.io/bar/100?title=completed) 
 
-![Progress](http://progressed.io/bar/100?title=completed)  
+## Introduction
+
+`laravel-repository` provides the basic `repository` class for [laravel](https://laravel.com/)
+[model](https://learnku.com/docs/laravel/5.5/eloquent/1332) The package was made to provide more
+More external methods, and more friendly editor prompts; layering the code, `repository` is 
+responsible for external business logic processing, `model` is only responsible for the definition 
+of the fields, attributes, query conditions, and return values of the data table. It does not 
+participate in specific logical operations, and does not serve the control layer.
+
+
+### Relative to the direct use of `model` advantages:
+
+- Solve the problem that `model` does not automatically handle extra fields when adding or modifying
+- Optimize chained calls for `model` queries, query directly using arrays
+- Automatically process corresponding associated data queries through query conditions and query fields
+- Provides a more friendly editor prompt
 
 <p align="center">
 	<a href="https:www.littlebug.vip">
@@ -12,135 +29,108 @@
 
 [切换中文](/README.zh-CN.md) | [Repository的用法](/docs/Repository.md)
 
-### clear tree of project
+## Install
 
-* App
-    * Http
-        * Controller
-            * Admin
-                * IndexController
-                * UserController
-                * ConfigController
-                * ...
-        * Request
-            * Admin
-                * Index
-                    * StoreRequest
-                    * UpdateRequest
-                    * DestroyRequest
-                * User
-                    * ...
-                * Config
-                    * ...
-                * Request.php
-    * Models (继承BaseModel)
-        * User
-            * User.php    
-            * UserExt.php
-            * UserMessage.php
-        * Config
-            * Config.php
-            * ...
-        * BaseModel.php
-    * Repositories (目录结构应与model一致,结构清晰)
-        * User
-            * UserRepository.php
-            * UserExtRepository.php
-            * UserMessageRepository.php
-        * ...
-            
-            
-### Install and use it
+### 1.1 Install package
 
 ```bash
 composer require littlebug/laravel-repository
-
-mkdir app/Http/Requests
-
-# touch a base Request to validate data
-
-# just like this
 ```
 
-[Request.php](https://github.com/Wanchaochao/laravel-repository/blob/master/src/littlebug/Request/Request.php)
+### 1.2 Use the command to generate `model` and `repository`
 
-### About the commands to generate base code
+Suppose you have users in your database, or you replace users with the table names in your database.
 
 ```bash
-
-# after register commands to your laravel project
-
-# enter 
-
-# php artisan list
-
-# if you see these , then you can use it to generate code quickly!~
+php artisan core:model --table=users --name=User
 ```
+The command will be at:
 
-![commands of generate code](/docs/core-commands.png 'core of commands')
+- Generate `User` file under `app/Models/` file
+- Generate `UserRepository` file under `app/Repositories/` file
 
-```bash
-# let`s use it to generate code 
+### 1.3 Using `repository` in the controller
 
-# type code with help of the document of commands
+```php
 
-# if your project database used prefix, don`t forget to add prefix to app\config\database.php
+use App\Repositories\UserRepository;
 
-# demo, generate code for member_message
-
-php artisan core:generate --table=member_message --path=Member --controller=Member/MemberMessageController
-
-# then you can see the result at you terminal
-
-文件 [ /Users/wanchao/www/lara-test/app/Models/Member/MemberMessage.php ] 生成成功
-文件 [ /Users/wanchao/www/lara-test/app/Repositories/Member/MemberMessageRepository.php ] 生成成功
-文件 [ /Users/wanchao/www/lara-test/app/Http/Requests/Member/MemberMessage/UpdateRequest.php ] 生成成功
-文件 [ /Users/wanchao/www/lara-test/app/Http/Requests/Member/MemberMessage/DestroyRequest.php ] 生成成功
-文件 [ /Users/wanchao/www/lara-test/app/Http/Requests/Member/MemberMessage/StoreRequest.php ] 生成成功
-
-# add route to routes/web.php
-
-Route::group(['namespace' => 'Member','prefix' => 'member'], function ($route) {
-    $route->get('index', 'MemberController@indexAction');
-    $route->get('message', 'MemberMessageController@indexAction');
-});
-
-# update the MemberMessageController
-
-# dd the data of list, MemberMessageController
-
-public function index()
+class UsersController extends Controller 
 {
-    $filters = Helper::filter_array(request()->all());
-    $filters['order'] = 'id desc';
-    $list = $this->memberMessageRepository->paginate($filters);
-    dd($list);
+    /**
+     * @var UserRepository
+     */
+    private $userRepository;
+    
+    public function __construct(UserRepository $userRepository)
+    {
+        $this->userRepository   = $userRepository;
+    }
+    
+    public function index()
+    {
+        // Paging query
+        $list = $this->userRepository->paginate([
+            'name:like' => 'test123', 
+            'status:in' => [1, 2],
+        ]);
+        
+        return view('users.index');
+    }
+    
+    public function create()
+    {
+        list($ok, $msg, $user) = $this->userRepository->create(request()->all());
+        // You are right logic
+    }
+    
+    public function update()
+    {
+        list($ok, $msg, $row) = $this->userRepository->update(request()->input('id'), request()->all());
+        // You are right logic
+    }
+    
+    public function delete()
+    {
+        list($ok, $msg, $row) = $this->userRepository->delete(request()->input('id'));
+        // You are right logic
+    }
 }
 
-# terminal
-
-php artisan serve
-
-vist localhost:8001/member/message
-
-# you can also change the table exists in your database
- 
 ```
 
-![data of member message](/docs/data-list.jpg 'data of member message')
+#### 1.3.1 About paging query data
 
+![member message 的数据](./docs/data-list.jpg 'member message 的数据')
 
-### Custom
-```bash
+## [Please check more about `repository`] (./docs/Repository.md)
 
-# maybe you want to custom your owm Repository
+## More code generation commands
 
-# you can touch a Repository.php at app\Repository
+> Commands support specifying database connections such as --table=dev.users
 
-# It can also extends Littlebug\Repository, maybe you don`t want to extends, it`s your choice
+1. `core:model` generates `model` class files and `repository` class files by querying database table information.
 
-```
+     ```bash
+     php artisan core:model --table=users --name=User
+     ```
 
-##### thanks for [JinxingLiu](https://mylovegy.github.io/blog/) and seven 💐🌹
+2. `core:repository` generates the `repository` class file
 
-##### if my repository is helpful to you, give me a star to encourage me~ ✨, I will continue to maintain this project.
+     ```bash
+     php artisan core:repository --model=User --name=UserRepository
+     ```
+
+3. `core:request` generates `request` verification class file by querying database table information
+
+     ```bash
+     php artisan core:request --table=users --path=Users
+     ```
+
+### Command Parameter Details
+
+![commands of generate code](./docs/commands.png 'core of commands')
+
+#### thanks for [jinxing.liu](https://mylovegy.github.io/blog/) and seven 💐🌹
+
+#### if my repository is helpful to you, give me a star to encourage me~ ✨, I will continue to maintain this project.
