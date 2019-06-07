@@ -104,6 +104,7 @@ class UsersController extends Controller
 ![member message 的数据](./docs/data-list.jpg 'member message 的数据')
 
 ## [Please check more about `repository`](./docs/Repository.md)
+[Please check more about `repository`](./docs/Repository.md)
 
 ## More code generation commands
 
