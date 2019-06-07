@@ -50,18 +50,13 @@ class ModelCommand extends CoreCommand
             return;
         }
 
-        $array      = $this->getTableAndConnection($table);
+        $array = $this->getTableAndConnection($table);
 
         $table_name = Arr::get($array, 'table');
         if ($connection = Arr::get($array, 'connection')) {
             $connection = 'protected $connection = \'' . $connection . '\';';
         }
-        /**
-         * 去除自动识别s并去除
-         */
-//        if (Str::endsWith('s', $table_name)) {
-//            $table_name = Str::replaceLast('s', '', $table_name);
-//        }
+
         $model_name = $this->handleOptionName($table_name);
         list($columns, $primaryKey) = $this->getColumnsAndPrimaryKey($table);
 
@@ -76,7 +71,6 @@ class ModelCommand extends CoreCommand
             'connection' => $connection ?: '',
             'class_name' => $class_name,
             'namespace'  => $namespace,
-            'use_base'   => 'use Littlebug\Models\Model;'
         ]);
 
         // 生成 repository
@@ -85,7 +79,7 @@ class ModelCommand extends CoreCommand
             $model_class .= $class_name;
             $arguments   = [
                 '--model' => $model_class,
-                '--name'  => $model_class
+                '--name'  => $model_class,
             ];
 
             if (($path = $this->option('path')) && Str::startsWith($path, '/')) {
