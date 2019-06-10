@@ -119,21 +119,21 @@ class UsersController extends Controller
 
 1. `core:model` generates `model` class files and `repository` class files by querying database table information.
 
-     ```bash
-     php artisan core:model --table=users --name=User
-     ```
+    ```bash
+    php artisan core:model --table=users --name=User
+    ```
 
 2. `core:repository` generates the `repository` class file
 
-     ```bash
-     php artisan core:repository --model=User --name=UserRepository
-     ```
+    ```bash
+    php artisan core:repository --model=User --name=UserRepository
+    ```
 
 3. `core:request` generates `request` verification class file by querying database table information
 
-     ```bash
-     php artisan core:request --table=users --path=Users
-     ```
+    ```bash
+    php artisan core:request --table=users --path=Users
+    ```
 
 ### Command Parameter Details
 
