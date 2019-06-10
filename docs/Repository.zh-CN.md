@@ -741,7 +741,7 @@ $conditions = ['id' => [1, '123', '789']]
 
 ## 五 其他说明
 
-### 关于`repository`的`create`、`update`、`delete` 的返回
+### 5.1 关于`repository`的`create`、`update`、`delete` 的返回
 
 这三个函数不管处理成功和失败，返回的都是数组信息。因为`php`不能像`golang`那样,
 可以多返回，而在我们逻辑中，经常需要知道执行错误了，是什么样的错误信息，所以这里
@@ -749,6 +749,19 @@ $conditions = ['id' => [1, '123', '789']]
 `laravel`其实更推荐是通过抛出错误方式，去统一管理所有的错误信息。所以如果不喜欢
 现在数组的返回方式的话，只需要重写 `success($data, $message === 'ok')` 
 和 `error($message, $data = [])` 这两个方法就好了
+
+### 5.2 `repository` 查询 `find`, `findAll` 查询结果都是 `model->toArray()` 的数组，并不是 `model` 对象
+
+### 5.3 对于`model`的要求
+
+1. `create` 和 `update` 都是批量赋值，需要`model`定义批量赋值的白名单`$fillable` 或者 黑名单 `$guarded`
+2. 需要定义 `$columns` 字段信息，表示表中都有哪些字段
+
+    ```php
+    public $columns = ['id', 'title', 'content', 'created_at', 'updated_at'];
+    ```
+    
+    >虽然这一步是非必须的，但定义了`$columns`会减少一次`SQL`查询的代价
 
 是不是非常简洁方便 ^_^ 😋
 后面会继续补充
