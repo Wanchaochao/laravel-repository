@@ -1146,4 +1146,69 @@ abstract class Repository
         $conditions = Arr::pull($arguments, 0, []);
         return $this->findCondition($conditions)->{$name}(...$arguments);
     }
+
+    /**
+     * 处理 where 添加查询
+     *
+     * @param Model|\Illuminate\Database\Query\Builder $model   查询的model
+     * @param array                                    $where   查询的条件
+     * @param string                                   $table   查询的表
+     * @param array                                    $columns 查询的字段信息
+     * @param bool                                     $or      是否or查询
+     *
+     * @return mixed
+     */
+    public function getWhereQuery($model, array $where, $table, $columns, $or = false)
+    {
+        // 第一步：获取第一个元素 是否制定连接方式
+        $firstWhere = array_shift($where);
+        if (is_string($firstWhere)) {
+            return $this->getWhereQuery($model, $where, $table, $columns, strtolower($firstWhere) == 'or');
+        }
+
+        // 第二步：第一个元素不是连接方式，那么就是查询条件了，需要添加上去
+        array_unshift($where, $firstWhere);
+        $method = $or ? 'orWhere' : 'where';
+        return $model->{$method}(function ($query) use ($where, $or, $table, $columns) {
+            foreach ($where as $value) {
+
+                /**
+                 * 关联数组处理
+                 * ['name' => 123] 处理为 ['name', '=', 123]
+                 * ['name:like' => 123] 处理为 ['name', 'like', 123]
+                 */
+                if (Helper::isAssociative($value)) {
+                    // 当作 ['name:like' => 123] 处理 key
+                    $columnExpressions = explode(':', array_keys($value)[0]);
+
+                    // 处理查询字段和表达式 表达式默认为 =
+                    $column     = Arr::get($columnExpressions, 0);
+                    $expression = Arr::get($columnExpressions, 1, '=');
+                    $column     = isset($columns[$column]) ? $table . '.' . $column : $column;
+                    $condition  = [$column, $expression, array_values($value)[0]];
+
+                    // 直接查询
+                    $query = $this->handleExpressionConditionQuery($query, $condition, $or);
+                    continue;
+                }
+
+                // ['and', ['name' => 1, 'age' => 2]] 循环处理
+                list($column) = $value;
+                if (in_array(strtolower($column), ['or', 'and'])) {
+                    $query = $this->getWhereQuery($query, $value, $table, $columns);
+                    continue;
+                }
+
+                // 字段查询条件表名称
+                if (isset($columns[$column])) {
+                    $value[0] = $table . '.' . $column;
+                }
+
+                // 处理表达式查询
+                $query = $this->handleExpressionConditionQuery($query, $value, $or);
+            }
+
+            return $query;
+        });
+    }
 }
