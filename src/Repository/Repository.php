@@ -1128,23 +1128,33 @@ abstract class Repository
     }
 
     /**
-     * 调用 model 的方法
+     * 通过数组查询
      *
-     * @param string $name 调用model 自己的方法
-     * @param array  $arguments
+     * @param array $where   查询的条件
+     *
+     * @param array $columns 查询的字段信息
      *
      * @return mixed
      */
-    public function __call($name, $arguments)
+    public function findWhere(array $where, array $columns = [])
     {
-        // 直接使用 model, 不需要查询条件的数据
-        if (in_array($name, $this->passThru)) {
-            return (new $this->model)->{$name}(...$arguments);
+        $model = $this->model->newModelInstance();
+
+        // 查询条件为空，直接返回
+        if (empty($conditions) && empty($columns)) {
+            return $model;
         }
 
-        // 第一个参数传递给自己 findCondition 方法
-        $conditions = Arr::pull($arguments, 0, []);
-        return $this->findCondition($conditions)->{$name}(...$arguments);
+        $table        = $model->getTable();
+        $tableColumns = $this->getTableColumns();
+
+        list($fieldRelations, $selectColumns) = $this->parseColumnRelations($columns, $table, $tableColumns);
+
+        // 处理关联信息查询
+        $relations = $this->getRelations([], $fieldRelations);
+        $model     = $this->getRelationModel($model, $relations, $selectColumns, $table);
+
+        return $this->getWhereQuery($model, $where, $table, $tableColumns);
     }
 
     /**
@@ -1160,6 +1170,11 @@ abstract class Repository
      */
     public function getWhereQuery($model, array $where, $table, $columns, $or = false)
     {
+        // 没有查询条件直接返回
+        if (empty($where)) {
+            return $model;
+        }
+
         // 第一步：获取第一个元素 是否制定连接方式
         $firstWhere = array_shift($where);
         if (is_string($firstWhere)) {
@@ -1210,5 +1225,25 @@ abstract class Repository
 
             return $query;
         });
+    }
+
+    /**
+     * 调用 model 的方法
+     *
+     * @param string $name 调用model 自己的方法
+     * @param array  $arguments
+     *
+     * @return mixed
+     */
+    public function __call($name, $arguments)
+    {
+        // 直接使用 model, 不需要查询条件的数据
+        if (in_array($name, $this->passThru)) {
+            return (new $this->model)->{$name}(...$arguments);
+        }
+
+        // 第一个参数传递给自己 findCondition 方法
+        $conditions = Arr::pull($arguments, 0, []);
+        return $this->findCondition($conditions)->{$name}(...$arguments);
     }
 }
