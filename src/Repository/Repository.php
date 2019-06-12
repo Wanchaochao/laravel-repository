@@ -1154,6 +1154,7 @@ abstract class Repository
         $relations = $this->getRelations([], $fieldRelations);
         $model     = $this->getRelationModel($model, $relations, $selectColumns, $table);
 
+        // 返回处理 $where 查询条件的 model
         return $this->getWhereQuery($model, $where, $table, $tableColumns);
     }
 
