@@ -1134,7 +1134,7 @@ abstract class Repository
      *
      * @param array $columns 查询的字段信息
      *
-     * @return mixed
+     * @return Model|\Illuminate\Database\Query\Builder
      */
     public function findWhere(array $where, array $columns = [])
     {
@@ -1166,7 +1166,7 @@ abstract class Repository
      * @param array                                    $columns 查询的字段信息
      * @param bool                                     $or      是否or查询
      *
-     * @return mixed
+     * @return Model|\Illuminate\Database\Query\Builder
      */
     public function getWhereQuery($model, array $where, $table, $columns, $or = false)
     {
