@@ -1141,7 +1141,7 @@ abstract class Repository
         $model = $this->model->newModelInstance();
 
         // 查询条件为空，直接返回
-        if (empty($conditions) && empty($columns)) {
+        if (empty($where) && empty($columns)) {
             return $model;
         }
 
@@ -1207,7 +1207,7 @@ abstract class Repository
                     continue;
                 }
 
-                // ['and', ['name' => 1, 'age' => 2]] 循环处理
+                // ['and', ['name' => 1], ['age' => 2]] 循环处理
                 list($column) = $value;
                 if (in_array(strtolower($column), ['or', 'and'])) {
                     $query = $this->getWhereQuery($query, $value, $table, $columns);
