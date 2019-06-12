@@ -1134,14 +1134,14 @@ abstract class Repository
      *
      * @param array $columns 查询的字段信息
      *
-     * @return mixed
+     * @return Model|\Illuminate\Database\Query\Builder
      */
     public function findWhere(array $where, array $columns = [])
     {
         $model = $this->model->newModelInstance();
 
         // 查询条件为空，直接返回
-        if (empty($conditions) && empty($columns)) {
+        if (empty($where) && empty($columns)) {
             return $model;
         }
 
@@ -1154,6 +1154,7 @@ abstract class Repository
         $relations = $this->getRelations([], $fieldRelations);
         $model     = $this->getRelationModel($model, $relations, $selectColumns, $table);
 
+        // 返回处理 $where 查询条件的 model
         return $this->getWhereQuery($model, $where, $table, $tableColumns);
     }
 
@@ -1166,7 +1167,7 @@ abstract class Repository
      * @param array                                    $columns 查询的字段信息
      * @param bool                                     $or      是否or查询
      *
-     * @return mixed
+     * @return Model|\Illuminate\Database\Query\Builder
      */
     public function getWhereQuery($model, array $where, $table, $columns, $or = false)
     {
@@ -1207,7 +1208,7 @@ abstract class Repository
                     continue;
                 }
 
-                // ['and', ['name' => 1, 'age' => 2]] 循环处理
+                // ['and', ['name' => 1], ['age' => 2]] 循环处理
                 list($column) = $value;
                 if (in_array(strtolower($column), ['or', 'and'])) {
                     $query = $this->getWhereQuery($query, $value, $table, $columns);
