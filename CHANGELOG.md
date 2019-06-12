@@ -6,15 +6,16 @@ v1.0.8 2019-06-12
 
 - add: `repository`添加新方法
     - `findWhere(array $where, array $columns = [])`通过数组查询数据,支持更复杂的查询
-```php
-$this->userRepository->findWhere([
-    'and',
-    ['or', ['username', 'like', 'test'], ['age' => 5]],
-    ['level' => 5]
-])->get();
-
-// sql: where ((`username` like 'test' or `age` = 5) and `level` = 5)
-```
+    
+    ```php
+    $this->userRepository->findWhere([
+        'and',
+        ['or', ['username', 'like', 'test'], ['age' => 5]],
+        ['level' => 5]
+    ])->get();
+    
+    // sql: where ((`username` like 'test' or `age` = 5) and `level` = 5)
+    ```
 - remove: 删除多余代码生成命令
 
 v1.0.7 2019-06-06
