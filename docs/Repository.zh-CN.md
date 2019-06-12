@@ -96,6 +96,51 @@ list($ok, $msg, $rows) = $this->repository->delete(1); // 主键删除 pk = 1
 $list = $this->repository->paginate(['status' => 1], ['id', 'name', ...]);
 ```
 
+#### 1.4.4 使用`findWhere(array $where, array $columns = [])`构建复杂的查询
+
+```php
+    $users = $this->userRepository->findWhere([
+        'and',
+        ['or', ['username:auto_like' => 'test'], ['nick_name', 'like', '%test%']],
+        ['level' => 5],
+        ['status', '=', 1],
+    ])->get();
+```
+
+上面查询生成的SQl
+
+```sql
+select * from `users` where (
+    (`users`.`username` like '%test%' or `users`.`nick_name` like '%test%') 
+    and `users`.`level` = 5 
+    and `users`.`status` = 1
+)
+```
+
+##### 1.4.4.1 使用说明
+- 只能使用数组查询
+- 数组的第一个元素，确定数组中其他查询条件的连接方式 `and` 或 `or`； `and`可以忽悠不写
+
+    ```php
+    $where = [
+        // 第一个元素，如果是 and 查询，可以不用写
+        ['level' => 5],
+        ['status' => 1],
+        [
+            // or 表示 数组中，下面查询条件使用 or 连接 
+            'or', 
+            ['username' => 'test'], 
+            ['name' => 'test123']
+        ],
+    ];
+    ```
+- 数组中的查询条件，必须使用数组方式 
+    - `['字段', '表达式', '查询值']` 
+    - `['字段:表达式' => '查询值']` 
+    - `['字段' => '查询值']`
+    
+    >建议使用`['字段', '表达式', '查询值']` 比较直观
+    
 ### 1.5 查询进阶使用
 
 #### 1.5.1 使用表达式查询
