@@ -659,6 +659,7 @@ $columns = [
 |`create(array $data)`|`array`|添加数据|
 |`update($conditions, array $data)`|`array`|修改数据(使用的是批量修改)|
 |`delete($conditions)`|`array`|删除数据(使用的是批量删除)|
+|`findWhere(array $where, $columns = [])`|`Illuminate\Database\Eloquent\Model`|获取通过数组查询的`model`
 
 #### 参数说明
 
@@ -668,6 +669,7 @@ $columns = [
 |`$columns`|`array`|查询的字段数组|
 |`$column`|`string`|查询的字段名称|
 |`$data`|`array`|创建或者修改的数组数据信息|
+|`$where`|`array`|查询条件|
 
 ### 3.2 支持`model`自带方法
 
