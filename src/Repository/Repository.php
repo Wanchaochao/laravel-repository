@@ -1185,7 +1185,7 @@ abstract class Repository
         // 第二步：第一个元素不是连接方式，那么就是查询条件了，需要添加上去
         array_unshift($where, $firstWhere);
         $method = $or ? 'orWhere' : 'where';
-        return $model->{$method}(function ($query) use ($where, $or, $table, $columns) {
+        return $model->{$method}(function ($query) use ($where, $or, $table, $columns, $method) {
             foreach ($where as $value) {
 
                 /**
@@ -1210,8 +1210,10 @@ abstract class Repository
 
                 // ['and', ['name' => 1], ['age' => 2]] 循环处理
                 list($column) = $value;
-                if (in_array(strtolower($column), ['or', 'and'])) {
-                    $query = $this->getWhereQuery($query, $value, $table, $columns);
+                if (is_array($column) || (is_string($column) && in_array(strtolower($column), ['or', 'and']))) {
+                    $query = $query->{$method}(function ($q) use ($value, $table, $columns) {
+                        return $this->getWhereQuery($q, $value, $table, $columns);
+                    });
                     continue;
                 }
 
