@@ -4,7 +4,6 @@ namespace Littlebug\Repository;
 
 use Closure;
 use Exception;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use ReflectionClass;
 use Littlebug\Helpers\Helper;
 use Illuminate\Support\Str;
@@ -17,6 +16,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Query\Expression;
 
 /**
