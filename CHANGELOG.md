@@ -22,6 +22,7 @@ v1.0.8 2019-06-12
     // sql: where ((`username` like 'test' or `age` = 5) and `level` = 5)
     ```
 - remove: 删除多余代码生成命令
+- add: `repository`查询指定字段关联字段添加支持反向关联
 
 v1.0.7 2019-06-06
 -----------------
