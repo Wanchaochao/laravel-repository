@@ -716,7 +716,15 @@ abstract class Repository
             $foreignKey = $relation->getQualifiedForeignKeyName();
         } else if ($relation instanceof BelongsTo) {
             // 反向关联
-            $localKey   = $relation->getQualifiedForeignKey();
+            
+            // laravel 5.5 版本
+            if (method_exists($relation, 'getQualifiedForeignKey')) {
+                $localKey = $relation->getQualifiedForeignKey();
+            } else if (method_exists($relation, 'getQualifiedForeignKeyName')) {
+                // laravel 5.8 版本
+                $localKey = $relation->getQualifiedForeignKeyName();
+            }
+
             $foreignKey = $relation->getQualifiedOwnerKeyName();
         } else {
             $localKey = $foreignKey = null;
