@@ -1219,49 +1219,53 @@ abstract class Repository
         // 第二步：第一个元素不是连接方式，那么就是查询条件了，需要添加上去
         array_unshift($where, $firstWhere);
         $method = $or ? 'orWhere' : 'where';
-        return $model->{$method}(function ($query) use ($where, $or, $table, $columns, $method) {
-            foreach ($where as $value) {
+        foreach ($where as $value) {
 
-                /**
-                 * 关联数组处理
-                 * ['name' => 123] 处理为 ['name', '=', 123]
-                 * ['name:like' => 123] 处理为 ['name', 'like', 123]
-                 */
-                if (Helper::isAssociative($value)) {
+            // 关联数组处理 ['name' => 2, 'age' => 1] or ['name:like' => 'test', 'age' => 2]
+            if (Helper::isAssociative($value)) {
+
+                // 关联数组处理
+                foreach ($value as $valColumn => $valValue) {
                     // 当作 ['name:like' => 123] 处理 key
-                    $columnExpressions = explode(':', array_keys($value)[0]);
+                    $columnExpressions = explode(':', $valColumn);
 
                     // 处理查询字段和表达式 表达式默认为 =
                     $column     = Arr::get($columnExpressions, 0);
-                    $expression = Arr::get($columnExpressions, 1, '=');
+                    $expression = Arr::get($columnExpressions, 1, is_array($valValue) ? 'in' : '=');
                     $column     = isset($columns[$column]) ? $table . '.' . $column : $column;
-                    $condition  = [$column, $expression, array_values($value)[0]];
+                    $condition  = [$column, $expression, $valValue];
 
                     // 直接查询
-                    $query = $this->handleExpressionConditionQuery($query, $condition, $or);
-                    continue;
+                    $model = $this->handleExpressionConditionQuery($model, $condition, $or);
                 }
 
-                // ['and', ['name' => 1], ['age' => 2]] 循环处理
-                list($column) = $value;
-                if (is_array($column) || (is_string($column) && in_array(strtolower($column), ['or', 'and']))) {
-                    $query = $query->{$method}(function ($q) use ($value, $table, $columns) {
-                        return $this->getWhereQuery($q, $value, $table, $columns);
-                    });
-                    continue;
-                }
 
+                continue;
+            }
+
+            // ['and', ['name' => 1], ['age' => 2]] or [['name' => 1], ['age' => 2]] 循环处理
+            list($column) = $value;
+            if (is_array($column) || (is_string($column) && in_array(strtolower($column), ['or', 'and']))) {
+                $model = $model->{$method}(function ($q) use ($value, $table, $columns) {
+                    return $this->getWhereQuery($q, $value, $table, $columns);
+                });
+
+                continue;
+            }
+
+            // 只有 ['name', '=', 1] 才处理
+            if (count($value) === 3) {
                 // 字段查询条件表名称
                 if (isset($columns[$column])) {
                     $value[0] = $table . '.' . $column;
                 }
 
                 // 处理表达式查询
-                $query = $this->handleExpressionConditionQuery($query, $value, $or);
+                $model = $this->handleExpressionConditionQuery($model, $value, $or);
             }
+        }
 
-            return $query;
-        });
+        return $model;
     }
 
     /**
