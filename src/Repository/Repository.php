@@ -4,6 +4,7 @@ namespace Littlebug\Repository;
 
 use Closure;
 use Exception;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use ReflectionClass;
 use Littlebug\Helpers\Helper;
 use Illuminate\Support\Str;
@@ -653,15 +654,12 @@ abstract class Repository
             // 判断relations 是否真的存在
             if (method_exists($findModel, $relation)) {
 
-                /* @var $relationModel HasOneOrMany */
-                $relationModel = $findModel->$relation();
+                // 获取关联的 $localKey or $foreignKey
+                list($localKey, $foreignKey) = $this->getRelationKeys($findModel->$relation());
 
                 // 防止关联查询，主键没有添加上去
-                if ($isNotSelectAll) {
-                    $localKey = $relationModel->getQualifiedParentKeyName();
-                    if (!in_array($localKey, $selectColumns)) {
-                        array_push($selectColumns, $localKey);
-                    }
+                if ($localKey && $isNotSelectAll && !in_array($localKey, $selectColumns)) {
+                    array_push($selectColumns, $localKey);
                 }
 
                 // 获取默认查询条件
@@ -669,7 +667,7 @@ abstract class Repository
                 $value['conditions'] = array_merge($defaultConditions, Arr::get($value, 'conditions', []));
                 if ($value['with']) {
                     // 标记外键,防止查询的时候漏掉该字段
-                    $value['foreignKey'] = $relationModel->getQualifiedForeignKeyName();
+                    $value['foreignKey'] = $foreignKey;
                     $with[$relation]     = $this->buildRelation($value);
                 }
 
@@ -699,6 +697,32 @@ abstract class Repository
         }
 
         return $this->select($model, $selectColumns);
+    }
+
+    /**
+     *
+     * 获取关联的关系的 localKey 和 foreignKey
+     *
+     * @param HasOneOrMany|BelongsTo
+     *
+     * @return array [localKey, foreignKey]
+     */
+    public function getRelationKeys($relation)
+    {
+        // 确定关联类型
+        if ($relation instanceof HasOneOrMany) {
+            // 正向关联
+            $localKey   = $relation->getQualifiedParentKeyName();
+            $foreignKey = $relation->getQualifiedForeignKeyName();
+        } else if ($relation instanceof BelongsTo) {
+            // 反向关联
+            $localKey   = $relation->getQualifiedForeignKey();
+            $foreignKey = $relation->getQualifiedOwnerKeyName();
+        } else {
+            $localKey = $foreignKey = null;
+        }
+
+        return [$localKey, $foreignKey];
     }
 
     /**
@@ -961,7 +985,7 @@ abstract class Repository
             $hasRelations = $this->getRelations($conditionRelations, $fieldRelations);
 
             // 添加关联的外键，防止关联不上
-            if ($this->isNotSelectAll($selectColumns, $table) && !in_array($foreignKey, $selectColumns)) {
+            if ($foreignKey && $this->isNotSelectAll($selectColumns, $table) && !in_array($foreignKey, $selectColumns)) {
                 $selectColumns[] = $foreignKey;
             }
 
