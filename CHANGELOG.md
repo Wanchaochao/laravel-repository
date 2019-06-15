@@ -1,6 +1,19 @@
 更新记录
 =======
 
+v1.0.10 2019-06-15
+------------------
+
+- refeactor: `repository`中`findWhere`优化，对关联数组查询支持
+
+    ```php
+    $this->userRepository->findWhere([
+        'and', 
+        ['username' => 1, 'age' => 2],
+        ['or', ['name' => '1', 'name' => 2]]
+    ])->get();
+    ```
+
 v1.0.9 2019-06-15
 -----------------
 
