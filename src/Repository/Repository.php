@@ -657,15 +657,16 @@ abstract class Repository
                 // 获取关联的 $localKey or $foreignKey
                 list($localKey, $foreignKey) = $this->getRelationKeys($findModel->$relation());
 
-                // 防止关联查询，主键没有添加上去
-                if ($localKey && $isNotSelectAll && !in_array($localKey, $selectColumns)) {
-                    array_push($selectColumns, $localKey);
-                }
-
                 // 获取默认查询条件
                 $defaultConditions   = $this->getRelationDefaultFilters($model, $relation);
                 $value['conditions'] = array_merge($defaultConditions, Arr::get($value, 'conditions', []));
                 if ($value['with']) {
+
+                    // 防止关联查询，主键没有添加上去
+                    if ($localKey && $isNotSelectAll && !in_array($localKey, $selectColumns)) {
+                        array_push($selectColumns, $localKey);
+                    }
+
                     // 标记外键,防止查询的时候漏掉该字段
                     $value['foreignKey'] = $foreignKey;
                     $with[$relation]     = $this->buildRelation($value);
@@ -686,17 +687,20 @@ abstract class Repository
             }
         }
 
+        // 先处理查询字段
+        $model = $this->select($model, $selectColumns);
+
+        // 存在关联
         if ($with) {
             $model = $model->with($with);
         }
 
-        // 查询关联的统计信息，那么不需要查询字段信息
+        // 存在统计关联
         if ($withCount) {
-            $selectColumns = [];
-            $model         = $model->withCount($withCount);
+            return $model->withCount($withCount);
         }
 
-        return $this->select($model, $selectColumns);
+        return $model;
     }
 
     /**
