@@ -1214,7 +1214,7 @@ abstract class Repository
             return $model;
         }
 
-        // 第一步：获取第一个元素 是否制定连接方式
+        // 第一步：获取第一个元素 是否指定连接方式
         $firstWhere = array_shift($where);
         if (is_string($firstWhere)) {
             return $this->getWhereQuery($model, $where, $table, $columns, strtolower($firstWhere) == 'or');
