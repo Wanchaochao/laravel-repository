@@ -1,10 +1,24 @@
 更新记录
 =======
 
-v1.0.9 2019-06-14
+v1.0.10 2019-06-15
+------------------
+
+- refeactor: `repository`中`findWhere`优化，对关联数组查询支持
+
+    ```php
+    $this->userRepository->findWhere([
+        'and', 
+        ['username' => 1, 'age' => 2],
+        ['or', ['name' => '1', 'name' => 2]]
+    ])->get();
+    ```
+
+v1.0.9 2019-06-15
 -----------------
 
 - fix: `findWhere`查询`or`查询的bug 
+- add: `repository`查询指定字段关联字段添加支持反向关联
 
 v1.0.8 2019-06-12
 -----------------
@@ -22,7 +36,6 @@ v1.0.8 2019-06-12
     // sql: where ((`username` like 'test' or `age` = 5) and `level` = 5)
     ```
 - remove: 删除多余代码生成命令
-- add: `repository`查询指定字段关联字段添加支持反向关联
 
 v1.0.7 2019-06-06
 -----------------
