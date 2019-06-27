@@ -654,13 +654,14 @@ abstract class Repository
             // 判断relations 是否真的存在
             if (method_exists($findModel, $relation)) {
 
-                // 获取关联的 $localKey or $foreignKey
-                list($localKey, $foreignKey) = $this->getRelationKeys($findModel->$relation());
-
                 // 获取默认查询条件
                 $defaultConditions   = $this->getRelationDefaultFilters($model, $relation);
                 $value['conditions'] = array_merge($defaultConditions, Arr::get($value, 'conditions', []));
+                
                 if ($value['with']) {
+
+                    // 获取关联的 $localKey or $foreignKey
+                    list($localKey, $foreignKey) = $this->getRelationKeys($findModel->$relation());
 
                     // 防止关联查询，主键没有添加上去
                     if ($localKey && $isNotSelectAll && !in_array($localKey, $selectColumns)) {
