@@ -5,19 +5,19 @@ namespace Littlebug\Repository;
 use Closure;
 use Exception;
 use ReflectionClass;
-use Littlebug\Helpers\Helper;
 use Illuminate\Support\Str;
 use Illuminate\Support\Arr;
+use Littlebug\Helpers\Helper;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Expression;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\Relation;
-use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Query\Expression;
+use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
 
 /**
  * Class Repository 基础Repository类
@@ -35,7 +35,7 @@ use Illuminate\Database\Query\Expression;
  *
  * @method array|mixed getConnection()
  * @method boolean insert(array $values)
- * @method int|mixed insertGetId(array $valuse, $sequence = null)
+ * @method int|mixed insertGetId(array $values, $sequence = null)
  * @method Model firstOrCreate(array $attributes, array $value = [])
  * @method Model firstOrNew(array $attributes, array $value = [])
  * @method Model updateOrCreate(array $attributes, array $value = [])
