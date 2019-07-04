@@ -4,11 +4,11 @@
 v1.0.10 2019-06-27
 ------------------
 
-- refeactor: `repository`中`getRelationModel`方法优化
+- refactor: `repository`中`getRelationModel`方法优化
 
     有关联`count`查询，如果指定字段，那么不查询全部字段
 
-- refeactor: `repository`中`findWhere`优化，对关联数组查询支持
+- refactor: `repository`中`findWhere`优化，对关联数组查询支持
 
     ```php
     $this->userRepository->findWhere([
