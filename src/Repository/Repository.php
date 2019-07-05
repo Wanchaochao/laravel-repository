@@ -230,6 +230,17 @@ abstract class Repository
 
             // 执行修改，并且执行前置和后置方法
             $rows = $this->runEventFunction(function ($conditions, $data) {
+                // 主键
+                $primary = $this->getModel()->getKeyName();
+
+                // 主键修改一条数据
+                if (isset($conditions[$primary]) && is_scalar($conditions[$primary])) {
+                    /* @var $model Model */
+                    if ($model = $this->findCondition($conditions)->first()) {
+                        return $model->update($data) ? 1 : 0;
+                    }
+                }
+
                 return $this->findCondition($conditions)->update($data);
             }, 'update', $conditions, $data);
 
@@ -397,6 +408,21 @@ abstract class Repository
     public function filterFindAll($conditions, $columns = [])
     {
         return $this->findAll($this->filterCondition($conditions), $columns);
+    }
+
+    /**
+     * 过滤获取分页列表
+     *
+     * @param array $conditions 查询条件
+     * @param array $columns    查询字段
+     * @param int   $size       每页数据数
+     * @param int   $current    当前页
+     *
+     * @return mixed
+     */
+    public function filterPaginate($condtions = [], $columns = [], $size = 10, $current = null)
+    {
+        return $this->paginate($this->filterCondition($condtions), $columns, $size, $current);
     }
 
     /**
@@ -657,7 +683,7 @@ abstract class Repository
                 // 获取默认查询条件
                 $defaultConditions   = $this->getRelationDefaultFilters($model, $relation);
                 $value['conditions'] = array_merge($defaultConditions, Arr::get($value, 'conditions', []));
-                
+
                 if ($value['with']) {
 
                     // 获取关联的 $localKey or $foreignKey
