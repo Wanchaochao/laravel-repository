@@ -13,6 +13,8 @@ laravel-repository
 
 [change to English](./home.md) | [Repository 使用文档](./repository.zh-cn.md) 
 
+[TOC]
+
 ## 简介
 
 `laravel-repository` 提供了基础的 `repository` 类, 对[laravel](https://laravel.com/) 的 

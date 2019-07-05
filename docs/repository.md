@@ -1,5 +1,7 @@
 ### Usage Instructions for Repository
 
+[TOC]
+
 [切换中文](./repository.zh-cn.md)
 
 ---

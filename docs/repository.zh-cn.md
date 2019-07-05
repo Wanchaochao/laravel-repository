@@ -1,6 +1,8 @@
 Repository 使用说明
 ==================
 
+[TOC]
+
 [change to English](./repository.md)
 
 `Repository` 是对 `laravel model` 的一个补充，优化了`laravel model` 的 `CURD` 操作，
