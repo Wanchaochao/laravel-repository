@@ -230,6 +230,17 @@ abstract class Repository
 
             // 执行修改，并且执行前置和后置方法
             $rows = $this->runEventFunction(function ($conditions, $data) {
+                // 主键
+                $primary = $this->getModel()->getKeyName();
+
+                // 主键修改一条数据
+                if (isset($conditions[$primary]) && is_scalar($conditions[$primary])) {
+                    /* @var $model Model */
+                    if ($model = $this->findCondition($conditions)->first()) {
+                        return $model->update($data) ? 1 : 0;
+                    }
+                }
+
                 return $this->findCondition($conditions)->update($data);
             }, 'update', $conditions, $data);
 
