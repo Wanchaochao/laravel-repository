@@ -1,0 +1,44 @@
+{
+  "code": 10000,
+  "data": {
+    "title": "Wanchaochao/laravel-repository 文档说明",
+    "home": "/laravel-repository/",
+    "top_menus": [
+      {
+        "title": "Home",
+        "url": "/?page=home"
+      },
+      {
+        "title": "GitHub",
+        "url": "https://github.com/Wanchaochao/laravel-repository"
+      },
+      {
+        "title": "Composer",
+        "url": "https://packagist.org/packages/jinxing/yii2-admin"
+      },
+      {
+        "title": "GitHub Document",
+        "url": "https://wanchaochao.github.io/laravel-repository/docs/home.html"
+      }
+    ],
+    "menus": [
+      {
+        "title": "Home",
+        "url": "/?page=home"
+      },
+      {
+        "title": "Repository Document",
+        "url": "/?page=repository"
+      },
+      {
+        "title": "文档说明中文",
+        "url": "/?page=home.zh-cn"
+      },
+      {
+        "title": "Repository使用说明",
+        "url": "/?page=repository.zh-cn"
+      }
+    ]
+  },
+  "msg": "ok"
+}

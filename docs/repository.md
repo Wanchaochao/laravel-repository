@@ -1,6 +1,6 @@
 ### Usage Instructions for Repository
 
-[切换中文](./Repository.zh-CN.md)
+[切换中文](./repository.zh-cn.md)
 
 ---
 

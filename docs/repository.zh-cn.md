@@ -1,7 +1,7 @@
 Repository 使用说明
 ==================
 
-[change to English](./Repository.md)
+[change to English](./repository.md)
 
 `Repository` 是对 `laravel model` 的一个补充，优化了`laravel model` 的 `CURD` 操作，
 并提供更多的方法，以及更友好的编辑器提示
@@ -362,7 +362,7 @@ $this->userRepository->findAll([
 
 3. 数据信息
 
-    ![关联的数据](./relation.png '关联的数据')
+    ![关联的数据](https://wanchaochao.github.io/laravel-repository/docs/images/relation.png '关联的数据')
 
 ##### 1.5.4.1
     
@@ -386,7 +386,7 @@ $this->userRepository->findAll([
    上面查询指定了查询的字段，但有一个问题，没有指定出关联表查询需要的字段 `user_id` 字段信息，会导致关联信息关联不上的问题
    **但`repository`解决了这个问题，会自动加上关联查询需要的字段信息**，所以最终查询的SQL和数据如下:
    
-   ![关联的数据](./relation-1.png '关联的数据')
+   ![关联的数据](https://wanchaochao.github.io/laravel-repository/docs/images/relation-1.png '关联的数据')
    
    >这可能会让人认为我明明只查询了`username`字段，怎么还查出了其他字段信息
    
@@ -408,7 +408,7 @@ $user = $this->repositoy->find(['status' => 1], ['id', 'username', 'extInfo_coun
 
 执行SQL以及数据
 
-![关联的数据](./relation-2.png '关联的数据')
+![关联的数据](https://wanchaochao.github.io/laravel-repository/docs/images/relation-2.png '关联的数据')
 
 #### 1.5.6 给 `model` 的 `relation` 关联查询动态添加查询条件
 
