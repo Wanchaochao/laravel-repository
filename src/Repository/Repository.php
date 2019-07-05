@@ -400,6 +400,21 @@ abstract class Repository
     }
 
     /**
+     * 过滤获取分页列表
+     *
+     * @param array $conditions 查询条件
+     * @param array $columns    查询字段
+     * @param int   $size       每页数据数
+     * @param int   $current    当前页
+     *
+     * @return mixed
+     */
+    public function filterPaginate($condtions = [], $columns = [], $size = 10, $current = null)
+    {
+        return $this->paginate($this->filterCondition($condtions), $columns, $size, $current);
+    }
+
+    /**
      * 获取过滤查询条件查询的 model
      *
      * @param array|mixed $conditions 查询条件
@@ -657,7 +672,7 @@ abstract class Repository
                 // 获取默认查询条件
                 $defaultConditions   = $this->getRelationDefaultFilters($model, $relation);
                 $value['conditions'] = array_merge($defaultConditions, Arr::get($value, 'conditions', []));
-                
+
                 if ($value['with']) {
 
                     // 获取关联的 $localKey or $foreignKey
