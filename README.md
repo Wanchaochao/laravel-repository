@@ -11,7 +11,7 @@ laravel-repository
 [![GitHub forks](https://img.shields.io/github/forks/Wanchaochao/laravel-repository.svg)](https://github.com/Wanchaochao/laravel-repository/network)
 [![Laravel](https://img.shields.io/badge/Laravel%20%5E5.5-support-brightgreen.svg)](https://github.com/laravel/laravel)
 
-[切换中文](/README.zh-CN.md) | [Usage of Repository](/docs/Repository.md)
+[切换中文](https://wanchaochao.github.io/laravel-repository/?page=home.zh-cn) | [Usage of Repository](https://wanchaochao.github.io/laravel-repository/?page=repository)
 
 ## Introduction
 
@@ -107,10 +107,10 @@ class UsersController extends Controller
 
 #### 1.3.1 About paging query data
 
-![member message 的数据](./docs/data-list.jpg 'member message 的数据')
+![member message 的数据](https://wanchaochao.github.io/laravel-repository/docs/images/data-list.jpg 'member message 的数据')
 
-## [Please check more about `repository`](./docs/Repository.md)
-[Please check more about `repository`](./docs/Repository.md)
+## [Please check more about `repository`](https://wanchaochao.github.io/laravel-repository/?page=repository)
+[Please check more about `repository`](https://wanchaochao.github.io/laravel-repository/?page=repository)
 
 ## More code generation commands
 
@@ -136,7 +136,7 @@ class UsersController extends Controller
 
 ### Command Parameter Details
 
-![commands of generate code](./docs/commands.png 'core of commands')
+![commands of generate code](https://wanchaochao.github.io/laravel-repository/docs/images/commands.png 'core of commands')
 
 #### thanks for [jinxing.liu](https://mylovegy.github.io/blog/) and seven 💐🌹
 
