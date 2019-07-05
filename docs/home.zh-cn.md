@@ -11,7 +11,7 @@ laravel-repository
 [![GitHub forks](https://img.shields.io/github/forks/Wanchaochao/laravel-repository.svg)](https://github.com/Wanchaochao/laravel-repository/network)
 [![Laravel](https://img.shields.io/badge/Laravel%20%5E5.5-support-brightgreen.svg)](https://github.com/laravel/laravel)
 
-[change to English](/README.md) | [Repository 使用文档](/docs/Repository.zh-CN.md) 
+[change to English](./home.md) | [Repository 使用文档](./repository.zh-cn.md) 
 
 ## 简介
 
