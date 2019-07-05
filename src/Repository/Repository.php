@@ -420,9 +420,9 @@ abstract class Repository
      *
      * @return mixed
      */
-    public function filterPaginate($condtions = [], $columns = [], $size = 10, $current = null)
+    public function filterPaginate($conditions = [], $columns = [], $size = 10, $current = null)
     {
-        return $this->paginate($this->filterCondition($condtions), $columns, $size, $current);
+        return $this->paginate($this->filterCondition($conditions), $columns, $size, $current);
     }
 
     /**
