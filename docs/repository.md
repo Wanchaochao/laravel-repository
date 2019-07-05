@@ -2,7 +2,7 @@
 
 [TOC]
 
-[切换中文](https://wanchaochao.github.io/laravel-repository/docs/repository.zh-cn.md)
+[切换中文](https://wanchaochao.github.io/laravel-repository/docs/repository.zh-cn)
 
 ---
 

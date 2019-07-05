@@ -3,7 +3,7 @@ Repository 使用说明
 
 [TOC]
 
-[change to English](https://wanchaochao.github.io/laravel-repository/docs/repository.md)
+[change to English](https://wanchaochao.github.io/laravel-repository/docs/repository)
 
 `Repository` 是对 `laravel model` 的一个补充，优化了`laravel model` 的 `CURD` 操作，
 并提供更多的方法，以及更友好的编辑器提示

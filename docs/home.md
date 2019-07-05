@@ -13,7 +13,7 @@ laravel-repository
 
 [TOC]
 
-[切换中文](https://wanchaochao.github.io/laravel-repository/docs/home.zh-cn.md) | [Usage of Repository](https://wanchaochao.github.io/laravel-repository/docs/repository.md)
+[切换中文](https://wanchaochao.github.io/laravel-repository/docs/home.zh-cn) | [Usage of Repository](https://wanchaochao.github.io/laravel-repository/docs/repository)
 
 ## Introduction
 
