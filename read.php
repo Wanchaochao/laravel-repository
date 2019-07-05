@@ -7,6 +7,7 @@
  */
 
 define('PATH_NAME', '/laravel-repository/');
+define('GITHUB_URL', 'https://raw.githubusercontent.com/Wanchaochao/laravel-repository/master/CHANGELOG.md');
 
 $params = getopt('', ['read:', 'delete:']);
 
@@ -14,7 +15,9 @@ $params = getopt('', ['read:', 'delete:']);
 if (isset($params['read']) && in_array($params['read'], ['true', '1'])) {
     $data = [
         'code' => 10000,
-        'data' => [],
+        'data' => [
+            'change' => file_get_contents(GITHUB_URL),
+        ],
         'msg'  => 'ok',
     ];
 

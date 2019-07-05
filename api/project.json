@@ -37,6 +37,10 @@
       {
         "title": "Repository使用说明",
         "url": "/?page=repository.zh-cn"
+      },
+      {
+        "title": "更新日志",
+        "url": "/?page=change"
       }
     ]
   },
