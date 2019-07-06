@@ -17,7 +17,7 @@
         "url": "https://packagist.org/packages/littlebug/laravel-repository"
       },
       {
-        "title": "GitHub Document",
+        "title": "GitHub Documentation",
         "url": "https://wanchaochao.github.io/laravel-repository/docs/home.html"
       }
     ],
@@ -27,15 +27,15 @@
         "url": "/?page=home"
       },
       {
-        "title": "Repository Document",
+        "title": "Repository Documentation",
         "url": "/?page=repository"
       },
       {
-        "title": "文档说明中文",
+        "title": "文档说明",
         "url": "/?page=home.zh-cn"
       },
       {
-        "title": "Repository使用说明",
+        "title": "Repository 使用文档",
         "url": "/?page=repository.zh-cn"
       },
       {

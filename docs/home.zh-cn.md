@@ -1,7 +1,7 @@
 laravel-repository
 ==================
 
-![Progress](http://progressed.io/bar/100?title=completed)
+![Progress](http://progressed.io/bar/100?title=completed&class=images)
 [![Latest Stable Version](https://poser.pugx.org/littlebug/laravel-repository/v/stable)](https://packagist.org/packages/littlebug/laravel-repository)
 [![Total Downloads](https://poser.pugx.org/littlebug/laravel-repository/downloads)](https://packagist.org/packages/littlebug/laravel-repository)
 [![Latest Unstable Version](https://poser.pugx.org/littlebug/laravel-repository/v/unstable)](https://packagist.org/packages/littlebug/laravel-repository)
@@ -11,7 +11,7 @@ laravel-repository
 [![GitHub forks](https://img.shields.io/github/forks/Wanchaochao/laravel-repository.svg)](https://github.com/Wanchaochao/laravel-repository/network)
 [![Laravel](https://img.shields.io/badge/Laravel%20%5E5.5-support-brightgreen.svg)](https://github.com/laravel/laravel)
 
-[change to English](https://wanchaochao.github.io/laravel-repository/docs/home) | [Repository 使用文档](https://wanchaochao.github.io/laravel-repository/docs/repository.zh-cn) 
+[change to English](./home.html) | [Repository 使用文档](./repository.zh-cn.html) 
 
 [TOC]
 

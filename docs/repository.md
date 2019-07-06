@@ -2,7 +2,7 @@
 
 [TOC]
 
-[切换中文](https://wanchaochao.github.io/laravel-repository/docs/repository.zh-cn)
+[home](./home.html)|[切换中文](./repository.zh-cn.html)
 
 ---
 
@@ -232,6 +232,8 @@ $users = $this->userRepository->findAll(
 );
 
 ```
+
+[home](./home.html)|[切换中文](./repository.zh-cn.html)
 
 Is it very simple? ^_^ 😜
 

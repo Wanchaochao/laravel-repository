@@ -1,7 +1,7 @@
 laravel-repository
 ==================
 
-![Progress](http://progressed.io/bar/100?title=completed) 
+![Progress](http://progressed.io/bar/100?title=completed&class=images)
 [![Latest Stable Version](https://poser.pugx.org/littlebug/laravel-repository/v/stable)](https://packagist.org/packages/littlebug/laravel-repository)
 [![Total Downloads](https://poser.pugx.org/littlebug/laravel-repository/downloads)](https://packagist.org/packages/littlebug/laravel-repository)
 [![Latest Unstable Version](https://poser.pugx.org/littlebug/laravel-repository/v/unstable)](https://packagist.org/packages/littlebug/laravel-repository)
@@ -13,7 +13,7 @@ laravel-repository
 
 [TOC]
 
-[切换中文](https://wanchaochao.github.io/laravel-repository/docs/home.zh-cn) | [Usage of Repository](https://wanchaochao.github.io/laravel-repository/docs/repository)
+[切换中文](./home.zh-cn.html) | [Usage of Repository](./repository.html)
 
 ## Introduction
 
@@ -111,8 +111,9 @@ class UsersController extends Controller
 
 ![member message 的数据](https://wanchaochao.github.io/laravel-repository/docs/images/data-list.jpg 'member message 的数据')
 
-## [Please check more about `repository`](https://wanchaochao.github.io/laravel-repository/docs/Repository.md)
-[Please check more about `repository`](https://wanchaochao.github.io/laravel-repository/docs/Repository.md)
+## Please check more about `repository`
+
+[Please check more about `repository`](./repository.html)
 
 ## More code generation commands
 
