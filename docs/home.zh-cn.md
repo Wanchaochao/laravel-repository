@@ -1,7 +1,7 @@
 laravel-repository
 ==================
 
-![Progress](http://progressed.io/bar/100?title=completed) 
+![Progress](http://progressed.io/bar/100?title=completed)
 [![Latest Stable Version](https://poser.pugx.org/littlebug/laravel-repository/v/stable)](https://packagist.org/packages/littlebug/laravel-repository)
 [![Total Downloads](https://poser.pugx.org/littlebug/laravel-repository/downloads)](https://packagist.org/packages/littlebug/laravel-repository)
 [![Latest Unstable Version](https://poser.pugx.org/littlebug/laravel-repository/v/unstable)](https://packagist.org/packages/littlebug/laravel-repository)
