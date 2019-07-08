@@ -108,7 +108,9 @@ class UsersController extends Controller
 
 ![member message 的数据](https://wanchaochao.github.io/laravel-repository/docs/images/data-list.jpg 'member message 的数据')
 
-## [关于`repository`更多使用方法请查看](./repository.zh-cn.md)
+## `repository`使用文档
+
+[关于`repository`更多使用方法请查看](./repository.zh-cn.html)
 
 ## 更多的代码生成命令
 
