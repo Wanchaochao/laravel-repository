@@ -267,74 +267,76 @@ $item = $this->repository->findAll([
 
 要求model定义了`scope`查询
 
-1. model 
+##### 1. model 
 
-    ```php
-    class User extends Model
+```php
+
+class User extends Model
+{
+    protected $table      = 'users';
+    protected $primaryKey = 'user_id';
+    public    $columns    = [
+        'user_id',
+        'username',
+        //...
+        'created_at',
+        'updated_at',
+    ];
+ 
+  
+    /**
+     * 定义关联扩展信息
+     * 
+     * return Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function extInfo()
     {
-        protected $table      = 'users';
-        protected $primaryKey = 'user_id';
-        public    $columns    = [
-            'user_id',
-            'username',
-            //...
-            'created_at',
-            'updated_at',
-        ];
-     
-      
-        /**
-         * 定义关联扩展信息
-         * 
-         * return Illuminate\Database\Eloquent\Relations\HasOne
-         */
-        public function extInfo()
-        {
-          return $this->hasOne(UserExt::class, 'user_id', 'user_id');
-        }
-     
-    
-        /**
-         * 根据地址查询
-         *
-         * @param \Illuminate\Database\Eloquent\Builder $query   查询对象
-         * @param string                                $address 地址信息
-         * @return \Illuminate\Database\Eloquent\Builder
-         */
-        public function scopeAddress($query, $address)
-        {
-            return $query->leftJoin('user_ext', 'user_ext.user_id', '=', 'users.user_id')
-                ->where('user_ext.address', '=', $address);
-        }
-    }   
-    ```
+      return $this->hasOne(UserExt::class, 'user_id', 'user_id');
+    }
+ 
 
-2. 使用 `repository` 查询
+    /**
+     * 根据地址查询
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query   查询对象
+     * @param string                                $address 地址信息
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeAddress($query, $address)
+    {
+        return $query->leftJoin('user_ext', 'user_ext.user_id', '=', 'users.user_id')
+            ->where('user_ext.address', '=', $address);
+    }
+}   
 
-    ```php
-    
-    $this->userRepositoy->findAll([
-        'status'  => 1,
-        'address' => '北京'
-    ]);
-    
-    ```
+```
 
-3. 查询的SQL
+##### 2. 使用 `repository` 查询
 
-    ```sql
+```php
+
+$this->userRepositoy->findAll([
+    'status'  => 1,
+    'address' => '北京'
+]);
+
+```
+
+##### 3. 查询的SQL
+
+```sql
+
+select 
+    * 
+from 
+    `users` 
+left join 
+    `user_ext` on (`user_ext`.`user_id` = `users`.`user_id`) 
+where 
+    `users.status` = 1 and `user_ext`.`address` = '北京'
     
-    select 
-        * 
-    from 
-        `users` 
-    left join 
-        `user_ext` on (`user_ext`.`user_id` = `users`.`user_id`) 
-    where 
-        `users.status` = 1 and `user_ext`.`address` = '北京'
-        
-    ```
-##### 1.5.2.1 使用说明
+```
+##### 4 使用说明
 
 从上面的SQL和容易发现一个问题，没有指定查询字段，默认查询的 `*` 所有字段，如果`users`表和`user_ext`
 表的字段没有冲突，那么没有什么问题，但如果有冲突，那么查询出来的数据可能和你想象的不一样，特别在还有
@@ -580,6 +582,59 @@ $items = $this->repositpry->filterFindAll([
     'username:like' => request()->input('username'),
     'status'        => request()->input('status')
 ]);
+```
+
+#### 1.5.8 使用 `findWhere` 构建复杂查询
+
+> `findWhere(array $where, $array $columns = [])`
+
+```php
+$this->userRespository->findWhere([
+    'and',
+    ['username' => 1, 'name:like' => '%test%'],
+    ['or', ['level' => 10, 'level:eq' => 5]],
+    ['and', ['status' => 1, 'age' => 1]],   
+])->get();
+
+```
+
+执行的SQL
+
+```sql
+select * from `users` where 
+    (`username` = 1 and `name` like '%test%') and 
+    (`level` = 10 or `level` = 5) and 
+    (`status` = 1 and `age` = 1)
+```
+
+`where`查询条件说明
+
+数组第一个元素定义查询条件连接方式(后面数组的查询条件怎么连接`or` 或者 `and`)，如果是`and`连接
+可以忽略不写,一定要是多维数组
+
+第一个`and`忽略不写
+```php
+$where = [
+['status' => 1]，
+['name' => 2]
+];
+
+// where `status` = 1 and `name` = 2 
+```
+
+使用 `or` 连接
+```php
+$where = [
+    // or 定义 后面的查询条件 通过 or 连接
+    'or',
+    ['status' => 1],
+    ['age' => 1],
+    
+    // and 定义数组里面后面的查询条件使用 and 连接
+    ['and', ['name', '=', 123], ['username', 'like', 'test']],
+];
+
+// where `status` = 1 or `age` = 1 or (`name` = 123 and `username` like 'test')
 ```
 
 ## 二 关于查询中的`$conditions`和`$columns`信息说明
