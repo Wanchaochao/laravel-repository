@@ -2,10 +2,10 @@
 
 namespace Littlebug\Commands;
 
-use \Illuminate\Console\Command;
+use Throwable;
 use Illuminate\Support\Str;
 use Littlebug\Helpers\Helper;
-use Throwable;
+use Illuminate\Console\Command;
 
 /**
  * Class CoreCommand core 基础命令

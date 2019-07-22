@@ -2,8 +2,8 @@
 
 namespace Littlebug\Commands;
 
-use Littlebug\Traits\CommandTrait;
 use Illuminate\Support\Arr;
+use Littlebug\Traits\CommandTrait;
 
 /**
  * Class RequestCommand 生成 Request 文件

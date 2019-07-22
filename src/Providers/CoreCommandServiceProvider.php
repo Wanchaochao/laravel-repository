@@ -2,10 +2,10 @@
 
 namespace Littlebug\Providers;
 
-use Illuminate\Support\ServiceProvider;
 use Littlebug\Commands\ModelCommand;
-use Littlebug\Commands\RepositoryCommand;
 use Littlebug\Commands\RequestCommand;
+use Illuminate\Support\ServiceProvider;
+use Littlebug\Commands\RepositoryCommand;
 
 /**
  * Class CoreCommandServiceProvider 命令行服务提供者

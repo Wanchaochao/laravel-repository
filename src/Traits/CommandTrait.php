@@ -3,8 +3,8 @@
 namespace Littlebug\Traits;
 
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Trait CommandTrait 命名行 trait

@@ -2,9 +2,9 @@
 
 namespace Littlebug\Commands;
 
-use Littlebug\Traits\CommandTrait;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
+use Littlebug\Traits\CommandTrait;
 
 /**
  * Class Model 用来生成model
