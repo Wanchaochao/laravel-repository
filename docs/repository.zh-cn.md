@@ -784,6 +784,8 @@ $columns = [
 |`sum($conditions, $column)`|`int or mixed`|求和查询|
 |`toSql($conditions)`|`string`|获取执行的`SQL`|
 |`getBindings($conditions = [])`|`array or mixed`|获取查询绑定的参数|
+|`increment($conditions, $column, $amount = 1)`|`int`|指定字段累加|
+|`decrement($conditions, $column, $amount = 1)`|`int`|指定字段累减|
 
 #### 参数说明
 
