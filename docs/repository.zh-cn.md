@@ -727,6 +727,7 @@ $columns = [
 |`filterFind($conditions, $columns = [])`|`array or false`|过滤查询条件中的空值查询一条数据|
 |`filterFindAll($condtions, $columns = [])`|`array`|过滤查询条件中的空值查询多条数据|
 |`paginate($conditions = [], $columns = [], $size = 10, $current = null)`|`array`|分页查询数据|
+|`filterPaginate($conditions = [], $columns = [], $size = 10, $current = null)`|`array`|过滤查询条件中的空值分页查询数据|
 |`getFilterModel($conditions, $columns = [])`|`Illuminate\Database\Eloquent\Model`|获取已经过滤处理查询条件的`model`|
 |`findCondition($conditions = [], $columns = [])`|`Illuminate\Database\Eloquent\Model`|获取已经处理查询条件的`model`(**上面所有查询方法都基于这个方法**)|
 |`create(array $data)`|`array`|添加数据|
