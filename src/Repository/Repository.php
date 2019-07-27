@@ -32,6 +32,8 @@ use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
  * @method int|mixed sum($conditions, $column)
  * @method string toSql($conditions = [])
  * @method array|mixed getBindings($conditions = [])
+ * @method int increment($conditions, $column, $amount = 1)
+ * @method int decrement($conditions, $column, $amount = 1)
  *
  * @method array|mixed getConnection()
  * @method boolean insert(array $values)
