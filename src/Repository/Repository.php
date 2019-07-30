@@ -1304,20 +1304,20 @@ abstract class Repository
     /**
      * 调用 model 的方法
      *
-     * @param string $name 调用model 自己的方法
+     * @param string $method 调用model 自己的方法
      * @param array  $arguments
      *
      * @return mixed
      */
-    public function __call($name, $arguments)
+    public function __call($method, $arguments)
     {
         // 直接使用 model, 不需要查询条件的数据
-        if (in_array($name, $this->passThru)) {
-            return (new $this->model)->{$name}(...$arguments);
+        if (in_array($method, $this->passThru)) {
+            return (new $this->model)->{$method}(...$arguments);
         }
 
         // 第一个参数传递给自己 findCondition 方法
         $conditions = Arr::pull($arguments, 0, []);
-        return $this->findCondition($conditions)->{$name}(...$arguments);
+        return $this->findCondition($conditions)->{$method}(...$arguments);
     }
 }
