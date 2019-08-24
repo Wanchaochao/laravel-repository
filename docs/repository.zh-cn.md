@@ -44,21 +44,7 @@ list($ok, $msg, $rows) = $this->repository->update(1, ['type' => 3, 'money' => 9
 // $this->repository->update([1, 2, 3, 4], ['type' => 3, 'money' => 9999]); // 主键修改 pk in (1, 2, 3, 4)
 ```
 
->如果是修改多条数据，使用的是批量修改;
-通过 `Eloquent` 执行批量更新时，`saved` 和 `updated` 的模型事件不会被更新的模型触发。这是因为执行批量更新时，不会有任何模型被检索出来。
-
-#### 如果是通过主键修改单条数据，是能够检索出模型来的
-
-1. 模型事件能够触发；`saved` 和 `updated` 的模型事件
-2. 模型的修改器能够使用
-
-```php
-$this->repository->update(1, ['type' => 3]);
-
-// $this->repository->update(['id' => 2, 'status' => 1], ['type' => 5]);
-```
-
-
+#### 使用的是批量删除，模型的事件是不会触发的；但是修改数据能够使用上模型的修改器
 
 ### 1.3 删除数据 `delete($conditions)`
 
