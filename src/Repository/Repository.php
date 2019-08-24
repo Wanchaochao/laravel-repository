@@ -232,18 +232,11 @@ abstract class Repository
 
             // 执行修改，并且执行前置和后置方法
             $rows = $this->runEventFunction(function ($conditions, $data) {
-                // 主键
-                $primary = $this->getModel()->getKeyName();
+                // 应用 model 的修改器
+                $updateAttributes = $this->getModel()->newInstance()->fill($data)->getAttributes();
 
-                // 主键修改一条数据
-                if (isset($conditions[$primary]) && is_scalar($conditions[$primary])) {
-                    /* @var $model Model */
-                    if ($model = $this->findCondition($conditions)->first()) {
-                        return $model->update($data) ? 1 : 0;
-                    }
-                }
-
-                return $this->findCondition($conditions)->update($data);
+                // 使用批量修改数据
+                return $this->findCondition($conditions)->update($updateAttributes);
             }, 'update', $conditions, $data);
 
             return $this->success($rows, '更新成功');
@@ -1096,7 +1089,7 @@ abstract class Repository
     }
 
     /**
-     * 获取传入的当个字段信息
+     * 获取传入的单个字段信息
      *
      * @param $mixedValue
      *
