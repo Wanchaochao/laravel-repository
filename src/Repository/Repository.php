@@ -595,8 +595,8 @@ abstract class Repository
         // 解析查询字段信息
         foreach ($columns as $k => $field) {
             if (is_int($k) && is_string($field)) { // 第一步，判断字段是否为字符串
-                // 判断是否存在表中
-                if (isset($tableColumns[$field])) {
+                // 判断是否存在表中 或者 field === *
+                if (isset($tableColumns[$field]) || $field === '*') {
                     $selectColumns[] = $table . '.' . $field;
                 } elseif (Str::endsWith($field, '_count')) {
                     $relationName = Str::replaceLast('_count', '', $field);
