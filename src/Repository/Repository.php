@@ -710,7 +710,7 @@ abstract class Repository
         }
 
         // 先处理查询字段
-        $model = $this->select($model, $selectColumns);
+        $model = $this->select($model, $selectColumns ? $table . '.*' : $selectColumns);
 
         // 存在关联
         if ($with) {
@@ -1036,7 +1036,7 @@ abstract class Repository
      * 查询字段信息
      *
      * @param mixed|model|Builder $query   查询对象
-     * @param array               $columns 查询的字段
+     * @param array|string        $columns 查询的字段
      *
      * @return mixed
      */
