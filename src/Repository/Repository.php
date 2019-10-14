@@ -1043,7 +1043,12 @@ abstract class Repository
      */
     public function select($query, $columns, $table = '')
     {
-        return $query->select($columns || empty($table) ? $columns : $table . '.*');
+        if ($columns) {
+            return $query->select($columns);
+        }
+
+        // 没有指定了字段但指定了表、那么查询表的全部字段
+        return $table ? $query->select($table . '.*') : $query;
     }
 
     /**
