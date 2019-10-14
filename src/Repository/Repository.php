@@ -662,7 +662,7 @@ abstract class Repository
     {
         // 没有关联信息
         if (empty($relations)) {
-            return $this->select($model, $selectColumns);
+            return $this->select($model, $selectColumns, $table);
         }
 
         // 处理数据
@@ -710,7 +710,7 @@ abstract class Repository
         }
 
         // 先处理查询字段
-        $model = $this->select($model, $selectColumns ? $table . '.*' : $selectColumns);
+        $model = $this->select($model, $selectColumns, $table);
 
         // 存在关联
         if ($with) {
@@ -1033,20 +1033,17 @@ abstract class Repository
     }
 
     /**
-     * 查询字段信息
+     * 查询字段信息(没有指定查询字段那么查询表全部字段)
      *
      * @param mixed|model|Builder $query   查询对象
      * @param array|string        $columns 查询的字段
+     * @param string              $table   查询的表
      *
      * @return mixed
      */
-    public function select($query, $columns)
+    public function select($query, $columns, $table = '')
     {
-        if ($columns) {
-            return $query->select($columns);
-        }
-
-        return $query;
+        return $query->select($columns || empty($table) ? $columns : $table . '.*');
     }
 
     /**
