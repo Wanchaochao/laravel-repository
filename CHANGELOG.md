@@ -6,6 +6,7 @@ v1.0.14 2019-11-01
 
 - feat: `repository` 查询添加对 joinWith、leftJoinWith、rightJoinWith、join、leftJoin、rightJoin、的支持
 - refactor: `repository` 没有指定查询字段、默认查询 table.* 而不是 * (解决关联&连表查询字段问题)
+- refactor: `repository` 查询条件添加对原生的SQL支持，`DB::raw('users.username >= users.type')`
 - change: `repository` 修改查询条件中定义了关联、但是在查询字段的时候、没有定义要查询关联的字段、
 那么不添加关联查询(关联条件也会舍弃)、之前处理会自动添加关联查询! 如果需要按照之前的处理的话，需要自己重写 
 `getRelations` 方法
