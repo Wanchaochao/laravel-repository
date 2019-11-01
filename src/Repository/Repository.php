@@ -791,10 +791,11 @@ abstract class Repository
      * @param mixed  $query     查询对象
      * @param string $table     查询的表
      * @param array  $columns   查询的字段
+     * @param bool   $or        是否 or 查询
      *
      * @return mixed
      */
-    public function handleConditionQuery($condition, $query, $table, $columns)
+    public function handleConditionQuery($condition, $query, $table, $columns, $or = false)
     {
         // 处理表关联信息
         $query = $this->handleJoinQuery($condition, $query, $table);
@@ -808,7 +809,7 @@ abstract class Repository
         }
 
         // 去构建查询
-        return $this->conditionQuery($condition, $query, $table, $columns);
+        return $this->conditionQuery($condition, $query, $table, $columns, $or);
     }
 
     /**
@@ -818,6 +819,8 @@ abstract class Repository
      * @param \Illuminate\Database\Query\Builder $query      查询的对象
      * @param string                             $table      查询的表格
      * @param array                              $columns    查询的字段
+     *
+     * @return \Illuminate\Database\Query\Builder|mixed
      */
     protected function handleExtraQuery(&$conditions, $query, $table, $columns)
     {
@@ -1439,9 +1442,7 @@ abstract class Repository
 
             // 关联数组处理 ['name' => 2, 'age' => 1] or ['name:like' => 'test', 'age' => 2]
             if (Helper::isAssociative($value)) {
-                $model = $this->handleJoinQuery($value, $model, $table);
-                $model = $this->handleExtraQuery($value, $model, $table, $columns);
-                $model = $this->conditionQuery($value, $model, $table, $columns, $or);
+                $model = $this->handleConditionQuery($value, $model, $table, $columns, $or);
                 continue;
             }
 
