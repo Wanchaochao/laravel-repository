@@ -796,39 +796,57 @@ abstract class Repository
      */
     public function handleConditionQuery($condition, $query, $table, $columns)
     {
+        // 处理表关联信息
         $query = $this->handleJoinQuery($condition, $query, $table);
 
-        // 添加指定了索引
-        if ($forceIndex = Arr::pull($condition, 'force')) {
-            $query = $query->from(DB::raw("{$this->model->getTable()} FORCE INDEX ({$forceIndex})"));
-        }
-
-        // 设置了排序
-        if ($orderBy = Arr::pull($condition, 'order')) {
-            $query = $this->orderBy($query, $orderBy, $table, $columns);
-        }
-
-        // 设置了limit
-        if ($limit = Arr::pull($condition, 'limit')) {
-            $query = $query->limit(intval($limit));
-        }
-
-        // 设置了offset
-        if ($offset = Arr::pull($condition, 'offset')) {
-            $query = $query->offset(intval($offset));
-        }
-
-        // 设置了分组
-        if ($groupBy = Arr::pull($condition, 'group')) {
-            $query = $query->groupBy($groupBy);
-        }
+        // 处理其他的查询信息
+        $query = $this->handleExtraQuery($condition, $query, $table, $columns);
 
         // 没有查询条件直接退出
         if (empty($condition)) {
             return $query;
         }
 
+        // 去构建查询
         return $this->conditionQuery($condition, $query, $table, $columns);
+    }
+
+    /**
+     * 处理额外的自定义的查询条件
+     *
+     * @param array                              $conditions 查询的条件
+     * @param \Illuminate\Database\Query\Builder $query      查询的对象
+     * @param string                             $table      查询的表格
+     * @param array                              $columns    查询的字段
+     */
+    protected function handleExtraQuery(&$conditions, $query, $table, $columns)
+    {
+        // 添加指定了索引
+        if ($forceIndex = Arr::pull($conditions, 'force')) {
+            $query = $query->from(DB::raw("{$this->model->getTable()} FORCE INDEX ({$forceIndex})"));
+        }
+
+        // 设置了排序
+        if ($orderBy = Arr::pull($conditions, 'order')) {
+            $query = $this->orderBy($query, $orderBy, $table, $columns);
+        }
+
+        // 设置了limit
+        if ($limit = Arr::pull($conditions, 'limit')) {
+            $query = $query->limit(intval($limit));
+        }
+
+        // 设置了offset
+        if ($offset = Arr::pull($conditions, 'offset')) {
+            $query = $query->offset(intval($offset));
+        }
+
+        // 设置了分组
+        if ($groupBy = Arr::pull($conditions, 'group')) {
+            $query = $query->groupBy($groupBy);
+        }
+
+        return $query;
     }
 
     /**
@@ -1421,6 +1439,8 @@ abstract class Repository
 
             // 关联数组处理 ['name' => 2, 'age' => 1] or ['name:like' => 'test', 'age' => 2]
             if (Helper::isAssociative($value)) {
+                $model = $this->handleJoinQuery($value, $model, $table);
+                $model = $this->handleExtraQuery($value, $model, $table, $columns);
                 $model = $this->conditionQuery($value, $model, $table, $columns, $or);
                 continue;
             }
