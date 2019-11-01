@@ -578,6 +578,9 @@ abstract class Repository
             $index = strpos($field, '.');
             if ($index === false) {
                 $findConditions[$field] = $value;
+            } elseif (Str::startsWith($field, '__')) {
+                // 查询条件为 __ 开头的表示连表查询
+                $findConditions[ltrim($field, '__')] = $value;
             } else {
                 // 处理关联名称
                 $relationName = substr($field, 0, $index);
@@ -656,7 +659,7 @@ abstract class Repository
     {
         $relations = [];
         foreach ($conditionRelations as $relationName => $conditions) {
-            $relations[$relationName] = ['conditions' => $conditions, 'with' => true, 'withCount' => false];
+            $relations[$relationName] = ['conditions' => $conditions, 'with' => false, 'withCount' => false];
         }
 
         foreach ($fieldRelations as $relationName => $relation) {
@@ -864,7 +867,8 @@ abstract class Repository
             // 表达式查询 field1:neq => value1
             list($field, $expression) = array_pad(explode(':', $column, 2), 2, null);
             if ($field && $expression) {
-                $query = $this->handleExpressionConditionQuery($query, [$table . '.' . $field, $expression, $bindValue], $or);
+                $field = isset($columns[$field]) ? $table . '.' . $field : $field;
+                $query = $this->handleExpressionConditionQuery($query, [$field, $expression, $bindValue], $or);
                 continue;
             }
 
