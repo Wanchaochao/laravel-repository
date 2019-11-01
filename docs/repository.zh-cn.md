@@ -623,6 +623,99 @@ $where = [
 // where `status` = 1 or `age` = 1 or (`name` = 123 and `username` like 'test')
 ```
 
+#### 1.5.9 使用 `join` 查询
+
+>`leftJoin` 和 `rightJoin` 和 `join` 使用一致
+
+##### 1. 简单`join`
+
+```php
+$this->repository->findAll([
+    'join' => ['users', 'users.school_id', '=', 'school.id']
+]);
+
+```
+
+```sql
+select `school`.* from `school` inner join `users` on (`users`.`school_id` = `school`.`id`)
+```
+
+##### 2. 一次多个`join`
+```php
+$this->repository->findAll([
+    'join' => [
+        ['users', 'users.school_id', '=', 'school.id'],
+        ['school as s1', 's1.parent_id', '=', 'school.id']
+    ]
+]);
+
+```
+
+```sql
+select 
+    `school`.* 
+from 
+    `school` 
+inner join `users` on (`users`.`school_id` = `school`.`id`) 
+inner join `school` as `s1` on (`s1`.`parent_id` = `school`.`id`)
+```
+
+##### 3. 使用 关联关系对应join
+
+`model` 使用上面定义的 [`User`](#152-使用-model-的-scope-查询)
+
+```php
+$users = $this->repository->findAll(['status' => 1, 'joinWith' => 'extInfo']);
+```
+
+```sql
+select 
+    `users`.* 
+from 
+    `users` 
+inner join `user_ext` on `user_ext`.`user_id` = `users`.`user_id`
+where `users`.`status` = 1
+```
+
+##### 4. 使用 关联关系对应join 并设置别名
+
+>['别名' => '关联方法名称']
+
+```php
+$users = $this->repository->findAll(['status' => 1, 'joinWith' => ['ext' => 'extInfo']]);
+```
+
+```sql
+select 
+    `users`.* 
+from 
+    `users` 
+inner join `user_ext` as `ext` on `ext`.`user_id` = `users`.`user_id` 
+where `users`.`status` = 1
+```
+
+##### 5. 为 `join` 添加查询添加
+
+>通过 ['__join表名称.字段' => '对应的值'], 目前没有比较直观的方式处理、因为 order.user_id 方式被关联关系的附加条件占用了
+
+```php
+$users = $this->repository->findAll([
+    'status'        => 1, 
+    'joinWith'      => ['ext' => 'extInfo']，
+    '__ext.user_id' => 1,
+]);
+```
+
+```sql
+select 
+    `users`.* 
+from 
+    `users` 
+inner join `user_ext` as `ext` on `ext`.`user_id` = `users`.`user_id`
+where `users`.`status` = 1 and `ext`.`user_id` = 1
+```
+
+
 ## 二 关于查询中的`$conditions`和`$columns`信息说明
 
 >`$conditions`为`sql`查询定义查询条件，`$columns`为`sql`的`select`添加指定的查询字段
@@ -647,8 +740,16 @@ $conditions = [
     'order' => 'id desc' // 指定排序字段和方式
     'limit' => 10,       // 限制查询条件
     'group' => 'id',     // 指定分组条件
-    ...
-    
+    'force' => 'name',   // 指定使用的索引
+  
+    // join 关联查询
+    'join'     => ['users', 'users.user_id', '=', 'orders.user_id'],
+    'leftJoin' => [
+        // 多个leftJoin
+        ['users as u1', 'u1.user_id', '=', 'orders.user_id'],
+        ['user_image', 'users_image.user_id', '=', 'users.user_id'],
+    ],
+
     // 表达式查询
     'username:like'      => 'test',                                         // 模糊查询
     'created_at:between' => ['2019-01-02 00:00:00', '2019-01-03 23:59:59'], // 区间查询
@@ -658,6 +759,11 @@ $conditions = [
     // relation 关联查询,查询条件只对当前relation关联查询限制
     'extInfo.address:like'   => '北京',
     'extInfo.created_at:gte' => '2019-01-01 00:00:00',
+    
+    // 通过 relation 关联关系，添加join 查询
+    'joinWith'     => ['extInfo'],
+    // 关联表定义别名 alias, 如果没有别名，关联表和主表同名，使用自定义别名 `t1`, 多个同名以此地址 `t2`、`t3`
+    'leftJoinWith' => ['alias' => 'children'], 
     
     // scope 自定义查询
     'address'  => '北京',     // 查找`scopeAddress($query, $address)`方法
@@ -674,6 +780,12 @@ $conditions = [
 |`limit`|`int`|指定查询条数|
 |`offset`|`int`|指定跳转位置|
 |`group`|`string`|指定分组字段|
+|`join`|`array`|查询join的参数，多个二维数组|
+|`leftJoin`|`array`|查询`leftJoin`的参数、多个二维数组|
+|`rightJoin`|`array`|查询`rightJoin`的参数、多个二维数组|
+|`joinWith`|`string or array`| 通过关联关系对应join查询|
+|`leftJoinWith`|`string or array`| 通过关联关系对应leftJoin查询|
+|`rightJoinWith`|`string or array`| 通过关联关系对应rightJoin查询|
 
 ### 2.2 `$columns` 查询的字段信息
 
@@ -687,6 +799,13 @@ $columns = [
     // 本表的字段查询
     'id',
     'username',
+
+    // 关联表的字段查询
+    'users.username',
+    'users.age',
+    
+    // 使用表达式查询
+    DB::raw('SUM(`users`.`age`) AS `sum_age`'),
     
     // 关联统计字段查询
     'extInfo_count',  // 对应`model`定义的 extInfo 关联
