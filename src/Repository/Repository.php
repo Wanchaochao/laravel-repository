@@ -144,12 +144,30 @@ abstract class Repository
             }
 
             return [$this->model->getKeyName() => $conditions];
-        } elseif (is_array($conditions) && !Helper::isAssociative($conditions)) {
+        } elseif (is_array($conditions) && !Helper::isAssociative($conditions) && !$this->hasRaw($conditions)) {
             // 或者不是关联数组查询，也处理为主键查询
             return [$this->model->getKeyName() => array_values($conditions)];
         }
 
         return (array)$conditions;
+    }
+
+    /**
+     * 验证是否存在自定义查询条件
+     *
+     * @param array $conditions
+     *
+     * @return bool
+     */
+    private function hasRaw($conditions)
+    {
+        foreach ($conditions as $value) {
+            if ($value instanceof Expression) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -822,6 +840,12 @@ abstract class Repository
     public function conditionQuery($condition, $query, $table, $columns, $or = false)
     {
         foreach ($condition as $column => $bindValue) {
+            // 自定义查询
+            if ($bindValue instanceof Expression && is_int($column)) {
+                $query = $query->whereRaw($bindValue);
+                continue;
+            }
+
             // or 查询
             if (strtolower($column) === 'or' && is_array($bindValue) && $bindValue) {
                 $query = $query->where(function ($query) use ($bindValue, $table, $columns) {
@@ -845,18 +869,24 @@ abstract class Repository
             }
 
             // 自定义 scope 查询
-            if (is_a($query, Model::class)) {
-                $strMethod = 'scope' . ucfirst($column);
-                if (!method_exists($query, $strMethod)) {
-                    $strMethod = 'scope' . ucfirst(Str::camel($column));
-                    $strMethod = method_exists($query, $strMethod) ? $strMethod : null;
-                }
+            try {
+                if (is_a($query, Model::class)) {
+                    $strMethod = 'scope' . ucfirst($column);
+                    if (!method_exists($query, $strMethod)) {
+                        $strMethod = 'scope' . ucfirst(Str::camel($column));
+                        $strMethod = method_exists($query, $strMethod) ? $strMethod : null;
+                    }
 
-                if ($strMethod) {
-                    $query = $query->{$strMethod}($query, $bindValue);
-                }
+                    if ($strMethod) {
+                        $query = $query->{$strMethod}($query, $bindValue);
+                    }
 
-                continue;
+                    continue;
+                }
+            } catch (Exception $e) {
+
+            } catch (\Throwable $e) {
+
             }
 
             // scope 自定义查询
@@ -867,7 +897,11 @@ abstract class Repository
                     $column = Str::camel($column);
                     $query  = $query->{$column}($bindValue);
                 } catch (Exception $e) {
+                } catch (\Throwable $e) {
+
                 }
+            } catch (\Throwable $e) {
+
             }
         }
 
@@ -1381,23 +1415,7 @@ abstract class Repository
 
             // 关联数组处理 ['name' => 2, 'age' => 1] or ['name:like' => 'test', 'age' => 2]
             if (Helper::isAssociative($value)) {
-
-                // 关联数组处理
-                foreach ($value as $valColumn => $valValue) {
-                    // 当作 ['name:like' => 123] 处理 key
-                    $columnExpressions = explode(':', $valColumn);
-
-                    // 处理查询字段和表达式 表达式默认为 =
-                    $column     = Arr::get($columnExpressions, 0);
-                    $expression = Arr::get($columnExpressions, 1, is_array($valValue) ? 'in' : '=');
-                    $column     = isset($columns[$column]) ? $table . '.' . $column : $column;
-                    $condition  = [$column, $expression, $valValue];
-
-                    // 直接查询
-                    $model = $this->handleExpressionConditionQuery($model, $condition, $or);
-                }
-
-
+                $model = $this->conditionQuery($value, $model, $table, $columns, $or);
                 continue;
             }
 
