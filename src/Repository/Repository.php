@@ -773,6 +773,8 @@ abstract class Repository
      */
     public function handleConditionQuery($condition, $query, $table, $columns)
     {
+        $query = $this->handleJoinQuery($condition, $query, $table);
+
         // 添加指定了索引
         if ($forceIndex = Arr::pull($condition, 'force')) {
             $query = $query->from(DB::raw("{$this->model->getTable()} FORCE INDEX ({$forceIndex})"));
@@ -937,6 +939,134 @@ abstract class Repository
         }
 
         return $query->{$strMethod}($field, $value);
+    }
+
+    /**
+     * 连表查询
+     *
+     * @param \Illuminate\Database\Query\Builder $query  查询对象
+     * @param array                              $params 查询数据
+     * @param string                             $method 连表方式
+     *
+     * @return \Illuminate\Database\Query\Builder|mixed
+     */
+    protected function join($query, $params, $method = 'join')
+    {
+        /**
+         * 不是二维数组，处理为二维数组
+         *
+         * [['users', 'users.user_id', '=', 'order.user_id'], ['table', 'table.user_id', '=', 'order.user_id']]
+         */
+        if (!is_array(Arr::get($params, 0))) {
+            $params = [$params];
+        }
+
+        // join 方式
+        foreach ($params as $join) {
+            $query = $query->{$method}(...$join);
+        }
+
+        return $query;
+    }
+
+    /**
+     * 连表查询
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query     查询对象
+     * @param string                                $table     当前表名称
+     * @param array                                 $relations 关联表方法名称
+     * @param string                                $method    连表方式
+     *
+     * @return \Illuminate\Database\Query\Builder|mixed
+     */
+    protected function joinWith($query, $table, $relations, $method = 'join')
+    {
+        // 字符串转数组
+        if (is_string($relations)) {
+            $relations = [$relations];
+        }
+
+        $model  = $query->getModel();
+        $number = 1;
+        foreach ($relations as $key => $relation) {
+            $relation = Str::camel($relation);
+            // 判断relations 是否真的存在
+            if (method_exists($model, $relation)) {
+
+                /* @var $relationObject Relation */
+                $relationObject = $model->$relation();
+
+                // 获取关联的 $localKey or $foreignKey
+                list($localKey, $foreignKey) = $this->getRelationKeys($relationObject);
+
+                // 关联表的名称
+                $joinTable = $relationObject->getQuery()->getModel()->getTable();
+
+                // 表重名的话、使用t1、t2代替
+                if ($joinTable === $table) {
+                    $aliasTable = is_string($key) ? $key : 't' . $number;
+                    $number++;
+                } else {
+                    $aliasTable = '';
+                }
+
+                $query = $this->join($query, [
+                    $aliasTable ? $joinTable . ' as ' . $aliasTable : $joinTable,
+                    $localKey,
+                    '=',
+                    ($aliasTable ? $aliasTable : $joinTable) . '.' . str_replace_first($joinTable . '.', '', $foreignKey),
+                ], $method);
+            }
+        }
+
+        return $query;
+    }
+
+    /**
+     * 处理查询条件中的 join 信息
+     *
+     * @param array                                 $conditions 查询条件
+     * @param \Illuminate\Database\Eloquent\Builder $query      查询对象
+     * @param string                                $table      查询的表名称
+     *
+     * @return \Illuminate\Database\Eloquent\Builder|mixed
+     */
+    protected function handleJoinQuery(&$conditions, $query, $table)
+    {
+        // 设置关联join
+        $joins = Arr::pull($conditions, 'join');
+        if ($joins && is_array($joins)) {
+            $query = $this->join($query, $joins);
+        }
+
+        // 设置关联leftJoin
+        $leftJoins = Arr::pull($conditions, 'leftJoin');
+        if ($leftJoins && is_array($leftJoins)) {
+            $query = $this->join($query, $leftJoins, 'leftJoin');
+        }
+
+        // 设置关联rightJoin
+        $rightJoin = Arr::pull($conditions, 'rightJoin');
+        if ($rightJoin && is_array($rightJoin)) {
+            $query = $this->join($query, $rightJoin, 'rightJoin');
+        }
+
+        // 设置关联joinWith
+        if ($joinWiths = Arr::pull($conditions, 'joinWith')) {
+            $query = $this->joinWith($query, $table, $joinWiths);
+        }
+
+        // 设置关联leftJoinWith
+        if ($leftJoinWiths = Arr::pull($conditions, 'leftJoinWith')) {
+            $query = $this->joinWith($query, $table, $leftJoinWiths, 'leftJoin');
+        }
+
+        // 设置关联rightJoinWith
+        if ($rightJoinWiths = Arr::pull($conditions, 'rightJoinWith')) {
+            $query = $this->joinWith($query, $table, $rightJoinWiths, 'rightJoin');
+        }
+
+        return $query;
     }
 
     /**
