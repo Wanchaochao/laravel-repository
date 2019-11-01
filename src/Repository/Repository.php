@@ -657,13 +657,15 @@ abstract class Repository
      */
     public function getRelations(array $conditionRelations, array $fieldRelations)
     {
+        // 查询条件中定义的关联、优先级最低
         $relations = [];
         foreach ($conditionRelations as $relationName => $conditions) {
-            $relations[$relationName] = ['conditions' => $conditions, 'with' => false, 'withCount' => false];
+            $relations[$relationName] = ['conditions' => $conditions];
         }
 
+        // 字段中指定关联查询、优先级最高
         foreach ($fieldRelations as $relationName => $relation) {
-            $relations[$relationName] = array_merge($relation, Arr::get($relations, $relationName, []));
+            $relations[$relationName] = array_merge(Arr::get($relations, $relationName, []), $relation);
         }
 
         return $relations;
@@ -700,7 +702,7 @@ abstract class Repository
                 $defaultConditions   = $this->getRelationDefaultFilters($model, $relation);
                 $value['conditions'] = array_merge($defaultConditions, Arr::get($value, 'conditions', []));
 
-                if ($value['with']) {
+                if (Arr::get($value, 'with')) {
 
                     // 获取关联的 $localKey or $foreignKey
                     list($localKey, $foreignKey) = $this->getRelationKeys($findModel->$relation());
