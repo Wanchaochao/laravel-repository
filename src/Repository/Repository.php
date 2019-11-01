@@ -826,7 +826,7 @@ abstract class Repository
     {
         // 添加指定了索引
         if ($forceIndex = Arr::pull($conditions, 'force')) {
-            $query = $query->from(DB::raw("{$this->model->getTable()} FORCE INDEX ({$forceIndex})"));
+            $query = $query->from(DB::raw("`{$table}` FORCE INDEX (`{$forceIndex}`)"));
         }
 
         // 设置了排序
