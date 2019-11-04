@@ -20,10 +20,10 @@ class RepositoryCommand extends CoreCommand
      *
      * @var string
      */
-    protected $description = '生成 repository 
-    {--name=}  定义名称 [ --name=Admin\\\\AdminUserRepository 或者 --name=Admin/AdminUserRepository ]
-    {--path=}  指定目录 [ 没有传递绝对路径，否则使用相对对路径 从 app/Repositories 开始 ]
-    {--model=} 指定的model 使用命名空间 [ --model=Admin\\\\AdminUser 或者 --model=Admin/AdminUser ]';
+    protected $description = 'Generate repository
+     {--name=} Define the name [ --name=Admin\\\\AdminUserRepository or --name=Admin/AdminUserRepository ]
+     {--path=} Specify directory [Do not pass absolute path, otherwise use relative pair path from app/Repositories]
+     {--model=} The specified model uses the namespace [ --model=Admin\\\\AdminUser or --model=Admin/AdminUser ]';
 
     /**
      * @var string 定义使用目录
@@ -33,12 +33,12 @@ class RepositoryCommand extends CoreCommand
     public function handle()
     {
         if (!$name = $this->option('name')) {
-            $this->error('需要指定名称');
+            $this->error('Need to specify a name');
             return;
         }
 
         if (!$model = $this->option('model')) {
-            $this->error('需要指定model');
+            $this->error('Need to specify model');
             return;
         }
 

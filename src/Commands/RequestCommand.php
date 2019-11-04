@@ -40,12 +40,12 @@ class RequestCommand extends CoreCommand
     public function handle()
     {
         if (!$table = $this->option('table')) {
-            $this->error('请输入表名称');
+            $this->error('Please enter a table name');
             return;
         }
 
         if (!$this->findTableExist($table)) {
-            $this->error('表不存在');
+            $this->error('Table does not exist');
             return;
         }
 
@@ -59,7 +59,7 @@ class RequestCommand extends CoreCommand
         $this->renderRequest('UpdateRequest.php', $this->getRules($rules), $this->getRules($columns));
         $id_rules = Arr::pull($rules, $primary_key);
         Arr::pull($columns, $primary_key);
-        
+
         // 删除和新增验证
         $this->renderRequest('DestroyRequest.php', "['{$primary_key}' => '{$id_rules}']", "['{$primary_key}' => '主键信息']");
         $this->renderRequest('StoreRequest.php', $this->getRules($rules), $this->getRules($columns));
