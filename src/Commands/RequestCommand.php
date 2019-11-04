@@ -25,7 +25,7 @@ class RequestCommand extends CoreCommand
      *
      * @var string
      */
-    protected $description = '生成 request {--table=} 指定表 {--path=} 指定目录 [ 没有传递绝对路径，否则使用相对对路径 从 app/Http/Requests 开始 ]';
+    protected $description = 'Generate request {--table=} specify table {--path=} specify directory [no absolute path is passed, otherwise use relative path starting from app/Http/Requests ]';
 
     /**
      * @var string 生成目录
