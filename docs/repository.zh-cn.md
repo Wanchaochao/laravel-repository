@@ -660,7 +660,7 @@ inner join `users` on (`users`.`school_id` = `school`.`id`)
 inner join `school` as `s1` on (`s1`.`parent_id` = `school`.`id`)
 ```
 
-##### 3. 使用 关联关系对应join
+##### 3. 使用关联关系对应join
 
 `model` 使用上面定义的 [`User`](#152-使用-model-的-scope-查询)
 
@@ -677,7 +677,7 @@ inner join `user_ext` on `user_ext`.`user_id` = `users`.`user_id`
 where `users`.`status` = 1
 ```
 
-##### 4. 使用 关联关系对应join 并设置别名
+##### 4. 使用关联关系对应join并设置别名
 
 >['别名' => '关联方法名称']
 
@@ -694,9 +694,9 @@ inner join `user_ext` as `ext` on `ext`.`user_id` = `users`.`user_id`
 where `users`.`status` = 1
 ```
 
-##### 5. 为 `join` 添加查询添加
+##### 5. 为`join`添加查询条件
 
->通过 ['__join表名称.字段' => '对应的值'], 目前没有比较直观的方式处理、因为 order.user_id 方式被关联关系的附加条件占用了
+>通过 ['__join表名称.字段' => '对应的值'], 目前没有比较直观的方式处理、因为 `order.user_id` 方式被关联关系的附加条件占用了
 
 ```php
 $users = $this->repository->findAll([
@@ -714,7 +714,6 @@ from
 inner join `user_ext` as `ext` on `ext`.`user_id` = `users`.`user_id`
 where `users`.`status` = 1 and `ext`.`user_id` = 1
 ```
-
 
 ## 二 关于查询中的`$conditions`和`$columns`信息说明
 
