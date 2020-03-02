@@ -240,6 +240,7 @@ abstract class Repository
             return $this->error('未指定修改条件');
         }
 
+
         // 过滤非法字段，禁止更新主键
         $data = $this->getValidColumns($data);
 
