@@ -41,6 +41,7 @@ use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
  * @method Model firstOrCreate(array $attributes, array $value = [])
  * @method Model firstOrNew(array $attributes, array $value = [])
  * @method Model updateOrCreate(array $attributes, array $value = [])
+ * @method Model updateOrInsert(array $attributes, array $values = [])
  * @method Model findOrFail($id, $columns = ['*'])
  * @method Model findOrNew($id, $columns = ['*'])
  * @method Collection findMany($ids, $columns = ['*'])
@@ -64,6 +65,7 @@ abstract class Repository
         'insert', 'insertGetId', 'getConnection',
         'firstOrCreate', 'firstOrNew', 'updateOrCreate',
         'findOrFail', 'findOrNew', 'findMany',
+        'updateOrInsert',
     ];
 
     /**
