@@ -20,31 +20,39 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
 
 /**
- * Class Repository 基础Repository类
+ * Class Repository 基础 Repository 类
  *
- * @method Model|null first($conditions = [], $columns = [])
- * @method Collection get($conditions = [], $columns = [])
- * @method Collection pluck($conditions, $column, $key = null)
- * @method int count($conditions = [])
- * @method int|mixed max($conditions, $column)
- * @method int|mixed min($conditions, $column)
- * @method int|mixed avg($conditions, $column)
- * @method int|mixed sum($conditions, $column)
- * @method string toSql($conditions = [])
- * @method array|mixed getBindings($conditions = [])
- * @method int increment($conditions, $column, $amount = 1)
- * @method int decrement($conditions, $column, $amount = 1)
+ * @method Model|null first($conditions = [], $columns = []) 查询单个数据
+ * @method Collection get($conditions = [], $columns = []) 查询多个数据
+ * @method Collection pluck($conditions, $column, $key = null) 查询多个数据然后按照指定字段为数组的key
+ * @method int count($conditions = []) 统计数量
+ * @method int|mixed max($conditions, $column) 统计求最大值
+ * @method int|mixed min($conditions, $column) 统计求最小值
+ * @method int|mixed avg($conditions, $column) 统计求平均值
+ * @method int|mixed sum($conditions, $column) 统计求和
+ * @method string toSql($conditions = []) 获取执行的SQL
+ * @method array|mixed getBindings($conditions = []) 获取绑定的值
+ * @method int increment($conditions, $column, $amount = 1) 按查询条件指定字段递增指定值(默认递增1)
+ * @method int decrement($conditions, $column, $amount = 1) 按查询条件指定字段递减指定值(默认递减1)
  *
- * @method array|mixed getConnection()
- * @method boolean insert(array $values)
- * @method int|mixed insertGetId(array $values, $sequence = null)
- * @method Model firstOrCreate(array $attributes, array $value = [])
- * @method Model firstOrNew(array $attributes, array $value = [])
- * @method Model updateOrCreate(array $attributes, array $value = [])
- * @method Model updateOrInsert(array $attributes, array $values = [])
- * @method Model findOrFail($id, $columns = ['*'])
- * @method Model findOrNew($id, $columns = ['*'])
- * @method Collection findMany($ids, $columns = ['*'])
+ * @method array paginate($conditions = [], $columns = [], $size = 10, $current = null) 查询分页数据
+ * @method array simplePaginate($conditions = [], $columns = [], $size = 10, $current = null) 查询分页数据
+ * @method false|array filterFind($conditions = [], $columns = []) 过滤查询单个数据
+ * @method null|array filterFindBy($conditions, $column) 过滤查询条件查询单个数据的单个字段
+ * @method array filterFindAll($conditions = [], $columns = []) 过滤查询条件查询多个数据
+ * @method array filterFindAllBy($conditions, $column) 过滤查询条件查询多个数据的单字段数组
+ * @method array filterPaginate($conditions = [], $columns = [], $size = 10, $current = null) 过滤查询条件查询分页数据
+ *
+ * @method array|mixed getConnection() 获取数据库连接
+ * @method boolean insert(array $values) 新增数据
+ * @method int|mixed insertGetId(array $values, $sequence = null) 新增数据获取新增ID
+ * @method Model firstOrCreate(array $attributes, array $value = []) 查询数据没有就创建
+ * @method Model firstOrNew(array $attributes, array $value = []) 查询数据没有就实例化
+ * @method Model updateOrCreate(array $attributes, array $value = []) 查询修改没有就创建
+ * @method Model updateOrInsert(array $attributes, array $values = []) 查询修改没有就实例化
+ * @method Model findOrFail($id, $columns = ['*']) 主键查询没有就抛出错误
+ * @method Model findOrNew($id, $columns = ['*']) 主键查询没有就实例化
+ * @method Collection findMany($ids, $columns = ['*']) 主键查询多个
  *
  * @package Littlebug\Repository
  */
@@ -1487,10 +1495,46 @@ abstract class Repository
         // 直接使用 model, 不需要查询条件的数据
         if (in_array($method, $this->passThru)) {
             return (new $this->model)->{$method}(...$arguments);
+        } else if (Str::startsWith($method, 'filter')) {
+            // 过滤方法查询
+            $method       = lcfirst(substr($method, 6));
+            $arguments[0] = $this->filterCondition(Arr::get($arguments, 0, []));
+            return $this->{$method}(...$arguments);
+        } else if (in_array($method, ['paginate', 'simplePaginate'], true)) {
+            // 分页查询
+            $conditions = Arr::get($arguments, 0, []); // 查询条件
+            $columns    = Arr::get($arguments, 1, []); // 查询字段
+            $size       = Arr::get($arguments, 2, 10) ?: 10; // 分页每页条数
+            $current    = Arr::get($arguments, 3); // 当前页
+            return $this->toPaginateArray($this->findCondition($conditions, $columns)
+                ->{$method}($size, ['*'], 'page', $current));
         }
 
         // 第一个参数传递给自己 findCondition 方法
         $conditions = Arr::pull($arguments, 0, []);
         return $this->findCondition($conditions)->{$method}(...$arguments);
+    }
+
+    /**
+     * 将分页数据处理为数组
+     *
+     * @param Paginator $paginate 查询条件
+     *
+     * @return array
+     */
+    public function toPaginateArray($paginate)
+    {
+        /* @var $paginate Paginator */
+        $items = $paginate->items();
+        foreach ($items as &$value) {
+            /* @var $value Model */
+            $value = $value->toArray();
+        }
+        unset($value);
+
+        return [
+            'items' => $items,
+            'pager' => $paginate,
+        ];
     }
 }
