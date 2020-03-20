@@ -42,6 +42,7 @@ use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
  * @method array filterFindAll($conditions = [], $columns = []) 过滤查询条件查询多个数据
  * @method array filterFindAllBy($conditions, $column) 过滤查询条件查询多个数据的单字段数组
  * @method array filterPaginate($conditions = [], $columns = [], $size = 10, $current = null) 过滤查询条件查询分页数据
+ * @method array filterSimplePaginate($conditions = [], $columns = [], $size = 10, $current = null) 过滤查询条件查询分页数据
  *
  * @method array|mixed getConnection() 获取数据库连接
  * @method boolean insert(array $values) 新增数据
@@ -409,47 +410,6 @@ abstract class Repository
     }
 
     /**
-     * 过滤查询中的空值查询一条数据
-     *
-     * @param array|int|string $conditions 查询条件
-     * @param array            $columns    查询的字段
-     *
-     * @return mixed
-     */
-    public function filterFind($conditions, $columns = [])
-    {
-        return $this->find($this->filterCondition($conditions), $columns);
-    }
-
-    /**
-     * 过滤查询中的空值 查询所有记录
-     *
-     * @param array|mixed $conditions 查询条件
-     * @param array       $columns    查询字段
-     *
-     * @return array
-     */
-    public function filterFindAll($conditions, $columns = [])
-    {
-        return $this->findAll($this->filterCondition($conditions), $columns);
-    }
-
-    /**
-     * 过滤获取分页列表
-     *
-     * @param array $conditions 查询条件
-     * @param array $columns    查询字段
-     * @param int   $size       每页数据数
-     * @param int   $current    当前页
-     *
-     * @return mixed
-     */
-    public function filterPaginate($conditions = [], $columns = [], $size = 10, $current = null)
-    {
-        return $this->paginate($this->filterCondition($conditions), $columns, $size, $current);
-    }
-
-    /**
      * 获取过滤查询条件查询的 model
      *
      * @param array|mixed $conditions 查询条件
@@ -486,52 +446,6 @@ abstract class Repository
         }
 
         return $conditions;
-    }
-
-    /**
-     * 设置分页样式，目前支持simple和default
-     *
-     * @param string $style
-     *
-     * @return $this
-     */
-    public function setPaginateStyle($style)
-    {
-        $this->paginateStyle = $style;
-        return $this;
-    }
-
-    /**
-     * 获取分页列表
-     *
-     * @param array $conditions 查询条件
-     * @param array $columns    查询字段
-     * @param int   $size       每页数据数
-     * @param int   $current    当前页
-     *
-     * @return mixed
-     */
-    public function paginate($conditions = [], $columns = [], $size = 10, $current = null)
-    {
-        $model = $this->findCondition($conditions, $columns);
-        if ($this->paginateStyle == 'simple') {
-            $paginate = $model->simplePaginate($size, ['*'], 'page', $current);
-        } else {
-            $paginate = $model->paginate($size, ['*'], 'page', $current);
-        }
-
-        /* @var $paginate Paginator */
-        $items = $paginate->items();
-        foreach ($items as &$value) {
-            /* @var $value Model */
-            $value = $value->toArray();
-        }
-        unset($value);
-
-        return [
-            'items' => $items,
-            'pager' => $paginate,
-        ];
     }
 
     /**
@@ -903,6 +817,12 @@ abstract class Repository
             if ($field && $expression) {
                 $field = isset($columns[$field]) ? $table . '.' . $field : $field;
                 $query = $this->handleExpressionConditionQuery($query, [$field, $expression, $bindValue], $or);
+                continue;
+            }
+
+            // join 表的查询 goods.name = 1
+            if (strrpos($column, '.') !== false) {
+                $query = $this->handleFieldQuery($query, $column, $bindValue, $or);
                 continue;
             }
 
