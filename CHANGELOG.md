@@ -62,7 +62,7 @@ v1.0.10 2019-06-27
     $this->userRepository->findWhere([
         'and', 
         ['username' => 1, 'age' => 2],
-        ['or', ['name' => '1', 'name' => 2]]
+        ['or', ['name' => '1', 'name:eq' => 2]]
     ])->get();
     ```
 
