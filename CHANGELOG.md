@@ -1,6 +1,20 @@
 更新记录
 =======
 
+v1.0.16 2020-03-22
+------------------
+
+- refactor: 部分代码重构
+    * 删除 `$paginateStyle` 属性
+    * 删除 `setPaginateStyle` 方法
+
+- feat: 添加方法 
+    * 添加 `simplePaginate($condition = [], $columns = [], $size = 10, $current = null)` 方法
+    * 添加 `filterSimplePaginate($condition = [], $columns = [], $size = 10, $current = null)` 方法
+    * 添加 `filterFindBy($conditions, $column)` 方法
+    * 添加 `filterFindAllBy($conditions, $column)` 方法
+
+- fix: 修复关联表查询 `['__goods.id' => 1]` 条件添加不上问题
 v1.0.15 2019-11-04
 ------------------
 

@@ -71,17 +71,9 @@ abstract class Repository
      * @var array 不需要查询条件的方法
      */
     protected $passThru = [
-        'insert', 'insertGetId', 'getConnection',
-        'firstOrCreate', 'firstOrNew', 'updateOrCreate',
-        'findOrFail', 'findOrNew', 'findMany',
-        'updateOrInsert',
+        'insert', 'insertGetId', 'getConnection', 'firstOrCreate', 'firstOrNew',
+        'updateOrCreate', 'findOrFail', 'findOrNew', 'findMany', 'updateOrInsert',
     ];
-
-    /**
-     * 分页样式
-     * @var string
-     */
-    private $paginateStyle = 'default';
 
     /**
      * @var array 支持查询的表达式
