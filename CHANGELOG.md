@@ -1,6 +1,14 @@
 更新记录
 =======
 
+v1.0.17 2020-04-05
+------------------
+
+- feat: 添加新方法 `instance` 静态方法调用，可以不依赖注入使用`repository`类
+- refactor: 代码优化
+    - 删除类方法 `handleExtraQuery` 中拦截的 `offset`、`limit` 字段
+    - 删除类方法 `conditionQuery` 中 `scope` 自定义方法的处理
+
 v1.0.16 2020-03-21
 ------------------
 

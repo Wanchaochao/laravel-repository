@@ -103,6 +103,7 @@ abstract class Repository
         '<>'          => '<>',
         '<=>'         => '<=>',
         'auto_like'   => 'like',
+        'auto like'   => 'like',
     ];
 
     /**
@@ -114,6 +115,16 @@ abstract class Repository
     public function __construct(Model $model)
     {
         $this->model = $model;
+    }
+
+    /**
+     * 静态方法调用
+     *
+     * @return static
+     */
+    public static function instance()
+    {
+        return app(static::class);
     }
 
     /**
@@ -751,16 +762,6 @@ abstract class Repository
             $query = $this->orderBy($query, $orderBy, $table, $columns);
         }
 
-        // 设置了limit
-        if ($limit = Arr::pull($conditions, 'limit')) {
-            $query = $query->limit(intval($limit));
-        }
-
-        // 设置了offset
-        if ($offset = Arr::pull($conditions, 'offset')) {
-            $query = $query->offset(intval($offset));
-        }
-
         // 设置了分组
         if ($groupBy = Arr::pull($conditions, 'group')) {
             $query = $query->groupBy($groupBy);
@@ -818,27 +819,6 @@ abstract class Repository
                 continue;
             }
 
-            // 自定义 scope 查询
-            try {
-                if (is_a($query, Model::class)) {
-                    $strMethod = 'scope' . ucfirst($column);
-                    if (!method_exists($query, $strMethod)) {
-                        $strMethod = 'scope' . ucfirst(Str::camel($column));
-                        $strMethod = method_exists($query, $strMethod) ? $strMethod : null;
-                    }
-
-                    if ($strMethod) {
-                        $query = $query->{$strMethod}($query, $bindValue);
-                    }
-
-                    continue;
-                }
-            } catch (Exception $e) {
-
-            } catch (\Throwable $e) {
-
-            }
-
             // scope 自定义查询
             try {
                 $query = $query->{$column}($bindValue);
@@ -847,11 +827,12 @@ abstract class Repository
                     $column = Str::camel($column);
                     $query  = $query->{$column}($bindValue);
                 } catch (Exception $e) {
+                    // 目的是防止抛出错误，过滤非查询字段的处理
                 } catch (\Throwable $e) {
-
+                    // 目的是防止抛出错误，过滤非查询字段的处理
                 }
             } catch (\Throwable $e) {
-
+                // 目的是防止抛出错误，过滤非查询字段的处理
             }
         }
 
@@ -887,17 +868,17 @@ abstract class Repository
 
         // 数组查询方式
         $strMethod = $or ? 'orWhere' : 'where';
-        if (in_array($allowExpression, ['In', 'NotIn', 'Between', 'NotBetween'])) {
+        if (in_array($allowExpression, ['In', 'NotIn', 'Between', 'NotBetween'], true)) {
             $strMethod .= $allowExpression;
             return $query->{$strMethod}($column, (array)$value);
         }
 
-        // 其他查询方式
+        // 模糊查询
         if (in_array($allowExpression, ['like', 'not like'])) {
             $value = (string)$value;
 
-            // 不存在模糊查询，自动添加模糊查询
-            if ($expression === 'auto_like' && strpos($value, '%') === false) {
+            // 自动添加模糊查询
+            if (in_array($expression, ['auto_like', 'auto like'], true) && strpos($value, '%') === false) {
                 $value = "%{$value}%";
             }
         }
@@ -1414,10 +1395,10 @@ abstract class Repository
             return $this->{$method}(...$arguments);
         } else if (in_array($method, ['paginate', 'simplePaginate'], true)) {
             // 分页查询
-            $conditions = Arr::get($arguments, 0, []); // 查询条件
-            $columns    = Arr::get($arguments, 1, []); // 查询字段
+            $conditions = Arr::get($arguments, 0, []);       // 查询条件
+            $columns    = Arr::get($arguments, 1, []);       // 查询字段
             $size       = Arr::get($arguments, 2, 10) ?: 10; // 分页每页条数
-            $current    = Arr::get($arguments, 3); // 当前页
+            $current    = Arr::get($arguments, 3);           // 当前页
             return $this->toPaginateArray($this->findCondition($conditions, $columns)
                 ->{$method}($size, ['*'], 'page', $current));
         }
