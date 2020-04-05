@@ -78,6 +78,11 @@ abstract class Repository
     ];
 
     /**
+     * @var array 需要处理columns字段的原生方法
+     */
+    protected $columnMethods = ['first', 'firstOrFail', 'get'];
+
+    /**
      * @var array 支持查询的表达式
      */
     protected $expression = [
@@ -1407,7 +1412,28 @@ abstract class Repository
 
         // 第一个参数传递给自己 findCondition 方法
         $conditions = Arr::pull($arguments, 0, []);
-        return $this->findCondition($conditions)->{$method}(...$arguments);
+
+        // 处理查询字段信息
+        if (in_array($method, $this->columnMethods, true)) {
+            $columns = Arr::pull($arguments, 1, []); // 查询的字段信息
+        } else {
+            $columns = [];
+        }
+
+        return $this->findCondition($conditions, $columns)->{$method}(...$arguments);
+    }
+
+    /**
+     * 静态方法调用
+     *
+     * @param string $name      调用的方法名称
+     * @param array  $arguments 调用参数
+     *
+     * @return mixed
+     */
+    public static function __callStatic($name, $arguments)
+    {
+        return static::instance()->{$name}(...$arguments);
     }
 
     /**
