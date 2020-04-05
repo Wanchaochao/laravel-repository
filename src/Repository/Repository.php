@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
 
@@ -23,6 +24,7 @@ use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
  * Class Repository 基础 Repository 类
  *
  * @method Model|null first($conditions = [], $columns = []) 查询单个数据
+ * @method Model|null firstOrFail($conditions, $columns = []) 查询单个数据, 不存在抛出错误
  * @method Collection get($conditions = [], $columns = []) 查询多个数据
  * @method Collection pluck($conditions, $column, $key = null) 查询多个数据然后按照指定字段为数组的key
  * @method int count($conditions = []) 统计数量
@@ -602,12 +604,12 @@ abstract class Repository
     /**
      * 获取处理查询关联的 model
      *
-     * @param Model|Builder $model         查询的model
-     * @param array         $relations     关联数据信息
-     * @param array         $selectColumns 查询字段信息
-     * @param string        $table         表名称
+     * @param Model|Builder|QueryBuilder $model         查询的model
+     * @param array                      $relations     关联数据信息
+     * @param array                      $selectColumns 查询字段信息
+     * @param string                     $table         表名称
      *
-     * @return Builder|Model
+     * @return Builder|Model|QueryBuilder
      */
     public function getRelationModel($model, $relations, $selectColumns, $table)
     {
@@ -743,12 +745,12 @@ abstract class Repository
     /**
      * 处理额外的自定义的查询条件
      *
-     * @param array                              $conditions 查询的条件
-     * @param \Illuminate\Database\Query\Builder $query      查询的对象
-     * @param string                             $table      查询的表格
-     * @param array                              $columns    查询的字段
+     * @param array        $conditions 查询的条件
+     * @param QueryBuilder $query      查询的对象
+     * @param string       $table      查询的表格
+     * @param array        $columns    查询的字段
      *
-     * @return \Illuminate\Database\Query\Builder|mixed
+     * @return QueryBuilder|Builder|mixed
      */
     protected function handleExtraQuery(&$conditions, $query, $table, $columns)
     {
@@ -909,11 +911,11 @@ abstract class Repository
     /**
      * 连表查询
      *
-     * @param \Illuminate\Database\Query\Builder $query  查询对象
-     * @param array                              $params 查询数据
-     * @param string                             $method 连表方式
+     * @param Builder|QueryBuilder $query  查询对象
+     * @param array                $params 查询数据
+     * @param string               $method 连表方式
      *
-     * @return \Illuminate\Database\Query\Builder|mixed
+     * @return Builder||QueryBuilder
      */
     protected function join($query, $params, $method = 'join')
     {
@@ -937,12 +939,12 @@ abstract class Repository
     /**
      * 连表查询
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query     查询对象
-     * @param string                                $table     当前表名称
-     * @param array                                 $relations 关联表方法名称
-     * @param string                                $method    连表方式
+     * @param Builder $query     查询对象
+     * @param string  $table     当前表名称
+     * @param array   $relations 关联表方法名称
+     * @param string  $method    连表方式
      *
-     * @return \Illuminate\Database\Query\Builder|mixed
+     * @return Builder|mixed
      */
     protected function joinWith($query, $table, $relations, $method = 'join')
     {
@@ -990,11 +992,11 @@ abstract class Repository
     /**
      * 处理查询条件中的 join 信息
      *
-     * @param array                                 $conditions 查询条件
-     * @param \Illuminate\Database\Eloquent\Builder $query      查询对象
-     * @param string                                $table      查询的表名称
+     * @param array   $conditions 查询条件
+     * @param Builder $query      查询对象
+     * @param string  $table      查询的表名称
      *
-     * @return \Illuminate\Database\Eloquent\Builder|mixed
+     * @return Builder|mixed
      */
     protected function handleJoinQuery(&$conditions, $query, $table)
     {
@@ -1096,7 +1098,7 @@ abstract class Repository
         return function ($query) use ($relations) {
             // 获取relation的表字段
             /* @var $model Model */
-            /* @var $query Relation */
+            /* @var $query Builder|Model|QueryBuilder|Relation */
             $fields     = (array)Arr::get($relations, 'columns', []);
             $conditions = Arr::get($relations, 'conditions', []);
             if (empty($fields) && empty($conditions)) {
@@ -1291,7 +1293,7 @@ abstract class Repository
      *
      * @param array $columns 查询的字段信息
      *
-     * @return Model|\Illuminate\Database\Query\Builder
+     * @return Model|QueryBuilder
      */
     public function findWhere(array $where, array $columns = [])
     {
@@ -1318,13 +1320,13 @@ abstract class Repository
     /**
      * 处理 where 添加查询
      *
-     * @param Model|\Illuminate\Database\Query\Builder $model   查询的model
-     * @param array                                    $where   查询的条件
-     * @param string                                   $table   查询的表
-     * @param array                                    $columns 查询的字段信息
-     * @param bool                                     $or      是否or查询
+     * @param Model|QueryBuilder $model   查询的model
+     * @param array              $where   查询的条件
+     * @param string             $table   查询的表
+     * @param array              $columns 查询的字段信息
+     * @param bool               $or      是否or查询
      *
-     * @return Model|\Illuminate\Database\Query\Builder
+     * @return Model|QueryBuilder
      */
     public function getWhereQuery($model, array $where, $table, $columns, $or = false)
     {
