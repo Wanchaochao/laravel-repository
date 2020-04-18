@@ -165,9 +165,15 @@ abstract class Repository
             }
 
             return [$this->model->getKeyName() => $conditions];
-        } elseif (is_array($conditions) && !Helper::isAssociative($conditions) && !$this->hasRaw($conditions)) {
+        } elseif (!Helper::isAssociative($conditions) && !$this->hasRaw($conditions)) {
+            $values = array_values($conditions);
+            // 主键为int 类型使用intval 处理
+            if ($this->model->getKeyType() === 'int') {
+                $values = array_map('intval', $values);
+            }
+
             // 或者不是关联数组查询，也处理为主键查询
-            return [$this->model->getKeyName() => array_values($conditions)];
+            return [$this->model->getKeyName() => $values];
         }
 
         return (array)$conditions;
@@ -258,7 +264,6 @@ abstract class Repository
         if (empty($conditions)) {
             return $this->error('未指定修改条件');
         }
-
 
         // 过滤非法字段，禁止更新主键
         $data = $this->getValidColumns($data);
