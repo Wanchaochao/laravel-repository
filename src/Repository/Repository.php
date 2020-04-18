@@ -165,7 +165,7 @@ abstract class Repository
             }
 
             return [$this->model->getKeyName() => $conditions];
-        } elseif (!Helper::isAssociative($conditions) && !$this->hasRaw($conditions)) {
+        } elseif (is_array($conditions) && !Helper::isAssociative($conditions) && !$this->hasRaw($conditions)) {
             $values = array_values($conditions);
             // 主键为int 类型使用intval 处理
             if ($this->model->getKeyType() === 'int') {
