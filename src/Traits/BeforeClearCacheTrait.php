@@ -10,11 +10,13 @@
 
 namespace Littlebug\Repository\Traits;
 
+use Illuminate\Support\Arr;
+
 /**
- * Trait BeforeTrait 在修改和删除数据之前 清除缓存 需要自定义 clearCache 方法
+ * Trait BeforeClearCacheTrait 在修改和删除数据之前 清除缓存 需要自定义 clearCache 方法
  * @package Littlebug\Traits
  */
-trait BeforeTrait
+trait BeforeClearCacheTrait
 {
     /**
      * 通过查询条件清除缓存
@@ -28,13 +30,11 @@ trait BeforeTrait
     /**
      * 修改之前的事件函数
      *
-     * @param array $conditions 修改数据的查询条件
-     *
      * @return mixed
      */
-    public function beforeUpdate($conditions)
+    public function beforeUpdate()
     {
-        return $this->clearCache($conditions);
+        return $this->clearCache(Arr::get(func_get_args(), 0, []));
     }
 
     /**

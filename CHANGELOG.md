@@ -12,6 +12,8 @@ v2.0.0 2020-04-20
 - delete: 删除部分方法
     1. `success` 方法
     2. `error` 方法
+    3. `getRelationDefaultFilters` 方法
+    4. `getError` 方法
 - refactor: 命名空间修改为 `Littlebug\Repository`
 
 v1.0.17 2020-04-05

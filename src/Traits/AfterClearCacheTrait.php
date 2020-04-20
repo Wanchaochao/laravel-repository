@@ -11,10 +11,11 @@
 namespace Littlebug\Repository\Traits;
 
 /**
- * Trait AfterTrait 在修改和删除数据之后 清除缓存 需要自定义 clearCache 方法
- * @package Littlebug\Traits
+ * Trait AfterClearCacheTrait 在修改和删除数据之后 清除缓存 需要自定义 clearCache 方法
+ *
+ * @package Littlebug\Repository\Traits
  */
-trait AfterTrait
+trait AfterClearCacheTrait
 {
     /**
      * 通过查询条件清除缓存
@@ -27,25 +28,25 @@ trait AfterTrait
 
     /**
      * 修改之后的事件函数
-     *
-     * @param array $conditions 修改数据的查询条件
-     *
-     * @return mixed
      */
-    public function afterUpdate($conditions)
+    public function afterUpdate()
     {
-        return $this->clearCache($conditions);
+        list($conditions, , $row) = func_get_args();
+        if ($row > 0) {
+            $this->clearCache($conditions);
+        }
     }
 
     /**
      * 删除之后的事件缓存
      *
      * @param array $conditions
-     *
-     * @return mixed
+     * @param int   $row
      */
-    public function afterDelete($conditions)
+    public function afterDelete($conditions, $row)
     {
-        return $this->clearCache($conditions);
+        if ($row > 0) {
+            $this->clearCache($conditions);
+        }
     }
 }

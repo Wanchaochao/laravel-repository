@@ -3,17 +3,15 @@
 namespace Littlebug\Repository;
 
 use Closure;
-use Exception;
-use ReflectionClass;
 use Illuminate\Support\Str;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -23,7 +21,7 @@ use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
  * Class Repository 基础 Repository 类
  *
  * @method Model|null first($conditions = [], $columns = []) 查询单个数据
- * @method Model|null firstOrFail($conditions, $columns = []) 查询单个数据, 不存在抛出错误
+ * @method Model firstOrFail($conditions, $columns = []) 查询单个数据, 不存在抛出错误
  * @method Collection get($conditions = [], $columns = []) 查询多个数据
  * @method Collection pluck($conditions, $column, $key = null) 查询多个数据然后按照指定字段为数组的key
  * @method int count($conditions = []) 统计数量
@@ -35,16 +33,11 @@ use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
  * @method array|mixed getBindings($conditions = []) 获取绑定的值
  * @method int increment($conditions, $column, $amount = 1) 按查询条件指定字段递增指定值(默认递增1)
  * @method int decrement($conditions, $column, $amount = 1) 按查询条件指定字段递减指定值(默认递减1)
- *
- * @method array paginate($conditions = [], $columns = [], $size = 10, $current = null) 查询分页数据
- * @method array simplePaginate($conditions = [], $columns = [], $size = 10, $current = null) 查询分页数据
- * @method false|array filterFind($conditions = [], $columns = []) 过滤查询单个数据
+ * @method null|array filterFind($conditions = [], $columns = []) 过滤查询单个数据
  * @method null|array filterFindBy($conditions, $column) 过滤查询条件查询单个数据的单个字段
  * @method array filterFindAll($conditions = [], $columns = []) 过滤查询条件查询多个数据
  * @method array filterFindAllBy($conditions, $column) 过滤查询条件查询多个数据的单字段数组
- * @method array filterPaginate($conditions = [], $columns = [], $size = 10, $current = null) 过滤查询条件查询分页数据
- * @method array filterSimplePaginate($conditions = [], $columns = [], $size = 10, $current = null) 过滤查询条件查询分页数据
- *
+ * @method LengthAwarePaginator|\Illuminate\Contracts\Pagination\LengthAwarePaginator filterPaginate($conditions = [], $columns = [], $size = 10, $current = null) 过滤查询条件查询分页数据
  * @method array|mixed getConnection() 获取数据库连接
  * @method boolean insert(array $values) 新增数据
  * @method int|mixed insertGetId(array $values, $sequence = null) 新增数据获取新增ID
@@ -60,7 +53,6 @@ use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
  */
 abstract class Repository
 {
-
     /**
      * The model to provide.
      *
@@ -166,7 +158,7 @@ abstract class Repository
             return [$this->model->getKeyName() => $conditions];
         } elseif (is_array($conditions) && !Helper::isAssociative($conditions) && !$this->hasRaw($conditions)) {
             $values = array_values($conditions);
-            // 主键为int 类型使用intval 处理
+            // 主键为 int 类型使用 intval 处理
             if ($this->model->getKeyType() === 'int') {
                 $values = array_map('intval', $values);
             }
@@ -214,11 +206,25 @@ abstract class Repository
     }
 
     /**
+     * 抛出错误
+     *
+     * @param string $message 错误信息
+     *
+     * @throws Exception
+     */
+    public function throw($message)
+    {
+        throw new Exception($message);
+    }
+
+    /**
      * 新增数据
      *
      * @param array $data 新增的数据
      *
      * @return array
+     *
+     * @throws Exception
      */
     final public function create(array $data)
     {
@@ -227,25 +233,13 @@ abstract class Repository
 
         // 不能是空数组
         if (empty($data) || !is_array($data)) {
-            return $this->error('创建失败');
+            $this->throw('创建数据为空');
         }
 
-        try {
-
-            // 执行新增数据，并执行前置、后置方法
-            $new = $this->runEventFunction(function ($data) {
-                // 创建数据
-                if (!$model = $this->model->create($data)) {
-                    throw new Exception('创建失败');
-                }
-
-                return $model->toArray();
-            }, 'create', $data);
-
-            return $this->success($new, '创建成功');
-        } catch (Exception $e) {
-            return $this->error($this->getError($e), null);
-        }
+        // 执行新增数据，并执行前置、后置方法
+        return $this->runEventFunction(function ($data) {
+            return $this->model->create($data)->toArray();
+        }, 'create', $data);
     }
 
     /**
@@ -255,13 +249,14 @@ abstract class Repository
      * @param array       $data       修改的数据
      *
      * @return array
+     * @throws Exception
      */
     final public function update($conditions, array $data)
     {
         // 根据pk更新单条记录
         $conditions = $this->getPrimaryKeyCondition($conditions);
         if (empty($conditions)) {
-            return $this->error('未指定修改条件');
+            $this->throw('未指定修改条件');
         }
 
         // 过滤非法字段，禁止更新主键
@@ -269,24 +264,17 @@ abstract class Repository
 
         // 空值判断
         if (empty($data)) {
-            return $this->error('未指定更新字段');
+            $this->throw('未指定更新字段');
         }
 
-        try {
+        // 执行修改，并且执行前置和后置方法
+        return $this->runEventFunction(function ($conditions, $data) {
+            // 应用 model 的修改器
+            $updateAttributes = $this->getModel()->newInstance()->fill($data)->getAttributes();
 
-            // 执行修改，并且执行前置和后置方法
-            $rows = $this->runEventFunction(function ($conditions, $data) {
-                // 应用 model 的修改器
-                $updateAttributes = $this->getModel()->newInstance()->fill($data)->getAttributes();
-
-                // 使用批量修改数据
-                return $this->findCondition($conditions)->update($updateAttributes);
-            }, 'update', $conditions, $data);
-
-            return $this->success($rows, '更新成功');
-        } catch (Exception $e) {
-            return $this->error($this->getError($e), 0);
-        }
+            // 使用批量修改数据
+            return $this->newBuilder($conditions)->update($updateAttributes);
+        }, 'update', $conditions, $data);
     }
 
     /**
@@ -295,26 +283,20 @@ abstract class Repository
      * @param mixed|array $conditions 删除的条件
      *
      * @return array
+     * @throws Exception
      */
     final public function delete($conditions)
     {
         // 查询条件处理
         $conditions = $this->getPrimaryKeyCondition($conditions);
         if (empty($conditions)) {
-            return $this->error('未指定删除条件');
+            $this->throw('未指定删除条件');
         }
 
-        try {
-
-            // 执行删除，并且执行前置和后置方法
-            $rows = $this->runEventFunction(function ($conditions) {
-                return $this->findCondition($conditions)->delete();
-            }, 'delete', $conditions);
-
-            return $this->success($rows, '删除成功');
-        } catch (Exception $e) {
-            return $this->error($this->getError($e), 0);
-        }
+        // 执行删除，并且执行前置和后置方法
+        return $this->runEventFunction(function ($conditions) {
+            return $this->newBuilder($conditions)->delete();
+        }, 'delete', $conditions);
     }
 
     /**
@@ -356,16 +338,15 @@ abstract class Repository
      * @param array|mixed $conditions 查询条件
      * @param array       $columns    查询字段
      *
-     * @return mixed
+     * @return array|null
      */
     public function find($conditions = [], $columns = [])
     {
-        /* @var $item Model|object|static|null */
-        if ($item = $this->findCondition($conditions, $columns)->first()) {
+        if ($item = $this->newBuilder($conditions, $columns)->first()) {
             return $item->toArray();
         }
 
-        return false;
+        return null;
     }
 
     /**
@@ -375,14 +356,14 @@ abstract class Repository
      * @param mixed|array $conditions 查询条件
      * @param string      $column     获取的字段
      *
-     * @return bool|mixed
+     * @return mixed
      */
     public function findBy($conditions, $column)
     {
         // 如果误传数组的话 取数组第一个值
         $column = $this->firstKey($column);
         $item   = $this->find($conditions, $this->firstField($column));
-        return Arr::get($item, $column, false);
+        return Arr::get($item, $column);
     }
 
     /**
@@ -395,7 +376,7 @@ abstract class Repository
      */
     public function findAll($conditions, $columns = [])
     {
-        return $this->findCondition($conditions, $columns)->get()->toArray();
+        return $this->newBuilder($conditions, $columns)->get()->toArray();
     }
 
     /**
@@ -424,16 +405,18 @@ abstract class Repository
     }
 
     /**
-     * 获取过滤查询条件查询的 model
+     * 分页查询数据
      *
-     * @param array|mixed $conditions 查询条件
-     * @param array       $columns    查询的字段
+     * @param array $conditions 查询条件
+     * @param array $columns    查询字段
+     * @param int   $size       每页条数
+     * @param null  $current    当前页
      *
-     * @return Model|mixed
+     * @return LengthAwarePaginator|\Illuminate\Contracts\Pagination\LengthAwarePaginator
      */
-    public function getFilterModel($conditions, $columns = [])
+    public function paginate($conditions = [], $columns = [], $size = 10, $current = null)
     {
-        return $this->findCondition($this->filterCondition($conditions), $columns);
+        return $this->newBuilder($conditions, $columns)->paginate($size, ['*'], 'page', $current);
     }
 
     /**
@@ -468,9 +451,9 @@ abstract class Repository
      * @param array $conditions 查询条件
      * @param array $columns    查询字段
      *
-     * @return Model|mixed
+     * @return Model|Builder|QueryBuilder
      */
-    public function findCondition($conditions = [], $columns = [])
+    public function newBuilder($conditions = [], $columns = [])
     {
         $model = $this->model->newModelInstance();
         // 查询条件为空，直接返回
@@ -638,8 +621,7 @@ abstract class Repository
             if (method_exists($findModel, $relation)) {
 
                 // 获取默认查询条件
-                $defaultConditions   = $this->getRelationDefaultFilters($model, $relation);
-                $value['conditions'] = array_merge($defaultConditions, Arr::get($value, 'conditions', []));
+                $value['conditions'] = Arr::get($value, 'conditions', []);
 
                 if (Arr::get($value, 'with')) {
 
@@ -784,13 +766,13 @@ abstract class Repository
     /**
      * 查询处理
      *
-     * @param array  $condition 查询条件
-     * @param mixed  $query     查询对象
-     * @param string $table     查询表名称
-     * @param array  $columns   查询的字段
-     * @param bool   $or        是否是or 查询默认false
+     * @param array                      $condition 查询条件
+     * @param Model|Builder|QueryBuilder $query     查询对象
+     * @param string                     $table     查询表名称
+     * @param array                      $columns   查询的字段
+     * @param bool                       $or        是否是or 查询默认false
      *
-     * @return Model|mixed
+     * @return Model|Builder|QueryBuilder
      */
     public function conditionQuery($condition, $query, $table, $columns, $or = false)
     {
@@ -833,11 +815,11 @@ abstract class Repository
             // scope 自定义查询
             try {
                 $query = $query->{$column}($bindValue);
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 try {
                     $column = Str::camel($column);
                     $query  = $query->{$column}($bindValue);
-                } catch (Exception $e) {
+                } catch (\Exception $e) {
                     // 目的是防止抛出错误，过滤非查询字段的处理
                 } catch (\Throwable $e) {
                     // 目的是防止抛出错误，过滤非查询字段的处理
@@ -853,12 +835,11 @@ abstract class Repository
     /**
      * 处理表达式查询
      *
-     * @param Model $query
-     * @param array $condition 查询对象
-     *                         ['field', 'expression', 'value']
-     * @param bool  $or
+     * @param Model|Builder|QueryBuilder $query
+     * @param array                      $condition 查询对象 ['field', 'expression', 'value']
+     * @param bool                       $or
      *
-     * @return Model
+     * @return Model|Builder|QueryBuilder
      */
     public function handleExpressionConditionQuery($query, $condition = [], $or = false)
     {
@@ -889,7 +870,7 @@ abstract class Repository
             $value = (string)$value;
 
             // 自动添加模糊查询
-            if (in_array($expression, ['auto_like', 'auto like'], true) && strpos($value, '%') === false) {
+            if (in_array($expression, ['like', 'not like'], true) && strpos($value, '%') === false) {
                 $value = "%{$value}%";
             }
         }
@@ -900,12 +881,12 @@ abstract class Repository
     /**
      * 字段查询
      *
-     * @param model       $query 查询对象
-     * @param string      $field 查询字段
-     * @param mixed|array $value 查询的值
-     * @param bool        $or    是否是or 查询
+     * @param Model|Builder|QueryBuilder $query 查询对象
+     * @param string                     $field 查询字段
+     * @param mixed|array                $value 查询的值
+     * @param bool                       $or    是否是or 查询
      *
-     * @return mixed
+     * @return Model|Builder|QueryBuilder
      */
     public function handleFieldQuery($query, $field, $value, $or = false)
     {
@@ -948,12 +929,12 @@ abstract class Repository
     /**
      * 连表查询
      *
-     * @param Builder $query     查询对象
-     * @param string  $table     当前表名称
-     * @param array   $relations 关联表方法名称
-     * @param string  $method    连表方式
+     * @param Builder|QueryBuilder $query     查询对象
+     * @param string               $table     当前表名称
+     * @param array                $relations 关联表方法名称
+     * @param string               $method    连表方式
      *
-     * @return Builder|mixed
+     * @return Builder|QueryBuilder
      */
     protected function joinWith($query, $table, $relations, $method = 'join')
     {
@@ -990,7 +971,7 @@ abstract class Repository
                     $aliasTable ? $joinTable . ' as ' . $aliasTable : $joinTable,
                     $localKey,
                     '=',
-                    ($aliasTable ? $aliasTable : $joinTable) . '.' . str_replace_first($joinTable . '.', '', $foreignKey),
+                    ($aliasTable ? $aliasTable : $joinTable) . '.' . Str::replaceFirst($joinTable . '.', '', $foreignKey),
                 ], $method);
             }
         }
@@ -1001,11 +982,11 @@ abstract class Repository
     /**
      * 处理查询条件中的 join 信息
      *
-     * @param array   $conditions 查询条件
-     * @param Builder $query      查询对象
-     * @param string  $table      查询的表名称
+     * @param array                      $conditions 查询条件
+     * @param Builder|QueryBuilder|Model $query      查询对象
+     * @param string                     $table      查询的表名称
      *
-     * @return Builder|mixed
+     * @return Builder|QueryBuilder|Model
      */
     protected function handleJoinQuery(&$conditions, $query, $table)
     {
@@ -1043,56 +1024,6 @@ abstract class Repository
         }
 
         return $query;
-    }
-
-    /**
-     *
-     * 根据运行环境上报错误
-     *
-     * @param Exception $e
-     *
-     * @return mixed|string
-     */
-    public function getError(Exception $e)
-    {
-        // 记录数据库执行错误日志
-        logger()->error('db error', [
-            'message' => $e->getMessage(),
-            'file'    => $e->getFile(),
-            'line'    => $e->getLine(),
-        ]);
-
-        return app()->environment('production') ? '系统错误，请重试' : $e->getMessage();
-    }
-
-    /**
-     * 获取关联查询的默认查询条件
-     *
-     * @param model  $model        查询的model
-     * @param string $relationName 关联查询字段
-     *
-     * @return array
-     */
-    public function getRelationDefaultFilters($model, $relationName)
-    {
-        // 添加relation的默认条件，默认条件数组为 “$relationFilters" 的 public 属性
-        $attribute = $relationName . 'Filters';
-        if (isset($model->{$attribute}) && is_array($model->{$attribute})) {
-            return $model->{$attribute};
-        }
-
-        // 不是 public 属性，可能是 protected 属性，通过反射获取
-        $conditions = [];
-        try {
-            $properties = (new ReflectionClass($model))->getDefaultProperties();
-            $value      = Arr::get($properties, $attribute, Arr::get($properties, strtolower($attribute)));
-            if ($value && is_array($value)) {
-                $conditions = $value;
-            }
-        } catch (Exception $e) {
-        }
-
-        return $conditions;
     }
 
     /**
@@ -1160,12 +1091,12 @@ abstract class Repository
     /**
      * 排序查询
      *
-     * @param mixed|model|Builder $query   查询对象
-     * @param string|array        $orderBy 排序信息
-     * @param string              $table   表名称
-     * @param array               $columns 表字段信息
+     * @param QueryBuilder|model|Builder $query   查询对象
+     * @param string|array               $orderBy 排序信息
+     * @param string                     $table   表名称
+     * @param array                      $columns 表字段信息
      *
-     * @return mixed
+     * @return QueryBuilder|model|Builder
      */
     public function orderBy($query, $orderBy, $table, $columns)
     {
@@ -1270,39 +1201,13 @@ abstract class Repository
     }
 
     /**
-     * 成功返回
-     *
-     * @param array  $data    返回数据信息
-     * @param string $message 返回提示信息
-     *
-     * @return array
-     */
-    public function success($data = [], $message = 'ok')
-    {
-        return [true, $message, $data];
-    }
-
-    /**
-     * 失败返回
-     *
-     * @param string $message 错误提示信息
-     * @param array  $data    返回数据信息
-     *
-     * @return array
-     */
-    public function error($message = 'error', $data = [])
-    {
-        return [false, $message, $data];
-    }
-
-    /**
      * 通过数组查询
      *
      * @param array $where   查询的条件
      *
      * @param array $columns 查询的字段信息
      *
-     * @return Model|QueryBuilder
+     * @return Model|QueryBuilder|Builder
      */
     public function findWhere(array $where, array $columns = [])
     {
@@ -1329,13 +1234,13 @@ abstract class Repository
     /**
      * 处理 where 添加查询
      *
-     * @param Model|QueryBuilder $model   查询的model
-     * @param array              $where   查询的条件
-     * @param string             $table   查询的表
-     * @param array              $columns 查询的字段信息
-     * @param bool               $or      是否or查询
+     * @param Model|QueryBuilder|Builder $model   查询的model
+     * @param array                      $where   查询的条件
+     * @param string                     $table   查询的表
+     * @param array                      $columns 查询的字段信息
+     * @param bool                       $or      是否or查询
      *
-     * @return Model|QueryBuilder
+     * @return Model|QueryBuilder|Builder
      */
     public function getWhereQuery($model, array $where, $table, $columns, $or = false)
     {
@@ -1404,14 +1309,6 @@ abstract class Repository
             $method       = lcfirst(substr($method, 6));
             $arguments[0] = $this->filterCondition(Arr::get($arguments, 0, []));
             return $this->{$method}(...$arguments);
-        } else if (in_array($method, ['paginate', 'simplePaginate'], true)) {
-            // 分页查询
-            $conditions = Arr::get($arguments, 0, []);       // 查询条件
-            $columns    = Arr::get($arguments, 1, []);       // 查询字段
-            $size       = Arr::get($arguments, 2, 10) ?: 10; // 分页每页条数
-            $current    = Arr::get($arguments, 3);           // 当前页
-            return $this->toPaginateArray($this->findCondition($conditions, $columns)
-                ->{$method}($size, ['*'], 'page', $current));
         }
 
         // 第一个参数传递给自己 findCondition 方法
@@ -1424,41 +1321,6 @@ abstract class Repository
             $columns = [];
         }
 
-        return $this->findCondition($conditions, $columns)->{$method}(...$arguments);
-    }
-
-    /**
-     * 静态方法调用
-     *
-     * @param string $name      调用的方法名称
-     * @param array  $arguments 调用参数
-     *
-     * @return mixed
-     */
-    public static function __callStatic($name, $arguments)
-    {
-        return static::instance()->{$name}(...$arguments);
-    }
-
-    /**
-     * 将分页数据处理为数组
-     *
-     * @param Paginator $paginate 查询条件
-     *
-     * @return array
-     */
-    public function toPaginateArray($paginate)
-    {
-        $items = $paginate->items();
-        foreach ($items as &$value) {
-            /* @var $value Model */
-            $value = $value->toArray();
-        }
-        unset($value);
-
-        return [
-            'items' => $items,
-            'pager' => $paginate,
-        ];
+        return $this->newBuilder($conditions, $columns)->{$method}(...$arguments);
     }
 }

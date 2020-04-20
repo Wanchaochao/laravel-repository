@@ -7,15 +7,10 @@ use Illuminate\Support\Str;
 /**
  * Class Helper 助手类
  *
- * @package Littlebug\Helpers
+ * @package Littlebug\Repository
  */
 class Helper
 {
-    public static function isCli()
-    {
-        return PHP_SAPI == 'cli' && empty($_SERVER['REMOTE_ADDR']);
-    }
-
     /**
      * 判断是否为空 0 值不算
      *

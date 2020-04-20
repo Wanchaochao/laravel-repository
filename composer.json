@@ -26,7 +26,8 @@
         "ext-json": "*"
     },
     "require-dev": {
-        "laravel/framework": "5.5.*"
+        "laravel/framework": "5.5.*",
+        "phpunit/phpunit": "~5.7"
     },
     "minimum-stability": "dev",
     "autoload": {

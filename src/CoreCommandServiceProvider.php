@@ -7,11 +7,10 @@ use Littlebug\Repository\Commands\ModelCommand;
 use Littlebug\Repository\Commands\RequestCommand;
 use Littlebug\Repository\Commands\RepositoryCommand;
 
-
 /**
  * Class CoreCommandServiceProvider 命令行服务提供者
  *
- * @package App\Providers
+ * @package Littlebug\Repository
  */
 class CoreCommandServiceProvider extends ServiceProvider
 {
