@@ -70,7 +70,7 @@ class UsersController extends Controller
     
     public function __construct(UserRepository $userRepository)
     {
-        $this->userRepository   = $userRepository;
+        $this->userRepository = $userRepository;
     }
     
     public function index()
@@ -81,7 +81,7 @@ class UsersController extends Controller
             'status:in' => [1, 2],
         ]);
         
-        return view('users.index');
+        return view('users.index', compact('list'));
     }
     
     public function create()

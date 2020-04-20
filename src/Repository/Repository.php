@@ -1450,7 +1450,6 @@ abstract class Repository
      */
     public function toPaginateArray($paginate)
     {
-        /* @var $paginate Paginator */
         $items = $paginate->items();
         foreach ($items as &$value) {
             /* @var $value Model */
