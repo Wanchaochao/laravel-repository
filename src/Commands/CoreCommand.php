@@ -1,11 +1,11 @@
 <?php
 
-namespace Littlebug\Commands;
+namespace Littlebug\Repository\Commands;
 
 use Throwable;
 use Illuminate\Support\Str;
-use Littlebug\Helpers\Helper;
 use Illuminate\Console\Command;
+use Littlebug\Repository\Helper;
 
 /**
  * Class CoreCommand core 基础命令

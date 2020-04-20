@@ -1,10 +1,10 @@
 <?php
 
-namespace Littlebug\Commands;
+namespace Littlebug\Repository\Commands;
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
-use Littlebug\Traits\CommandTrait;
+use Littlebug\Repository\Traits\CommandTrait;
 
 /**
  * Class Model 用来生成model

@@ -1,6 +1,6 @@
 <?php
 
-namespace Littlebug\Traits;
+namespace Littlebug\Repository\Traits;
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;

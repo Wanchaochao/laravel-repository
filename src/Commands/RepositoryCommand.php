@@ -1,6 +1,6 @@
 <?php
 
-namespace Littlebug\Commands;
+namespace Littlebug\Repository\Commands;
 
 /**
  * Class RepositoryCommand 生成 repository 信息

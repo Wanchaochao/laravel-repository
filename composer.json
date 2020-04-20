@@ -1,44 +1,44 @@
 {
-  "name": "littlebug/laravel-repository",
-  "description": "The repository mode for laravel!",
-  "homepage": "https://littlebug.vip",
-  "keywords": [
-    "laravel",
-    "repository",
-    "repositories",
-    "eloquent",
-    "database"
-  ],
-  "license": "MIT",
-  "authors": [
-    {
-      "name": "Chao Wan",
-      "email": "wanchao@littlebug.vip"
+    "name": "littlebug/laravel-repository",
+    "description": "The repository mode for laravel!",
+    "homepage": "https://littlebug.vip",
+    "keywords": [
+        "laravel",
+        "repository",
+        "repositories",
+        "eloquent",
+        "database"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Chao Wan",
+            "email": "wanchao@littlebug.vip"
+        },
+        {
+            "name": "jinxing.liu",
+            "email": "jinxing.liu@qq.com",
+            "homepage": "https://mylovegy.github.io/blog/"
+        }
+    ],
+    "require": {
+        "php": ">=7.0.0",
+        "ext-json": "*"
     },
-    {
-      "name": "jinxing.liu",
-      "email": "jinxing.liu@qq.com",
-      "homepage": "https://mylovegy.github.io/blog/"
+    "require-dev": {
+        "laravel/framework": "5.5.*"
+    },
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-4": {
+            "Littlebug\\Repository\\": "src"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Littlebug\\Repository\\CoreCommandServiceProvider"
+            ]
+        }
     }
-  ],
-  "require": {
-    "php": ">=7.0.0",
-    "ext-json": "*"
-  },
-  "require-dev": {
-    "laravel/framework": "5.5.*"
-  },
-  "minimum-stability": "dev",
-  "autoload": {
-    "psr-4": {
-      "Littlebug\\": "src"
-    }
-  },
-  "extra": {
-    "laravel": {
-      "providers": [
-        "Littlebug\\Providers\\CoreCommandServiceProvider"
-      ]
-    }
-  }
 }

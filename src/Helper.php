@@ -1,12 +1,12 @@
 <?php
 
-namespace Littlebug\Helpers;
+namespace Littlebug\Repository;
 
 use Illuminate\Support\Str;
 
 /**
  * Class Helper 助手类
- * 
+ *
  * @package Littlebug\Helpers
  */
 class Helper

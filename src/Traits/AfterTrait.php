@@ -8,7 +8,7 @@
  * Editor: created by PhpStorm
  */
 
-namespace Littlebug\Traits;
+namespace Littlebug\Repository\Traits;
 
 /**
  * Trait AfterTrait 在修改和删除数据之后 清除缓存 需要自定义 clearCache 方法

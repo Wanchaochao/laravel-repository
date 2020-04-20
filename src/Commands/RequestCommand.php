@@ -1,9 +1,9 @@
 <?php
 
-namespace Littlebug\Commands;
+namespace Littlebug\Repository\Commands;
 
 use Illuminate\Support\Arr;
-use Littlebug\Traits\CommandTrait;
+use Littlebug\Repository\Traits\CommandTrait;
 
 /**
  * Class RequestCommand 生成 Request 文件

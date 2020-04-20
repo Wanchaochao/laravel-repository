@@ -1,6 +1,19 @@
 更新记录
 =======
 
+v2.0.0 2020-04-20
+-----------------
+- feat: 添加 `throw` 方法，抛出错误
+- refactor: 部分代码重构
+    1. `create` 方法返回 `$model->toArray()` 结果
+    2. `update` 方法返回修改受影响行数
+    3. `delete` 方法返回返回删除行数
+    4. `paginate` 方法返回 `\Illuminate\Pagination\Paginator` 对象
+- delete: 删除部分方法
+    1. `success` 方法
+    2. `error` 方法
+- refactor: 命名空间修改为 `Littlebug\Repository`
+
 v1.0.17 2020-04-05
 ------------------
 

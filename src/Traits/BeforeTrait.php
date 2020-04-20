@@ -8,7 +8,7 @@
  * Editor: created by PhpStorm
  */
 
-namespace Littlebug\Traits;
+namespace Littlebug\Repository\Traits;
 
 /**
  * Trait BeforeTrait 在修改和删除数据之前 清除缓存 需要自定义 clearCache 方法
