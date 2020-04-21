@@ -24,15 +24,15 @@ use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
  * @method Model firstOrFail($conditions, $columns = []) 查询单个数据, 不存在抛出错误
  * @method Collection get($conditions = [], $columns = []) 查询多个数据
  * @method Collection pluck($conditions, $column, $key = null) 查询多个数据然后按照指定字段为数组的key
- * @method int count($conditions = []) 统计数量
+ * @method int count($conditions = [], $column = '*') 统计数量
  * @method int|mixed max($conditions, $column) 统计求最大值
  * @method int|mixed min($conditions, $column) 统计求最小值
  * @method int|mixed avg($conditions, $column) 统计求平均值
  * @method int|mixed sum($conditions, $column) 统计求和
  * @method string toSql($conditions = []) 获取执行的SQL
  * @method array|mixed getBindings($conditions = []) 获取绑定的值
- * @method int increment($conditions, $column, $amount = 1) 按查询条件指定字段递增指定值(默认递增1)
- * @method int decrement($conditions, $column, $amount = 1) 按查询条件指定字段递减指定值(默认递减1)
+ * @method int increment($conditions, $column, $amount = 1, $extra = []) 按查询条件指定字段递增指定值(默认递增1)
+ * @method int decrement($conditions, $column, $amount = 1, $extra = []) 按查询条件指定字段递减指定值(默认递减1)
  * @method null|array filterFind($conditions = [], $columns = []) 过滤查询单个数据
  * @method null|array filterFindBy($conditions, $column) 过滤查询条件查询单个数据的单个字段
  * @method array filterFindAll($conditions = [], $columns = []) 过滤查询条件查询多个数据

@@ -40,8 +40,14 @@ participate in specific logical operations, and does not serve the control layer
 ### 1.1 Install package
 
 ```bash
-composer require littlebug/laravel-repository
+composer require littlebug/laravel-repository:2.0.*
 ```
+or add this to require section in your composer.json file:
+
+```bash
+"littlebug/laravel-repository": "2.0.*"
+```
+then run composer update
 
 ### 1.2 Use the command to generate `model` and `repository`
 
@@ -75,39 +81,72 @@ class UsersController extends Controller
     
     public function index()
     {
-        // Paging query
-        $list = $this->userRepository->paginate([
-            'name:like' => 'test123', 
-            'status:in' => [1, 2],
+        // Paging queries, returning paging objects
+        $paginate = $this->userRepository->paginate([
+            'name:like' => 'test', 
+            'status'    => [1, 2], // Automatically converts to an in query
         ]);
         
-        return view('users.index', compact('list'));
+        return view('users.index', compact('paginate'));
     }
     
     public function create()
     {
-        list($ok, $msg, $user) = $this->userRepository->create(request()->all());
-        // You are right logic
+        // Add data and return an array
+        $user = $this->userRepository->create(request()->all());
     }
     
     public function update()
     {
-        list($ok, $msg, $row) = $this->userRepository->update(request()->input('id'), request()->all());
-        // You are right logic
+        // Modify the data and return the number of modified rows
+        $row = $this->userRepository->update(request()->input('id'), request()->all());
     }
     
     public function delete()
     {
-        list($ok, $msg, $row) = $this->userRepository->delete(request()->input('id'));
-        // You are right logic
+        // Deletes data and returns the number of rows deleted
+        $row = $this->userRepository->delete(request()->input('id'));
     }
 }
 
 ```
 
-#### 1.3.1 About paging query data
+In addition to the injection method invocation described above, you can also use static method invocation; As follows:
 
-![member message 的数据](https://wanchaochao.github.io/laravel-repository/docs/images/data-list.jpg 'member message 的数据')
+```php
+$paginate = UserRepository::instance()->paginate(['status' => 1]);
+
+// Query a piece of data and return an array
+$user = UserRepository::instance()->find(['status' => 1, 'id:gt' => 2]);
+```
+### 1.4 Other common methods
+
+#### Retrieve the data
+
+| method name | return value | description
+| `find($conditions, $columns = ['*'])` | `null\|array`|Querying individual data|
+| `findBy($conditions, $column)` | `null\|mixed`|Query a single field for a single piece of data|
+| `findAll($conditions, $columns = ['*])` | `array`|Query multiple data|
+| `findAllBy($conditions, $column)` | `array`|Querying a single field array of multiple data|
+| `first($conditions, $column)` | `null\|model`|Retrieve a single model|
+| `get($conditions, $column)` | `Illuminate\Database\Eloquent\Collection`|Retrieve the collection|
+
+#### Statistical query
+
+| method name | return value | description
+| `count($conditions, $column = '*')` | `int`|The number of statistical|
+| `max($conditions, $column)` | `mixed`|The maximum|
+| `min($conditions, $column)` | `mixed`|The minimum value|
+| `avg($conditions, $column)` | `mixed`|The average|
+| `sum($conditions, $column)` | `mixed`|sum|
+
+#### Create or modify data
+
+| method name | return value | description
+| `increment($conditions, $column, $amount = 1, $extra = [])` | `int` | Since the increase|
+| `decrement($conditions, $column, $amount = 1, $extra = [])` | `int` | Since the reduction of|
+| `firstOrCreate(array $attributes, array $value = [])` | `model` |The query does not exist so create|
+| `updateOrCreate(array $attributes, array $value = [])` | `model` |Modifications do not exist so create|
 
 ## [Please check more about `repository`](https://wanchaochao.github.io/laravel-repository/?page=repository)
 [Please check more about `repository`](https://wanchaochao.github.io/laravel-repository/?page=repository)
