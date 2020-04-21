@@ -123,7 +123,8 @@ $user = UserRepository::instance()->find(['status' => 1, 'id:gt' => 2]);
 
 #### Retrieve the data
 
-| method name | return value | description
+| method name | return value | description|
+|-------------|:------:|------------------|
 | `find($conditions, $columns = ['*'])` | `null\|array`|Querying individual data|
 | `findBy($conditions, $column)` | `null\|mixed`|Query a single field for a single piece of data|
 | `findAll($conditions, $columns = ['*])` | `array`|Query multiple data|
@@ -133,7 +134,8 @@ $user = UserRepository::instance()->find(['status' => 1, 'id:gt' => 2]);
 
 #### Statistical query
 
-| method name | return value | description
+| method name | return value | description|
+|-------------|:------:|------------------|
 | `count($conditions, $column = '*')` | `int`|The number of statistical|
 | `max($conditions, $column)` | `mixed`|The maximum|
 | `min($conditions, $column)` | `mixed`|The minimum value|
@@ -142,7 +144,8 @@ $user = UserRepository::instance()->find(['status' => 1, 'id:gt' => 2]);
 
 #### Create or modify data
 
-| method name | return value | description
+| method name | return value | description|
+|-------------|:------:|------------------|
 | `increment($conditions, $column, $amount = 1, $extra = [])` | `int` | Since the increase|
 | `decrement($conditions, $column, $amount = 1, $extra = [])` | `int` | Since the reduction of|
 | `firstOrCreate(array $attributes, array $value = [])` | `model` |The query does not exist so create|
