@@ -40,6 +40,9 @@
             "providers": [
                 "Littlebug\\Repository\\CoreCommandServiceProvider"
             ]
+        },
+        "branch-alias": {
+            "dev-master": "2.0.x-dev"
         }
     }
 }
