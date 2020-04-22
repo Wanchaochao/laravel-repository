@@ -144,9 +144,9 @@ abstract class Repository
      */
     public function getPrimaryKeyCondition($conditions)
     {
-        // 没有查询条件
+        // 查询条件为空
         if (empty($conditions)) {
-            return $conditions;
+            return [];
         }
 
         // 标量(数字、字符、布尔值)查询, 处理为主键查询
@@ -156,7 +156,10 @@ abstract class Repository
             }
 
             return [$this->model->getKeyName() => $conditions];
-        } elseif (is_array($conditions) && !Helper::isAssociative($conditions) && !$this->hasRaw($conditions)) {
+        }
+
+        // 没有自定义查询的索引数组也要转为主键查询
+        if (is_array($conditions) && !Helper::isAssociative($conditions) && !$this->hasRaw($conditions)) {
             $values = array_values($conditions);
             // 主键为 int 类型使用 intval 处理
             if ($this->model->getKeyType() === 'int') {
@@ -611,9 +614,9 @@ abstract class Repository
         }
 
         // 处理数据
-        $isNotSelectAll = $this->isNotSelectAll($selectColumns, $table);
-        $with           = $withCount = [];
-        $findModel      = $model->getModel();
+        $notSelectAll = $this->notSelectAll($selectColumns, $table);
+        $with         = $withCount = [];
+        $findModel    = $model->getModel();
 
         // 开始解析关联关系
         foreach ($relations as $relation => $value) {
@@ -629,7 +632,7 @@ abstract class Repository
                     list($localKey, $foreignKey) = $this->getRelationKeys($findModel->$relation());
 
                     // 防止关联查询，主键没有添加上去
-                    if ($localKey && $isNotSelectAll && !in_array($localKey, $selectColumns)) {
+                    if ($localKey && $notSelectAll && !in_array($localKey, $selectColumns)) {
                         array_push($selectColumns, $localKey);
                     }
 
@@ -1058,7 +1061,7 @@ abstract class Repository
             $hasRelations = $this->getRelations($conditionRelations, $fieldRelations);
 
             // 添加关联的外键，防止关联不上
-            if ($foreignKey && $this->isNotSelectAll($selectColumns, $table) && !in_array($foreignKey, $selectColumns)) {
+            if ($foreignKey && $this->notSelectAll($selectColumns, $table) && !in_array($foreignKey, $selectColumns)) {
                 $selectColumns[] = $foreignKey;
             }
 
@@ -1164,14 +1167,14 @@ abstract class Repository
     }
 
     /**
-     * 是否没有查询全部字段
+     * 没有查询全部字段
      *
      * @param array  $columns 查询的字段信息
      * @param string $table   表名称
      *
      * @return bool
      */
-    public function isNotSelectAll($columns, $table)
+    public function notSelectAll($columns, $table)
     {
         return !empty($columns) && !in_array('*', $columns) && !in_array($table . '.*', $columns);
     }
