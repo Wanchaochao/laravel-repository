@@ -656,20 +656,8 @@ abstract class Repository
             }
         }
 
-        // 先处理查询字段
-        $model = $this->select($model, $selectColumns, $table);
-
-        // 存在关联
-        if ($with) {
-            $model = $model->with($with);
-        }
-
-        // 存在统计关联
-        if ($withCount) {
-            return $model->withCount($withCount);
-        }
-
-        return $model;
+        // 处理查询字段、添加关联、和关联统计
+        return $this->select($model, $selectColumns, $table)->with($with)->withCount($withCount);
     }
 
     /**
@@ -1075,11 +1063,11 @@ abstract class Repository
     /**
      * 查询字段信息(没有指定查询字段那么查询表全部字段)
      *
-     * @param mixed|model|Builder $query   查询对象
-     * @param array|string        $columns 查询的字段
-     * @param string              $table   查询的表
+     * @param QueryBuilder|model|Builder $query   查询对象
+     * @param array|string               $columns 查询的字段
+     * @param string                     $table   查询的表
      *
-     * @return mixed
+     * @return QueryBuilder|model|Builder
      */
     public function select($query, $columns, $table = '')
     {
