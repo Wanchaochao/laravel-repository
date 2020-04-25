@@ -99,9 +99,7 @@ abstract class Repository
         'not like'    => 'not like',
         'rlike'       => 'rlike',
         '<>'          => '<>',
-        '<=>'         => '<=>',
-        'auto_like'   => 'like',
-        'auto like'   => 'like',
+        '<=>'         => '<=>'
     ];
 
     /**
