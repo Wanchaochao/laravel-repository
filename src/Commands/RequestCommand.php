@@ -25,7 +25,9 @@ class RequestCommand extends CoreCommand
      *
      * @var string
      */
-    protected $description = 'Generate request {--table=} specify table {--path=} specify directory [no absolute path is passed, otherwise use relative path starting from app/Http/Requests ]';
+    protected $description = 'Generate request
+     {--table=} specify table
+     {--path=}  specify directory [no absolute path is passed, otherwise use relative path starting from app/Http/Requests ]';
 
     /**
      * @var string 生成目录
@@ -161,15 +163,15 @@ class RequestCommand extends CoreCommand
 
 namespace App\Http\Requests{namespace};
 
-use App\Http\Requests\Request;
+use Illuminate\Foundation\Http\FormRequest;
 
-class {class_name} extends Request
+class {class_name} extends FormRequest
 {
     public function authorize()
     {
         return true;
     }
-    
+
     /**
      * 定义规则信息
      *
@@ -179,7 +181,7 @@ class {class_name} extends Request
     {
         return {rules};
     }
-    
+
     /**
      * 定义字段对应的名称
      *

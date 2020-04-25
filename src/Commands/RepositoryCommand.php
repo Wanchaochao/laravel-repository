@@ -21,8 +21,8 @@ class RepositoryCommand extends CoreCommand
      * @var string
      */
     protected $description = 'Generate repository
-     {--name=} Define the name [ --name=Admin\\\\AdminUserRepository or --name=Admin/AdminUserRepository ]
-     {--path=} Specify directory [Do not pass absolute path, otherwise use relative pair path from app/Repositories]
+     {--name=}  Define the name [ --name=Admin\\\\AdminUserRepository or --name=Admin/AdminUserRepository ]
+     {--path=}  Specify directory [Do not pass absolute path, otherwise use relative pair path from app/Repositories]
      {--model=} The specified model uses the namespace [ --model=Admin\\\\AdminUser or --model=Admin/AdminUser ]';
 
     /**
@@ -58,8 +58,8 @@ class RepositoryCommand extends CoreCommand
 
 namespace App\Repositories{namespace};
 
-{use_base}
 use App\Models{model_namespace}\{model_name};
+{use_base}
 
 class {class_name} extends Repository
 {
