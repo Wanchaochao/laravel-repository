@@ -54,7 +54,16 @@ class ModelCommand extends CoreCommand
 
         $table_name = Arr::get($array, 'table');
         if ($connection = Arr::get($array, 'connection')) {
-            $connection = 'protected $connection = \'' . $connection . '\';';
+            $connection = <<<html
+
+    /**
+     * Defines the database connection to use
+     *
+     * @var string
+     */
+    protected \$connection = '{$connection}';
+
+html;
         }
 
         $model_name = $this->handleOptionName($table_name);
@@ -133,30 +142,29 @@ use Illuminate\Database\Eloquent\Model;
 class {class_name} extends Model
 {
     /**
-     * 定义表名称
+     * Define table name
      *
      * @var string
      */
     protected \$table = '{table}';
-    
+
     /**
-     * 定义主键
+     * Define a primary key
      *
      * @var string
      */
     protected \$primaryKey = '{primaryKey}';
-    
-    {connection}
-    
+{connection}
+
     /**
-     * 定义表字段信息
+     * Define the table field information
      *
      * @var array
      */
     public \$columns = {columns};
-    
+
     /**
-     * 不可被批量赋值的属性。
+     * A property that cannot be batched.
      *
      * @var array
      */
