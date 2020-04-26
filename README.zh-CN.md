@@ -130,18 +130,18 @@ $user = UserRepository::instance()->find(['status' => 1, 'id:gt' => 2]);
 #### 查询数据
 
 | 方法名称 | 返回值 | 说明 |
-|-------------|:------:|------------------|
+|-------------|------|------------------|
 | `find($conditions, $columns = ['*'])` | `null\|array`|查询一条数据|
 | `findBy($conditions, $column)` | `null\|mixed`|查询一条数据的单个字段|
 | `findAll($conditions, $columns = ['*])` | `array`|查询多条数据|
 | `findAllBy($conditions, $column)` | `array`|查询多条数据的单个字段数组|
 | `first($conditions, $column)` | `null\|model`|查询一个对象|
-| `get($conditions, $column)` | `Illuminate\Database\Eloquent\Collection`|查询集合|
+| `get($conditions, $column)` | `Collection`|查询集合|
 
 #### 统计查询
 
 | 方法名称 | 返回值 | 说明 |
-|-------------|:------:|------------------|
+|-------------|------|------------------|
 | `count($conditions, $column = '*')` | `int`|统计数量|
 | `max($conditions, $column)` | `mixed`|最大值|
 | `min($conditions, $column)` | `mixed`|最小值|
@@ -151,7 +151,7 @@ $user = UserRepository::instance()->find(['status' => 1, 'id:gt' => 2]);
 #### 创建或者修改
 
 | 方法名称 | 返回值 | 说明 |
-|-------------|:------:|------------------|
+|-------------|------|------------------|
 | `increment($conditions, $column, $amount = 1, $extra = [])` | `int` | 递增|
 | `decrement($conditions, $column, $amount = 1, $extra = [])` | `int` | 递减|
 | `firstOrCreate(array $attributes, array $value = [])` | `model` |查下一个对象不存在创建|
