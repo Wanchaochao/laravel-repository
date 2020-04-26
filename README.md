@@ -151,6 +151,11 @@ $user = UserRepository::instance()->find(['status' => 1, 'id:gt' => 2]);
 | `firstOrCreate(array $attributes, array $value = [])` | `model` |The query does not exist so create|
 | `updateOrCreate(array $attributes, array $value = [])` | `model` |Modifications do not exist so create|
 
+### 1.5 More documentation
+
+[Please check more about `repository`](https://wanchaochao.github.io/laravel-repository/?page=repository)
+[Please check more about `repository`](https://wanchaochao.github.io/laravel-repository/?page=repository)
+
 ## More code generation commands
 
 > Commands support specifying database connections such as --table=dev.users
@@ -176,9 +181,6 @@ $user = UserRepository::instance()->find(['status' => 1, 'id:gt' => 2]);
 ### Command Parameter Details
 
 ![commands of generate code](https://wanchaochao.github.io/laravel-repository/docs/images/commands.png 'core of commands')
-
-## [Please check more about `repository`](https://wanchaochao.github.io/laravel-repository/?page=repository)
-[Please check more about `repository`](https://wanchaochao.github.io/laravel-repository/?page=repository)
 
 #### thanks for [jinxing.liu](https://mylovegy.github.io/blog/) and seven 💐🌹
 
