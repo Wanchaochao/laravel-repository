@@ -140,6 +140,23 @@ class UserRepositoryTest extends AbstractRepositoryTest
         $this->assertArrayHasKey('age:eq', $conditions);
     }
 
+    public function testFindWhere()
+    {
+        $user = UserRepository::instance()->findWhere([
+            'and',
+            ['user_id', '=', 1],
+            ['status', '=', 2],
+        ])->first();
+        $this->assertEquals(null, $user);
+    }
+
+    public function testGetTableColumns()
+    {
+        $columns = UserRepository::instance()->getTableColumns();
+        dump($columns);
+        $this->assertArrayHasKey('user_id', $columns);
+    }
+
     public function testGetPrimaryKeyCondition()
     {
         // int 转 主键查询
@@ -202,58 +219,78 @@ class UserRepositoryTest extends AbstractRepositoryTest
         $this->assertEquals(1, $user['user_id']);
     }
 
+    public function testGet()
+    {
+        $users = UserRepository::instance()->get(['status' => 1]);
+        $this->assertCount(4, $users);
+    }
+
     public function testCount()
     {
-
+        $count = UserRepository::instance()->count(['status' => 1]);
+        $this->assertEquals(4, $count);
     }
 
     public function testSum()
     {
-
-    }
-
-    public function testFindWhere()
-    {
-
-    }
-
-    public function testMin()
-    {
-
-    }
-
-    public function testGet()
-    {
-
-    }
-
-    public function testAvg()
-    {
-
-    }
-
-    public function testInsertGetId()
-    {
-
-    }
-
-    public function testGetWhereQuery()
-    {
-
-    }
-
-    public function testInsert()
-    {
-
+        $sum = UserRepository::instance()->sum(['status' => 1], 'user_id');
+        dump($sum);
+        $this->assertEquals(10, $sum);
     }
 
     public function testMax()
     {
+        $max = UserRepository::instance()->max(['status' => 1], 'user_id');
+        dump($max);
+        $this->assertEquals(4, $max);
+    }
 
+    public function testMin()
+    {
+        $min = UserRepository::instance()->min(['status' => 1], 'user_id');
+        dump($min);
+        $this->assertEquals(1, $min);
+    }
+
+    public function testAvg()
+    {
+        $avg = UserRepository::instance()->avg(['status' => 1], 'user_id');
+        dump($avg);
+        $this->assertEquals(2.5, $avg);
+    }
+
+    public function testInsertGetId()
+    {
+        $user_id = UserRepository::instance()->insertGetId([
+            'name'       => 'test123',
+            'email'      => 'test123@gamil.com',
+            'age'        => 1,
+            'status'     => 1,
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s'),
+        ]);
+        dump($user_id);
+        $this->assertEquals(5, $user_id);
+    }
+
+    public function testInsert()
+    {
+        $ok = UserRepository::instance()->insertGetId([
+            'name'       => 'test123',
+            'email'      => 'test123@gamil.com',
+            'age'        => 1,
+            'status'     => 1,
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s'),
+        ]);
+        dump($ok);
+        $this->assertEquals(true, $ok);
     }
 
     public function testPluck()
     {
-
+        $users = UserRepository::instance()->pluck(['status' => 1], 'name');
+        dump($users);
+        $this->assertCount(4, $users);
     }
 }
