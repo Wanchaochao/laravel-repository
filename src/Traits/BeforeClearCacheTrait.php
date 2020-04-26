@@ -30,11 +30,13 @@ trait BeforeClearCacheTrait
     /**
      * 修改之前的事件函数
      *
+     * @param $conditions
+     *
      * @return mixed
      */
-    public function beforeUpdate()
+    public function beforeUpdate($conditions)
     {
-        return $this->clearCache(Arr::get(func_get_args(), 0, []));
+        return $this->clearCache($conditions);
     }
 
     /**
