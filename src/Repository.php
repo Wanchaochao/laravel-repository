@@ -99,7 +99,7 @@ abstract class Repository
         'not like'    => 'not like',
         'rlike'       => 'rlike',
         '<>'          => '<>',
-        '<=>'         => '<=>'
+        '<=>'         => '<=>',
     ];
 
     /**
@@ -361,10 +361,7 @@ abstract class Repository
      */
     public function findBy($conditions, $column)
     {
-        // 如果误传数组的话 取数组第一个值
-        $column = $this->firstKey($column);
-        $item   = $this->find($conditions, $this->firstField($column));
-        return Arr::get($item, $column);
+        return Arr::get($this->find($conditions, $this->getFieldArray($column)), $column);
     }
 
     /**
@@ -391,9 +388,7 @@ abstract class Repository
      */
     public function findAllBy($conditions, $column)
     {
-        // 如果误传数组的话 取数组第一个值
-        $column = $this->firstKey($column);
-        if (!$data = $this->findAll($conditions, $this->firstField($column))) {
+        if (!$data = $this->findAll($conditions, $this->getFieldArray($column))) {
             return [];
         }
 
@@ -433,15 +428,16 @@ abstract class Repository
             return $conditions;
         }
 
-        foreach ($conditions as $key => $value) {
+        foreach ($conditions as $key => &$value) {
             if (strtolower($key) === 'or') {
-                $conditions[$key] = $this->filterCondition($value);
+                $value = $this->filterCondition($value);
             }
 
             if (Helper::isEmpty($value)) {
                 unset($conditions[$key]);
             }
         }
+        unset($value);
 
         return $conditions;
     }
@@ -805,16 +801,8 @@ abstract class Repository
             try {
                 $query = $query->{$column}($bindValue);
             } catch (\Exception $e) {
-                try {
-                    $column = Str::camel($column);
-                    $query  = $query->{$column}($bindValue);
-                } catch (\Exception $e) {
-                    // 目的是防止抛出错误，过滤非查询字段的处理
-                } catch (\Throwable $e) {
-                    // 目的是防止抛出错误，过滤非查询字段的处理
-                }
-            } catch (\Throwable $e) {
-                // 目的是防止抛出错误，过滤非查询字段的处理
+                $column = Str::camel($column);
+                $query  = $query->{$column}($bindValue);
             }
         }
 
@@ -1117,29 +1105,13 @@ abstract class Repository
     }
 
     /**
-     * 获取传入的单个字段信息
-     *
-     * @param $mixedValue
-     *
-     * @return string
-     */
-    public function firstKey($mixedValue)
-    {
-        if (is_array($mixedValue)) {
-            $mixedValue = Arr::get(array_values($mixedValue), 0);
-        }
-
-        return (string)$mixedValue;
-    }
-
-    /**
      * 获取查询单个字段数据信息
      *
      * @param string $column 查询的字段 （支持 parent.name ）
      *
      * @return array
      */
-    public function firstField($column)
+    public function getFieldArray($column)
     {
         $index = strpos($column, '.');
         if ($index === false) {
@@ -1149,7 +1121,7 @@ abstract class Repository
         $columnName  = substr($column, 0, $index);
         $columnValue = substr($column, $index + 1);
 
-        return [$columnName => $this->firstField($columnValue)];
+        return [$columnName => $this->getFieldArray($columnValue)];
     }
 
     /**

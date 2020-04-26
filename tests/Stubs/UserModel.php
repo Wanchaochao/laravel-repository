@@ -1,24 +1,30 @@
 <?php
 
-namespace Littlebug\Repository\Tests;
+namespace Littlebug\Repository\Tests\Stubs;
 
 use Illuminate\Database\Eloquent\Model;
 
-class TestModel extends Model
+/**
+ * Class UserModel
+ * @package Littlebug\Repository\Tests\Stubs
+ * @mixin Model
+ * @method static create($array)
+ */
+class UserModel extends Model
 {
     /**
      * 定义表名称
      *
      * @var string
      */
-    protected $table = 'test';
+    protected $table = 'users';
 
     /**
      * 定义主键
      *
      * @var string
      */
-    protected $primaryKey = 'id';
+    protected $primaryKey = 'user_id';
 
     /**
      * 定义表字段信息
@@ -26,12 +32,11 @@ class TestModel extends Model
      * @var array
      */
     public $columns = [
-        'id',
-        'title',
-        'views',
-        'code_url',
+        'user_id',
+        'name',
+        'email',
+        'age',
         'status',
-        'type',
         'created_at',
         'updated_at',
     ];
@@ -41,16 +46,15 @@ class TestModel extends Model
      *
      * @var array
      */
-    protected $guarded = ['id'];
+    protected $guarded = ['user_id'];
 
     /**
-     * 链接信息
+     * 关联文章信息
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function items()
+    public function posts()
     {
-        return $this->hasMany(QrCodeItem::class, 'qr_code_id', 'id')
-            ->where('status', 1);
+        return $this->hasMany(PostModel::class, 'user_id', 'user_id');
     }
 }
