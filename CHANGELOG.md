@@ -9,11 +9,13 @@ v2.0.0 2020-04-20
     2. `update` 方法返回修改受影响行数
     3. `delete` 方法返回返回删除行数
     4. `paginate` 方法返回 `\Illuminate\Pagination\Paginator` 对象
+    5. `firstField` 方法重命名为 `getFieldArray`
 - delete: 删除部分方法
     1. `success` 方法
     2. `error` 方法
     3. `getRelationDefaultFilters` 方法
     4. `getError` 方法
+    5. `firstKey` 方法
 - refactor: 命名空间修改为 `Littlebug\Repository`
 
 v1.0.17 2020-04-05
@@ -24,11 +26,7 @@ v1.0.17 2020-04-05
     ```php
     \Littlebug\Repository\Repository::instance()->find(['status' => 1]);
     ```
-    
-    - 添加 `__callStatic` 静态方法转发调用，model 自身的方法都可以通过静态方法调用
-    ```php
-    \Littlebug\Repository\Repository::first(['status' => 1]);
-    ```
+  
 - refactor: 代码优化
     - 删除类方法 `handleExtraQuery` 中拦截的 `offset`、`limit` 字段
     - 删除类方法 `conditionQuery` 中 `scope` 自定义方法的处理

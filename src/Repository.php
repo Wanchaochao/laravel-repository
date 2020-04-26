@@ -157,7 +157,7 @@ abstract class Repository
         }
 
         // 没有自定义查询的索引数组也要转为主键查询
-        if (is_array($conditions) && !Helper::isAssociative($conditions) && !$this->hasRaw($conditions)) {
+        if (is_array($conditions) && !Helper::isAssociative($conditions, false) && !$this->hasRaw($conditions)) {
             $values = array_values($conditions);
             // 主键为 int 类型使用 intval 处理
             if ($this->model->getKeyType() === 'int') {
