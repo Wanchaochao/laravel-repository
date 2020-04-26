@@ -185,5 +185,5 @@ $user = UserRepository::instance()->find(['status' => 1, 'id:gt' => 2]);
 
 ### 命令行参数详情
 
-![commands of generate code](https://wanchaochao.github.io/laravel-repository/docs/images/commands.png 'core of commands')
+![commands of generate code](https://wanchaochao.github.io/laravel-repository/docs/images/commands-zh-cn.png 'core of commands')
 

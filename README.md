@@ -186,7 +186,7 @@ $user = UserRepository::instance()->find(['status' => 1, 'id:gt' => 2]);
 
 ### Command Parameter Details
 
-![commands of generate code](https://wanchaochao.github.io/laravel-repository/docs/images/commands.png 'core of commands')
+![commands of generate code](https://wanchaochao.github.io/laravel-repository/docs/images/commands-en.png 'core of commands')
 
 #### thanks for [jinxing.liu](https://mylovegy.github.io/blog/) and seven 💐🌹
 
