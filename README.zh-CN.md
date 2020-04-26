@@ -46,7 +46,7 @@ composer require littlebug/laravel-repository:2.0.*
 ```
 然后执行 composer update
 
-### 1.2 使用命令行生成 `model` and `repository`
+### 1.2 使用命令行生成 `model` 和 `repository`
 
 假设你的数据库中存在 users, 或者你将 users 替换为你数据库中的表名称
 
