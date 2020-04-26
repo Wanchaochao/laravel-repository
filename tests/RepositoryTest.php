@@ -1,13 +1,11 @@
 <?php
 
-namespace Test;
+namespace Littlebug\Repository\Tests;
 
-use Littlebug\Repository\Repository;
 use PHPUnit\Framework\TestCase;
 
 class RepositoryTest extends TestCase
 {
-
     public function testCreate()
     {
 
@@ -115,7 +113,9 @@ class RepositoryTest extends TestCase
 
     public function testIsNotSelectAll()
     {
-
+        $response = new TestRepository(TestModel::class);
+        $columns = TestRepository::instance()->isNotSelectAll(['*'], 'users');
+        $this->assertEquals(true, $columns);
     }
 
     public function testFindBy()

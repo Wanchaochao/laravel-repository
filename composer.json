@@ -27,12 +27,17 @@
     },
     "require-dev": {
         "laravel/framework": "5.5.*",
-        "phpunit/phpunit": "~5.7"
+        "phpunit/phpunit": "~6.5"
     },
     "minimum-stability": "dev",
     "autoload": {
         "psr-4": {
             "Littlebug\\Repository\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Littlebug\\Repository\\Tests\\": "tests"
         }
     },
     "extra": {

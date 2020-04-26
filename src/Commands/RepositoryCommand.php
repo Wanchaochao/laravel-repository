@@ -6,7 +6,7 @@ namespace Littlebug\Repository\Commands;
  * Class RepositoryCommand 生成 repository 信息
  * @package Littlebug\Commands
  */
-class RepositoryCommand extends CoreCommand
+class RepositoryCommand extends BaseCommand
 {
     /**
      * The name and signature of the console command.

@@ -11,7 +11,7 @@ use Littlebug\Repository\Traits\CommandTrait;
  *
  * @package Littlebug\Commands
  */
-class ModelCommand extends CoreCommand
+class ModelCommand extends BaseCommand
 {
     use CommandTrait;
 

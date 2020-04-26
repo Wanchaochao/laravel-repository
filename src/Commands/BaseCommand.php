@@ -12,7 +12,7 @@ use Littlebug\Repository\Helper;
  *
  * @package Littlebug\Commands
  */
-abstract class CoreCommand extends Command
+abstract class BaseCommand extends Command
 {
     /**
      * @var string 定义相对路径开始位置

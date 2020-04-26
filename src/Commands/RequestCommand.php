@@ -9,7 +9,7 @@ use Littlebug\Repository\Traits\CommandTrait;
  * Class RequestCommand 生成 Request 文件
  * @package Littlebug\Commands
  */
-class RequestCommand extends CoreCommand
+class RequestCommand extends BaseCommand
 {
     use CommandTrait;
 
