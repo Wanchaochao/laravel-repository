@@ -11,7 +11,7 @@ laravel-repository
 [![GitHub forks](https://img.shields.io/github/forks/Wanchaochao/laravel-repository.svg)](https://github.com/Wanchaochao/laravel-repository/network)
 [![Laravel](https://img.shields.io/badge/Laravel%20%5E5.5-support-brightgreen.svg)](https://github.com/laravel/laravel)
 
-[切换中文](https://wanchaochao.github.io/laravel-repository/?page=home.zh-cn) | [Usage of Repository](https://wanchaochao.github.io/laravel-repository/?page=repository)
+[切换中文](./README.zh-CN.md) | [Usage of Repository](https://wanchaochao.github.io/laravel-repository/?page=repository)
 
 ## Introduction
 
@@ -64,8 +64,10 @@ The command will be at:
 ### 1.3 Using `repository` in the controller
 
 ```php
+<?php
 
-use App\Repositories\UserRepository;
+use Illuminate\Routing\Controller;
+use Littlebug\Repository\Tests\Stubs\UserRepository;
 
 class UsersController extends Controller 
 {
@@ -94,18 +96,21 @@ class UsersController extends Controller
     {
         // Add data and return an array
         $user = $this->userRepository->create(request()->all());
+        dump($user);
     }
     
     public function update()
     {
         // Modify the data and return the number of modified rows
         $row = $this->userRepository->update(request()->input('id'), request()->all());
+        dump($row);
     }
     
     public function delete()
     {
         // Deletes data and returns the number of rows deleted
         $row = $this->userRepository->delete(request()->input('id'));
+        dump($row);
     }
 }
 
@@ -114,6 +119,8 @@ class UsersController extends Controller
 In addition to the injection method invocation described above, you can also use static method invocation; As follows:
 
 ```php
+use Littlebug\Repository\Tests\Stubs\UserRepository;
+
 $paginate = UserRepository::instance()->paginate(['status' => 1]);
 
 // Query a piece of data and return an array
@@ -153,7 +160,6 @@ $user = UserRepository::instance()->find(['status' => 1, 'id:gt' => 2]);
 
 ### 1.5 More documentation
 
-[Please check more about `repository`](https://wanchaochao.github.io/laravel-repository/?page=repository)
 [Please check more about `repository`](https://wanchaochao.github.io/laravel-repository/?page=repository)
 
 ## More code generation commands
