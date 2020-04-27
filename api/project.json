@@ -1,48 +1,49 @@
 {
-  "code": 10000,
-  "data": {
-    "title": "laravel-repository 文档说明",
-    "home": "/laravel-repository/",
-    "top_menus": [
-      {
-        "title": "Home",
-        "url": "/?page=home"
-      },
-      {
-        "title": "GitHub",
-        "url": "https://github.com/Wanchaochao/laravel-repository"
-      },
-      {
-        "title": "Composer",
-        "url": "https://packagist.org/packages/littlebug/laravel-repository"
-      },
-      {
-        "title": "GitHub Documentation",
-        "url": "https://wanchaochao.github.io/laravel-repository/docs/home.html"
-      }
-    ],
-    "menus": [
-      {
-        "title": "Home",
-        "url": "/?page=home"
-      },
-      {
-        "title": "Repository Documentation",
-        "url": "/?page=repository"
-      },
-      {
-        "title": "文档说明",
-        "url": "/?page=home.zh-cn"
-      },
-      {
-        "title": "Repository 使用文档",
-        "url": "/?page=repository.zh-cn"
-      },
-      {
-        "title": "更新日志",
-        "url": "/?page=change"
-      }
-    ]
-  },
-  "msg": "ok"
+    "code": 10000,
+    "data": {
+        "change-language": true,
+        "title": "laravel-repository 文档说明",
+        "home": "/laravel-repository/",
+        "top_menus": [
+            {
+                "title": "Home",
+                "url": "/?page=home"
+            },
+            {
+                "title": "GitHub",
+                "url": "https://github.com/Wanchaochao/laravel-repository"
+            },
+            {
+                "title": "Composer",
+                "url": "https://packagist.org/packages/littlebug/laravel-repository"
+            },
+            {
+                "title": "GitHub Documentation",
+                "url": "https://wanchaochao.github.io/laravel-repository/docs/home.html"
+            }
+        ],
+        "menus": [
+            {
+                "title": "Home",
+                "url": "/?page=home"
+            },
+            {
+                "title": "Repository Documentation",
+                "url": "/?page=repository"
+            },
+            {
+                "title": "文档说明",
+                "url": "/?page=home.zh-cn"
+            },
+            {
+                "title": "Repository 使用文档",
+                "url": "/?page=repository.zh-cn"
+            },
+            {
+                "title": "更新日志",
+                "url": "/?page=change"
+            }
+        ]
+    },
+    "msg": "ok"
 }
