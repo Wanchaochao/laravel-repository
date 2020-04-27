@@ -1268,7 +1268,7 @@ abstract class Repository
             return $this->{$method}(...$arguments);
         }
 
-        // 第一个参数传递给自己 findCondition 方法
+        // 第一个参数传递给自己 newBuilder 方法
         $conditions = Arr::pull($arguments, 0, []);
 
         // 处理查询字段信息
