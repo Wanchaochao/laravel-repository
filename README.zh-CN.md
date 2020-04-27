@@ -135,8 +135,8 @@ $user = UserRepository::instance()->find(['status' => 1, 'id:gt' => 2]);
 | `findBy($conditions, $column)` | `null\|mixed`|查询一条数据的单个字段|
 | `findAll($conditions, $columns = ['*])` | `array`|查询多条数据|
 | `findAllBy($conditions, $column)` | `array`|查询多条数据的单个字段数组|
-| `first($conditions, $column)` | `null\|model`|查询一个对象|
-| `get($conditions, $column)` | `Collection`|查询集合|
+| `first($conditions, $column)` | `null\|model`|检索对象|
+| `get($conditions, $column)` | `Collection`|检索集合|
 
 #### 统计查询
 
@@ -154,7 +154,7 @@ $user = UserRepository::instance()->find(['status' => 1, 'id:gt' => 2]);
 |-------------|------|------------------|
 | `increment($conditions, $column, $amount = 1, $extra = [])` | `int` | 递增|
 | `decrement($conditions, $column, $amount = 1, $extra = [])` | `int` | 递减|
-| `firstOrCreate(array $attributes, array $value = [])` | `model` |查下一个对象不存在创建|
+| `firstOrCreate(array $attributes, array $value = [])` | `model` |检索对象不存在创建|
 | `updateOrCreate(array $attributes, array $value = [])` | `model` |修改数据不存在创建|
 
 ### 1.5 更多文档参考

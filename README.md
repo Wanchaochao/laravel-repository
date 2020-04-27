@@ -137,7 +137,7 @@ $user = UserRepository::instance()->find(['status' => 1, 'id:gt' => 2]);
 | `findAll($conditions, $columns = ['*])` | `array`|Query multiple data|
 | `findAllBy($conditions, $column)` | `array`|Querying a single field array of multiple data|
 | `first($conditions, $column)` | `null\|model`|Retrieve a single model|
-| `get($conditions, $column)` | `Illuminate\Database\Eloquent\Collection`|Retrieve the collection|
+| `get($conditions, $column)` | `Collection`|Retrieve the collection|
 
 #### Statistical query
 
