@@ -6,42 +6,38 @@
         "home": "/laravel-repository/",
         "top_menus": [
             {
-                "title": "Home",
+                "title": "home",
                 "url": "/?page=home"
             },
             {
-                "title": "GitHub",
+                "title": "github",
                 "url": "https://github.com/Wanchaochao/laravel-repository"
             },
             {
-                "title": "Composer",
+                "title": "composer",
                 "url": "https://packagist.org/packages/littlebug/laravel-repository"
             },
             {
-                "title": "GitHub Documentation",
+                "title": "github.document",
                 "url": "https://wanchaochao.github.io/laravel-repository/docs/home.html"
             }
         ],
         "menus": [
             {
-                "title": "Home",
+                "title": "start",
                 "url": "/?page=home"
             },
             {
-                "title": "Repository Documentation",
+                "title": "use",
                 "url": "/?page=repository"
             },
             {
-                "title": "文档说明",
-                "url": "/?page=home.zh-cn"
-            },
-            {
-                "title": "Repository 使用文档",
-                "url": "/?page=repository.zh-cn"
-            },
-            {
-                "title": "更新日志",
+                "title": "change.log",
                 "url": "/?page=change"
+            },
+            {
+                "title": "v1.0.*",
+                "url": "/?page=v1.0.*"
             }
         ]
     },
