@@ -1,12 +1,12 @@
 {
-  "/vendors.css": "/laravel-repository/vendors.08f5e130.chunk.css",
-  "/vendors.js": "/laravel-repository/vendors.35dcf72f.async.js",
-  "/umi.css": "/laravel-repository/umi.139ff3a2.css",
-  "/umi.js": "/laravel-repository/umi.5deddedf.js",
-  "/2.7fb4a18c.chunk.css": "/laravel-repository/2.7fb4a18c.chunk.css",
-  "/2.2d298ee7.async.js": "/laravel-repository/2.2d298ee7.async.js",
-  "/3.e830d4a6.chunk.css": "/laravel-repository/3.e830d4a6.chunk.css",
-  "/3.e98a49d3.async.js": "/laravel-repository/3.e98a49d3.async.js",
-  "/favicon.ico": "/laravel-repository/favicon.ico",
-  "/index.html": "/laravel-repository/index.html"
+  "/vendors.css": "vendors.a9456e9d.chunk.css",
+  "/vendors.js": "vendors.127f157f.async.js",
+  "/umi.css": "umi.1c0030f8.css",
+  "/umi.js": "umi.ec7f26e7.js",
+  "/2.dfa8048c.chunk.css": "2.dfa8048c.chunk.css",
+  "/2.eada938a.async.js": "2.eada938a.async.js",
+  "/3.ae2ee81c.chunk.css": "3.ae2ee81c.chunk.css",
+  "/3.21642f30.async.js": "3.21642f30.async.js",
+  "/favicon.ico": "favicon.ico",
+  "/index.html": "index.html"
 }
