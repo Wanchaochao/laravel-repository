@@ -186,13 +186,69 @@ $this->repository->findAll(['username:like' => 'test']);
 $this->repository->findAll(['username:like' => 'test%']);
 ```
 ### 5.3 使用预定义字段查询
+
+#### 预定义的字段
+
+|字段名称|字段值类型|说明|
+|-------|---------|----|
+|`force`|`string`|强制走指定索引|
+|`order`|`string or array`|指定排序条件|
+|`limit`|`int`|指定查询条数|
+|`offset`|`int`|指定跳转位置|
+|`group`|`string`|指定分组字段|
+|`groupBy`|`string`|指定分组字段|
+|`join`|`array`|查询join的参数，多个二维数组|
+|`leftJoin`|`array`|查询`leftJoin`的参数、多个二维数组|
+|`rightJoin`|`array`|查询`rightJoin`的参数、多个二维数组|
+|`joinWith`|`string or array`| 通过关联关系对应join查询|
+|`leftJoinWith`|`string or array`| 通过关联关系对应leftJoin查询|
+|`rightJoinWith`|`string or array`| 通过关联关系对应rightJoin查询|
+
 ### 5.4 为关联添加查询条件
 ### 5.5 使用关联关系join查询
 ### 5.6 使用join查询
 ### 5.7 使用model定义scope查询
 ### 5.8 使用原生SQL查询
 ### 5.9 总结
+```php
+$conditions = [
+    // 表中字段精准查询
+    'status' => 1,
+    'id'     => [1, 2, 3, 4], // 值为数组会自动转为in查询 `id` in (1, 2, 3, 4)
+    
+    // 预定义字段查询
+    'order' => 'id desc', // 指定排序字段和方式
+    'limit' => 10,        // 限制查询条件
+    'group' => 'id',      // 指定分组条件
+    'force' => 'name',    // 指定使用的索引
+  
+    // join 关联查询
+    'join'     => ['users', 'users.user_id', '=', 'orders.user_id'],
+    'leftJoin' => [
+        // 多个leftJoin
+        ['users as u1', 'u1.user_id', '=', 'orders.user_id'],
+        ['user_image', 'users_image.user_id', '=', 'users.user_id'],
+    ],
 
+    // 表达式查询
+    'username:like'      => 'test',                                         // 模糊查询
+    'created_at:between' => ['2019-01-02 00:00:00', '2019-01-03 23:59:59'], // 区间查询
+    'id:ge'              => 12, // id > 12
+    
+    // relation 关联查询,查询条件只对当前relation关联查询限制
+    'extInfo.address:like'   => '北京',
+    'extInfo.created_at:gte' => '2019-01-01 00:00:00',
+    
+    // 通过 relation 关联关系，添加join 查询
+    'joinWith'     => ['extInfo'],
+    // 关联表定义别名 alias, 如果没有别名，关联表和主表同名，使用自定义别名 `t1`, 多个同名以此地址 `t2`、`t3`
+    'leftJoinWith' => ['alias' => 'children'], 
+    
+    // scope 自定义查询
+    'address'  => '北京',      // 查找`scopeAddress($query, $address)`方法
+    'children' => [1, 2, 3],  // 查找`scopeChildren($query, $childrenIds)`方法
+];
+```
 ## 六、查询字段说明
 
 ### 6.1 查询本表字段
@@ -695,102 +751,30 @@ from
 inner join `user_ext` as `ext` on `ext`.`user_id` = `users`.`user_id`
 where `users`.`status` = 1 and `ext`.`user_id` = 1
 ```
+## 七、增删改的事件方法
 
-## 二 关于查询中的`$conditions`和`$columns`信息说明
+子类定义了这些方法，才会执行，如果想阻止主方法执行，并能让主方法返回错误信息，直接抛出错误就可以
 
->`$conditions`为`sql`查询定义查询条件，`$columns`为`sql`的`select`添加指定的查询字段
-
-### 2.1 `$conditions` 查询条件
-
-1. 支持字段精准查询(表中字段的查询)
-2. 预定有字段查询[参考](#211-预定义的字段)
-3. 支持表达式查询[参考](#15-查询进阶使用)
-4. 支持关联条件查询[参考](#156-给-model-的-relation-关联查询动态添加查询条件)
-5. 支持`model`的`scope`[参考](#152-使用-model-的-scope-查询)
-
-例如：
-
-```php
-$conditions = [
-    // 表中字段精准查询
-    'status' => 1,
-    'id'     => [1, 2, 3, 4], // 值为数组会自动转为in查询 `id` in (1, 2, 3, 4)
-    
-    // 预定义字段查询
-    'order' => 'id desc' // 指定排序字段和方式
-    'limit' => 10,       // 限制查询条件
-    'group' => 'id',     // 指定分组条件
-    'force' => 'name',   // 指定使用的索引
-  
-    // join 关联查询
-    'join'     => ['users', 'users.user_id', '=', 'orders.user_id'],
-    'leftJoin' => [
-        // 多个leftJoin
-        ['users as u1', 'u1.user_id', '=', 'orders.user_id'],
-        ['user_image', 'users_image.user_id', '=', 'users.user_id'],
-    ],
-
-    // 表达式查询
-    'username:like'      => 'test',                                         // 模糊查询
-    'created_at:between' => ['2019-01-02 00:00:00', '2019-01-03 23:59:59'], // 区间查询
-    'id:ge'              => 12, // id > 12
-    ...
-    
-    // relation 关联查询,查询条件只对当前relation关联查询限制
-    'extInfo.address:like'   => '北京',
-    'extInfo.created_at:gte' => '2019-01-01 00:00:00',
-    
-    // 通过 relation 关联关系，添加join 查询
-    'joinWith'     => ['extInfo'],
-    // 关联表定义别名 alias, 如果没有别名，关联表和主表同名，使用自定义别名 `t1`, 多个同名以此地址 `t2`、`t3`
-    'leftJoinWith' => ['alias' => 'children'], 
-    
-    // scope 自定义查询
-    'address'  => '北京',     // 查找`scopeAddress($query, $address)`方法
-    'children' => [1, 2, 3],  // 查找`scopeChildren($query, $childrenIds)`方法
-];
-```
-
-#### 2.1.1 预定义的字段
-
-|字段名称|字段值类型|说明|
-|-------|---------|----|
-|`force`|`string`|强制走指定索引|
-|`order`|`string or array`|指定排序条件|
-|`limit`|`int`|指定查询条数|
-|`offset`|`int`|指定跳转位置|
-|`group`|`string`|指定分组字段|
-|`join`|`array`|查询join的参数，多个二维数组|
-|`leftJoin`|`array`|查询`leftJoin`的参数、多个二维数组|
-|`rightJoin`|`array`|查询`rightJoin`的参数、多个二维数组|
-|`joinWith`|`string or array`| 通过关联关系对应join查询|
-|`leftJoinWith`|`string or array`| 通过关联关系对应leftJoin查询|
-|`rightJoinWith`|`string or array`| 通过关联关系对应rightJoin查询|
-
-## 四 增删改的事件方法
-
->子类定义了这些方法，才会执行，如果想阻止主方法执行，并能让主方法返回错误信息，直接抛出错误就可以
-
-### 4.1 新增的事件 在`create($data)` 执行的时候触发
+### 7.1 新增的事件 在`create($data)` 执行的时候触发
 
 1. `beforeCreate($data)` 新增之前
 
 2. `afterCreate($data, $news)`  新增之后
 
-#### 4.1.1 参数说明
+#### 7.1.1 参数说明
 
 |参数名称    |参数类型| 参数说明 |
 |---------------|-------------|----------|
 |`$data`|`array`|过滤掉干扰数据(非表中字段的数据)的数组|
 |`$news`|`array`|新增成功调用 `model->toArray()` 数组|
 
-### 4.2 修改的事件 在`update($conditions, array $data)` 执行的时候触发
+### 7.2 修改的事件 在`update($conditions, array $data)` 执行的时候触发
 
 1. `beforeUpdate($conditions, $data)` 修改之前
  
 2. `afterUpdate($conditions, $data, $row)` 修改之后
 
-#### 4.2.1 参数说明
+#### 7.2.1 参数说明
 
 |参数名称    |参数类型| 参数说明 |
 |---------------|-------------|----------|
@@ -798,20 +782,20 @@ $conditions = [
 |`$data`|`array`|过滤掉干扰数据(非表中字段的数据)的数组|
 |`$row`|`int`|修改受影响的行数|
 
-### 4.3 删除的事件 在`delete($conditions)` 执行的时候触发
+### 7.3 删除的事件 在`delete($conditions)` 执行的时候触发
 
 1. `beforeDelete($conditions)` 删除之前
 
 2. `afterDelete($conditions, $row)` 删除之后
 
-#### 4.3.1 参数说明
+#### 7.3.1 参数说明
 
 |参数名称    |参数类型| 参数说明 |
 |---------------|-------------|----------|
 |`$conditions`|`array`|处理了主键查询后的查询条件数组|
 |`$row`       |`int`  |删除受影响的行数|
 
-### 4.4 关于`$conditions` 处理为主键查询
+### 7.4 关于`$conditions` 处理为主键查询
 
 不为空的 字符串、整数、浮点数、索引数组 都会被转为主键查询
 
@@ -822,26 +806,44 @@ $conditions = '1';          // 会被转为 ['id' => '1']
 $conditions = [1, 2, 3];    // 会被转为 ['id' => [1, 2, 3, 4]]
 ```
 
-## 五 其他说明
+## 八、其他说明
 
-### 5.1 关于`repository`的`create`、`update`、`delete` 的返回
+### 8.1 查询返回说明
 
-这三个函数不管处理成功和失败，返回的都是数组信息。因为`php`不能像`golang`那样,
-可以多返回，而在我们逻辑中，经常需要知道执行错误了，是什么样的错误信息，所以这里
-都是通过数组的方式返回，这样就解决多值返回问题。这也是受`golang`的影响！不过
-`laravel`其实更推荐是通过抛出错误方式，去统一管理所有的错误信息。所以如果不喜欢
-现在数组的返回方式的话，只需要重写 `success($data, $message === 'ok')` 
-和 `error($message, $data = [])` 这两个方法就好了
+#### 8.1.1 查询返回数组的方法
+返回的是model->toArray()
 
-### 5.2 `repository` 查询 `find`, `findAll` 查询结果都是 `model->toArray()` 的数组，并不是 `model` 对象
+##### create(array $data)
+##### find($conditions, $columns = [])
+##### findAll($conditions, $columns = [])
 
-### 5.3 对于`model`的要求
+#### 8.1.2 返回的是对象的方法
+返回的model对象或者集合
+##### first($conditions, $columns = [])
+##### firstOrFail($conditions, $columns = [])
+##### firstOrCreate($attributes, $values)
+##### updateOrCreate($attributes, $values)
+##### get($conditions, $columns = [])
+
+### 8.2 对于`model`的要求
 
 1. `create` 和 `update` 都是批量赋值，需要`model`定义批量赋值的白名单`$fillable` 或者 黑名单 `$guarded`
 2. 需要定义 `$columns` 字段信息，表示表中都有哪些字段
 
-    ```php
-    public $columns = ['id', 'title', 'content', 'created_at', 'updated_at'];
-    ```
+```php
+class Posts extends \Illuminate\Database\Eloquent\Model 
+{
+    public $guarded = ['id'];
     
-    >虽然这一步是非必须的，但定义了`$columns`会减少一次`SQL`查询的代价
+    public $columns = [
+        'id', 
+        'title', 
+        'content', 
+        'created_at', 
+        'updated_at'
+    ];
+}
+
+```
+
+>虽然这一步是非必须的，但定义了`$columns`会减少一次`SQL`查询的代价
