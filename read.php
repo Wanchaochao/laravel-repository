@@ -36,6 +36,9 @@ if (is_setting($params, 'read')) {
 
     if (is_setting($params, 'change')) {
         $data['data']['change'] = "[TOC]\n" . file_get_contents(GITHUB_URL);
+    } else {
+        $old_data               = json_decode(file_get_contents('./api/content.json'), true);
+        $data['data']['change'] = isset($old_data['data']['change']) ? $old_data['data']['change'] : '';
     }
 
     $dir = './docs';
@@ -50,9 +53,9 @@ if (is_setting($params, 'read')) {
             $str  = substr($file, -3);
             $path = $dir . '/' . $file;
             if (is_file($path) && $str == '.md') {
-                $index                = str_replace('.md', '', $file);
-                $content              = file_get_contents($path);
-                $content              = preg_replace('/\(.\/(.*?)\.html\)/', '(/?page=${1})', $content);
+                $index   = str_replace('.md', '', $file);
+                $content = file_get_contents($path);
+                $content = preg_replace('/\(.\/(.*?)\.html\)/', '(/?page=${1})', $content);
                 // 图片处理
                 if (substr($index, 0, 4) === 'home') {
                     $content = preg_replace('/\)\n\[/', ')[', $content);

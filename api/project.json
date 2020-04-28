@@ -32,6 +32,10 @@
                 "url": "/?page=repository"
             },
             {
+                "title": "api",
+                "url": "/?page=api"
+            },
+            {
                 "title": "change.log",
                 "url": "/?page=change"
             },

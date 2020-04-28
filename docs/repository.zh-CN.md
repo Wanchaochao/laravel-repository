@@ -3,164 +3,153 @@ Repository 基本使用
 
 [TOC]
 
-## 一 增删改查
+## 一、新增数据
 
-### 1.1 新增数据 `create(array $data)`
+使用 `create(array $data)` 方法, 返回的 `model->toArray()` 数组
 
 ```php
-/**
- * 返回值说明
- * @param boolean $ok   true 表示成功
- * @param string  $msg  操作的提示信息
- * @param array   $data 新增成功后调用 model->toArray() 返回的数据， 失败为null 
- */
-list($ok, $msg, $data) = $this->repository->create([
+$user = $this->repository->create([
     'user_name' => 'Tony',
     'age'       => 18,
     'sex'       => 1,
-    'address    => 'America'
+    'address'    => 'America'
 ]);
 
+// create 方法能够过滤非model字段的数据、所以你可以直接使用request()->all();
+$user = UserRepository::instance()->create(request()->all());
 ```
 
-### 1.2 编辑数据 `update($conditions, array $data)`
+## 二、修改数据
+
+使用 `update($conditions, array $update_data)` 方法、返回受影响行数
 
 ```php
-/**
- * 返回值说明
- * @param boolean $ok   true 表示成功
- * @param string  $msg  操作的提示信息
- * @param int     $rows 表示修改数据条数
- */
-list($ok, $msg, $rows) = $this->repository->update(1, ['type' => 3, 'money' => 9999]); // 主键修改 pk = 1
+// 主键单个修改
+$row = $this->repository->update(1, ['user_name' => 'Tony', 'status' => 2]);
 
-// $this->repository->update(['id:gt' => 10], ['type' => 3, 'money' => 9999]);  // 条件修改 id > 10
+// 主键多个修改
+$row = $this->repository->update([1, 2, 3, 4], ['user_name' => 'Tony', 'status' => 2]);
 
-// $this->repository->update([1, 2, 3, 4], ['type' => 3, 'money' => 9999]); // 主键修改 pk in (1, 2, 3, 4)
+// 表达式查询修改
+$row = $this->repository->update([
+    'id:gt'  => 2,  
+    'status' => 1,
+], ['user_name' => 'Tony', 'status' => 2]);
+```
+> 使用的是批量修改方式，但**能够使用模型的修改器**
+> `$conditions` 修改条件支持，主键、数组、表达式
+
+## 三、删除数据
+
+使用 `delete($conditions)` 方法、返回受影响行数
+
+```php
+// 主键单个删除
+$row = $this->repository->delete(1);
+
+// 主键多个删除
+$row = $this->repository->delete([1, 2, 3, 4, 5]);
+
+// 表达式数组删除
+$row = $this->repository->delete(['id:gt' => 2, 'status' => 1]);
 ```
 
-#### 使用的是批量删除，模型的事件是不会触发的；但是修改数据能够使用上模型的修改器
+## 四、查询数据
 
-### 1.3 删除数据 `delete($conditions)`
+所有查询方法中 `$conditions` 表示查询条件， `$columns` 表示查询字段
 
-```php
-/**
- * 返回值说明
- * @param boolean $ok   true 表示成功
- * @param string  $msg  操作的提示信息
- * @param int     $rows 表示删除数据条数
- */
-list($ok, $msg, $rows) = $this->repository->delete(1); // 主键删除 pk = 1
+### 4.1 find 查询单个
 
-// $this->repository->delete(['id:gt' => 10]);  // 条件删除 id > 10
-
-// $this->>repository->delete([1, 2, 3, 4, 5]); // 主键删除 pk in (1, 2, 3, 4)
-``` 
-
-### 1.4 查询数据
-
-#### 1.4.1 查询单条数据
-
-1. 查询单条数据 find($conditions, $columns = [])
-
-    ```php
-    $item = $this->repository->find(1);  // 主键查询 pk = 1
-    ```
-
-2. 查询单个字段 findBy($conditions, $column)
-
-    ```php
-    $name = $this->repository->findBy(1, 'name'); // 查某个字段
-    ```
-
-#### 1.4.2 查询多条数据
-
-1. 查询多条数据 findAll($conditions, $columns = [])
-
-    ```php
-    $items = $this->repository->findAll([1, 2, 3, 4]); // 主键查询 pk in (1, 2, 3, 4)
-    ```
-
-2. 查询多条数据的单个字段 findAllBy($conditions, $column)
-
-    ```php
-    $usernames = $this->repository->findAllBy([1, 2, 3], 'username'); // 查询某个字段的所有值
-    ```
-
-#### 1.4.3 分页查询
-
-分页查询 paginate($conditions = [], $columns = [], $size = 10, $current = null)
+> `find($conditions, $columns = [])` 查询单条数据
 
 ```php
-$list = $this->repository->paginate(['status' => 1], ['id', 'name', ...]);
+// 主键查询
+$item = $this->repository->find(1); 
+
+// 表达式数组查询
+$item = $this->repository->find(['status' => 1, 'age:gt' => 2]); 
 ```
 
-#### 1.4.4 使用`findWhere(array $where, array $columns = [])`构建复杂的查询
+> `findBy($conditions, $column)` 查询单个字段
 
 ```php
-    $users = $this->userRepository->findWhere([
-        'and',
-        ['or', ['username:auto_like' => 'test'], ['nick_name', 'like', '%test%']],
-        ['level' => 5],
-        ['status', '=', 1],
-    ])->get();
+$name = $this->repository->findBy(1, 'username');
 ```
 
-上面查询生成的SQl
+### 4.2 findAll 查询多个
 
-```sql
-select * from `users` where (
-    (`users`.`username` like '%test%' or `users`.`nick_name` like '%test%') 
-    and `users`.`level` = 5 
-    and `users`.`status` = 1
-)
-```
-
-##### 1.4.4.1 使用说明
-- 只能使用数组查询
-- 数组的第一个元素，确定数组中其他查询条件的连接方式 `and` 或 `or`； `and`可以忽悠不写
-
-    ```php
-    $where = [
-        // 第一个元素，如果是 and 查询，可以不用写
-        ['level' => 5],
-        ['status' => 1],
-        [
-            // or 表示 数组中，下面查询条件使用 or 连接 
-            'or', 
-            ['username' => 'test'], 
-            ['name' => 'test123']
-        ],
-    ];
-    ```
-- 数组中的查询条件，必须使用数组方式 
-    - `['字段', '表达式', '查询值']` 
-    - `['字段:表达式' => '查询值']` 
-    - `['字段' => '查询值']`
-    
-    >建议使用`['字段', '表达式', '查询值']` 比较直观
-    
-### 1.5 查询进阶使用
-
-#### 1.5.1 使用表达式查询
-
-> 使用方式
-
-`字段`:`表达式` => `对应查询的值`
-
-例如:
+> `findAll($conditions, $columns = [])` 查询多条数据
 
 ```php
+// 主键查询
+$item = $this->repository->findAll([1, 2, 3, 4, 5]); 
 
-$items = $this->repository->findAll([
-    'id:neq'    => 1,
-    'name:like' => '%test%'
+// 表达式数组查询
+$item = $this->repository->findAll(['status' => 1, 'age:gt' => 2, 'id' => [1, 2, 3, 4]]); 
+```
+
+> `findAllBy($conditions, $column)` 查询单个字段
+
+```php
+$names = $this->repository->findAllBy([1, 2, 3, 4], 'username');
+```
+
+### 4.3 paginate 分页查询
+
+> `paginate($conditions, $columns = [], $size = 10, $current = null)` 分页查询， 返回分页对象
+> `$size` 表示每页多少条 `$current` 表示当前页(不传自动获取请求参数的 `page` 的值)
+
+```php
+$pagination = $this->repository->paginate(['status' => 1], ['id', 'name', 'age', 'status']);
+```
+
+### 4.4 filter系列过滤空值查询
+
+在我们业务场景中，经常会根据请求参数来判断是否添加指定条件；例如常见的后台搜索列表业务中：
+
+```php
+$conditions = [];
+if ($username = request()->input('username')) {
+    $conditions['username:like'] = $username;
+}
+
+if ($status = request()->input('status')) {
+    $conditions['status'] = $status;
+}
+
+if ($age = request()->input('age')) {
+    $conditions['age:gt'] = $age;
+}
+
+$pagination = $this->repositpory->paginate($conditions);
+```
+
+使用 `filter` 系列方法可以简化我们的代码， `filter` 系列方法会自动过滤掉查询条件中的空值；上述代码使用 `filterPaginate`写法
+> 空字符，null, 空数组、' ' 会被认为是空值
+
+```php
+$pagination = $this->repositpory->filterPaginate([
+    'username:like' => request()->input('username'),
+    'status'        => request()->input('status'),
+    'age:gt'        => request()->input('age'),
 ]);
-
-// 对应生成的sql: `id` != 1 and `name` like '%test%' 
 ```
 
-##### 1.5.1.1  目前支持的表达式
+其他`filter`系列方法:
+
+#### filterFind($conditions, $columns = [])
+#### filterFindBy($conditions, $column)
+#### filterFindAll($conditions, $columns = [])
+#### filterFindAllBy($conditions, $column)
+
+## 五、查询条件说明
+
+对于查询条件 `$conditions` 说明
+
+### 5.1 简单主键、数组查询
+### 5.2 使用表达式查询
+
+#### 目前支持的表达式：
 
 | 表达式 | 含义 | 特别说明 |
 |:------|:--------------|:-----|
@@ -181,65 +170,62 @@ $items = $this->repository->findAll([
 | between| 区间查询(between)  | 传入数据会强转为数组| 
 | not_between| 不在区间查询(not between)  | 传入数据会强转为数组| 
 | not between| 不在区间查询(not between)  | 传入数据会强转为数组| 
-| like   | 模糊查询包含(like)  | 传入数据会强转为字符串 | 
-| not_like   | 模糊查询不包含(not like)  | 传入数据会强转为字符串 | 
-| not like   | 模糊查询不包含(not like)  | 传入数据会强转为字符串 | 
+| like   | 模糊查询包含(like)  | 会自动判断添加 % 模糊查询；传入数据会强转为字符串 | 
+| not_like   | 模糊查询不包含(not like)  | 会自动判断添加 % 模糊查询；传入数据会强转为字符串 | 
+| not like   | 模糊查询不包含(not like)  | 会自动判断添加 % 模糊查询；传入数据会强转为字符串 | 
 | rlike      | 模糊查询包含(rlike)   |  | 
 | <>         | 不等于(<>)            |  | 
-| auto_like  | 模糊查询(like)        | 会自动判断添加 % 模糊查询
 
-##### 1.5.1.2 关于 `auto_like` 查询说明
+#### 关于 `like`, `not_like` 查询说明
 
 ```php
 // 没有添加前后模糊查询，会自动加上 username like '%test%'
-$this->repository->findAll(['username:auto_like' => 'test']); 
+$this->repository->findAll(['username:like' => 'test']); 
 
 // 添加了前缀或者后缀模糊查询，那么不处理 username like 'test%'
-$this->repository->findAll(['username:auto_like' => 'test%']);
-
+$this->repository->findAll(['username:like' => 'test%']);
 ```
+### 5.3 使用预定义字段查询
+### 5.4 为关联添加查询条件
+### 5.5 使用关联关系join查询
+### 5.6 使用join查询
+### 5.7 使用model定义scope查询
+### 5.8 使用原生SQL查询
+### 5.9 总结
 
-##### 1.5.1.3 你可以像下面这样使用表达式:
+## 六、查询字段说明
+
+### 6.1 查询本表字段
+### 6.2 查询关联表字段
+### 6.3 查询关联表统计
+### 6.4 查询join表字段
+### 6.5 查询原生SQL字段
+### 6.6 总结
 
 ```php
-// 查询大于10的账号
-$this->repository->findAll(['id:gt' => 10]);
+$columns = [
 
-// 查询不等于10的账号
-$this->repository->findAll(['id:neq' => 10]);
+    // 本表的字段查询
+    'id',
+    'username',
 
-// 查询id是1,2,3,4,5的这些数据
-$this->repository->findAll(['id:in' => [1, 2, 3, 4, 5]);
-// or
-$this->repository->findAll(['id' => [1, 2, 3, 4, 5]])
+    // 关联表字段查询
+    'ext'      => ['*'], // 对应`model`定义的 ext 关联
+    'children' => ['*'], // 对应`model`定义的 children 关联
+    
+    // 关联表统计字段查询
+    'ext_count',      // 对应`model`定义的 ext 关联
+    'children_count', // 对应`model`定义的 children 关联
 
-// 查询创建时间在2019年的数据
-$this->repository->findAll(['created_at:between' => 
-    [
-        '2019-01-01 00:00:00', 
-        '2020-01-01 00:00:00',
-    ]
-]);
-``` 
-
-##### 1.5.1.4 如果你记不住表达式,那么你同样可以直接使用操作符查询也是一样的
-
-```php
-$item = $this->repository->findAll([
-    'id:!='         => 2,
-    'username:like' => '%test%',
-    'status:>='     => 4,
-])
+    // join表字段
+    'users.username',
+    'users.age',
+    
+    // 原生SQL字段
+    DB::raw('SUM(`users`.`age`) AS `sum_age`'),
+    DB::raw('COUNT(*) AS `total_count`'), 
+];
 ```
-
-**同样是 查询字段:操作符 => '查询的值'**
-
-##### 1.5.1.5 其他说明
-
-`update` 和 `create` 方法同样支持表达式查询，都是使用`findCondition($condiitons)` 方法处理
-
-1. [update 的使用说明](#12-编辑数据-updateconditions-array-data)
-2. [delete 的使用说明](#13-删除数据-deleteconditions)
 
 #### 1.5.2 使用 `model` 的 `scope` 查询
 
@@ -781,121 +767,6 @@ $conditions = [
 |`leftJoinWith`|`string or array`| 通过关联关系对应leftJoin查询|
 |`rightJoinWith`|`string or array`| 通过关联关系对应rightJoin查询|
 
-### 2.2 `$columns` 查询的字段信息
-
-1. 支持本表字段查询
-2. 支持关联统计字段查询
-3. 支持关联数据字段查询
-
-```php
-$columns = [
-
-    // 本表的字段查询
-    'id',
-    'username',
-
-    // 关联表的字段查询
-    'users.username',
-    'users.age',
-    
-    // 使用表达式查询
-    DB::raw('SUM(`users`.`age`) AS `sum_age`'),
-    
-    // 关联统计字段查询
-    'extInfo_count',  // 对应`model`定义的 extInfo 关联
-    'children_count', // 对应`model`定义的 children 关联
-    
-    // 关联表字段查询
-    'extInfo'  => ['*'], // 对应`model`定义的 extInfo 关联
-    'children' => ['*'], // 对应`model`定义的 children 关联
-];
-```
-
-## 三 方法列表
-
-### 3.1 方法列表
-
->repository所有方法都是对外的，这里只列出常用方法
-
-|方法名称|返回值|方法说明|
-|-------|-----|-------|
-|`find($conditions, $columns = [])`|`array or false`|查询一条数据|
-|`findBy($conditions, $column)`|`mixed`|查询单条数据的单个字段|
-|`findAll($conditions, $columns = [])`|`array`|查询多条数据|
-|`findAllBy($conditions, $column)`|`array`|查询多条数组的单个字段数组|
-|`filterFind($conditions, $columns = [])`|`array or false`|过滤查询条件中的空值查询一条数据|
-|`filterFindAll($condtions, $columns = [])`|`array`|过滤查询条件中的空值查询多条数据|
-|`paginate($conditions = [], $columns = [], $size = 10, $current = null)`|`array`|分页查询数据|
-|`filterPaginate($conditions = [], $columns = [], $size = 10, $current = null)`|`array`|过滤查询条件中的空值分页查询数据|
-|`getFilterModel($conditions, $columns = [])`|`Illuminate\Database\Eloquent\Model`|获取已经过滤处理查询条件的`model`|
-|`findCondition($conditions = [], $columns = [])`|`Illuminate\Database\Eloquent\Model`|获取已经处理查询条件的`model`(**上面所有查询方法都基于这个方法**)|
-|`create(array $data)`|`array`|添加数据|
-|`update($conditions, array $data)`|`array`|修改数据(使用的是批量修改)|
-|`delete($conditions)`|`array`|删除数据(使用的是批量删除)|
-|`findWhere(array $where, $columns = [])`|`Illuminate\Database\Eloquent\Model`|获取通过数组查询的`model`
-
-#### 参数说明
-
-|参数名称    |参数类型| 参数说明 |
-|---------------|-------------|----------|
-|`$conditions`|`array or string or int`|查询条件(`string or int or 索引数组[1, 2, 3, 4]`会自动转换为主键查询)|
-|`$columns`|`array`|查询的字段数组|
-|`$column`|`string`|查询的字段名称|
-|`$data`|`array`|创建或者修改的数组数据信息|
-|`$where`|`array`|查询条件|
-
-### 3.2 支持`model`自带方法
-
-|方法名称    |返回值| 方法说明 |
-|---------------|-------------|----------|
-|`getConnection()`|`Illuminate\Database\Connection`|获取连接信息|
-|`insert(array $values)`|`boolean`|新增数据(支持批量新增)|
-|`insertGetId(array $values)`|`int`|新增数据并获取新增ID|
-|`firstOrCreate(array $attributes, array $value = [])`|`Illuminate\Database\Eloquent\Model`|查询数据，不存在那么新增一条数据|
-|`firstOrNew(array $attributes, array $value = [])`|`Illuminate\Database\Eloquent\Model`|查询数据、不存在那么`new`出来|
-|`updateOrCreate(array $attributes, array $value = [])`|`Illuminate\Database\Eloquent\Model`|修改数据，不存在那么新增一条数据|
-|`findOrFail($id, $columns = ['*'])`|`Illuminate\Database\Eloquent\Model`|通过主键查询数据，不存在抛出错误|
-|`findOrNew($id, $columns = ['*'])` |`Illuminate\Database\Eloquent\Model`|通过主键查询数据，不存在`new`出来|
-|`findMany($ids, $columns = ['*'])`|`\Illuminate\Database\Eloquent\Collection`|通过主键数组查询多条数据|
-
-#### 参数说明
-
-|参数名称    |参数类型| 参数说明 |
-|---------------|-------------|----------|
-|`$attributes`|`array`|`model`的字段信息(查询条件)|
-|`$value`|`array or null`|`model`的其他字段信息(不参与查询、参与新增和`new`)
-|`$values`|`array`|新增数据需要的字段 => 值 数组信息
-|`$id`|`int or string`|主键ID值|
-|`$ids`|`array`|主键ID数组|
-|`$columns`|`array`|查询的字段信息|
-
-### 3.3 通过`findCondition($conditions)`查询后转换为`model`查询方法
-
-|方法名称|返回值|方法说明|
-|---------------|-------------|----------|
-|`first($conditions, $columns = ['*'])`|`Illuminate\Database\Eloquent\Model or null`|查询一条数据|
-|`get($conditions, $columns = ['*'])`|`Illuminate\Database\Eloquent\Collection`|查询多条数据|
-|`pluck($conditions, $column, $key = null)`|`Illuminate\Support\Collection`|查询单个字段信息|
-|`firstOrFail($conditions)`|`Illuminate\Database\Eloquent\Model`|查询一条数据、没有那么抛出错误|
-|`count($conditions = [])`|`int`|统计查询|
-|`max($conditions, $column)`|`int or mixed`|最大值查询|
-|`min($conditions, $column)`|`int or mixed`|最小值查询|
-|`avg($conditions, $column)`|`int or mixed`|平均值查询|
-|`sum($conditions, $column)`|`int or mixed`|求和查询|
-|`toSql($conditions)`|`string`|获取执行的`SQL`|
-|`getBindings($conditions = [])`|`array or mixed`|获取查询绑定的参数|
-|`increment($conditions, $column, $amount = 1)`|`int`|指定字段累加|
-|`decrement($conditions, $column, $amount = 1)`|`int`|指定字段累减|
-
-#### 参数说明
-
-|参数名称    |参数类型| 参数说明 |
-|---------------|-------------|----------|
-|`$conditions`|`array or string or int`|查询条件(`string or int or 索引数组[1, 2, 3, 4]`会自动转换为主键查询)|
-|`$columns`|`array`|查询的字段数组|
-|`$column`|`string`|查询的字段名称|
-|`$key`|`string or null`|查询单个字段组成数组的`key`(索引下标使用字段)|
-
 ## 四 增删改的事件方法
 
 >子类定义了这些方法，才会执行，如果想阻止主方法执行，并能让主方法返回错误信息，直接抛出错误就可以
@@ -946,19 +817,9 @@ $columns = [
 
 ```php
 // 假设表的主键为id
-
 $conditions = 1;            // 会被转为 ['id' => 1]
 $conditions = '1';          // 会被转为 ['id' => '1']
 $conditions = [1, 2, 3];    // 会被转为 ['id' => [1, 2, 3, 4]]
-
-// 关联数组中，只要有一个元素为索引下标的，会被认为是 索引数组
-
-$conditions = ['id' => 1, 'name' => '123', '789']
-
-同样会被认为是索引数组，会转为
-
-$conditions = ['id' => [1, '123', '789']]
-
 ```
 
 ## 五 其他说明
@@ -984,6 +845,3 @@ $conditions = ['id' => [1, '123', '789']]
     ```
     
     >虽然这一步是非必须的，但定义了`$columns`会减少一次`SQL`查询的代价
-
-是不是非常简洁方便 ^_^ 😋
-后面会继续补充
