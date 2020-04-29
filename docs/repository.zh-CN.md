@@ -137,44 +137,84 @@ $pagination = $this->repositpory->filterPaginate([
 
 其他`filter`系列方法:
 
-#### filterFind($conditions, $columns = [])
-#### filterFindBy($conditions, $column)
-#### filterFindAll($conditions, $columns = [])
-#### filterFindAllBy($conditions, $column)
+#### filterFind($conditions, $columns = []) 查询单条数据
+#### filterFindBy($conditions, $column) 查询单个字段
+#### filterFindAll($conditions, $columns = []) 查询多条数据
+#### filterFindAllBy($conditions, $column) 查询单个字段数组
 
 ## 五、查询条件说明
 
-对于查询条件 `$conditions` 说明
+对于查询条件 `$conditions` 说明,**包括修改和删除的查询条件**
 
 ### 5.1 简单主键、数组查询
+
+就是简单的 [key => value] 数组方式
+
+```php
+// 简单主键查询
+$user = $this->repositpory->find(1);
+// 数组主键查询
+$users = $this->repositpory->findAll([1, 2, 3]);
+// 简单[key => value]查询
+$users = $this->repositpory->findAll([
+    'status' => 1,
+    'name'   => 'test',
+    'type'   => [1, 2, 3], // 会自动转为 in 查询
+]);
+```
+
 ### 5.2 使用表达式查询
+
+通过定义的表达式、或者操作符查询
+
+1. 表达式定义方式：['查询字段:表达式' => '查询值']
+2. 操作符定义方式：['查询字段:操作符' => '查询值']
+
+```php
+// 使用表达式
+$user = $this->repositpory->findAll([
+    'parent_id:eq'       => 0,         // =
+    'status:in'          => [1, 2, 3], // in
+    'id:gt'              => 100,       // >
+    'age:lt'             => 35,        // <
+    'created_at:between' => [date('Y-m-d 00:00:00'), date('Y-m-d 23:59:59')],
+]);
+
+// 使用操作符
+$users = $this->repositpory->findAll([
+    'status:in'          => [1, 2, 3], // in
+    'id:>='              => 100,       // >
+    'age:<='             => 35,        // <
+    'created_at:between' => [date('Y-m-d 00:00:00'), date('Y-m-d 23:59:59')],
+]);
+```
 
 #### 目前支持的表达式：
 
-| 表达式 | 含义 | 特别说明 |
-|:------|:--------------|:-----|
-| eq    | 等于(=)      | |
-| neq   | 不等于(!=)   | |
-| ne    | 不等于(!=)   | |
-| gt    | 大于(>)      | |
-| egt    | 大于等于(>=) | |
-| gte    | 大于等于(>=) | |
-| ge     | 大于等于(>=) | |
-| lt     | 小于(<)      | |
-| le     | 小于等于(<=)  | |
-| lte    | 小于等于(<=)  | |
-| elt    | 小于等于(<=)  | |
-| in     | IN 查询      | 传入数据会强转为数组| 
-| not in | NOT IN 查询  | 传入数据会强转为数组| 
-| not_in | NOT IN 查询  | 传入数据会强转为数组| 
-| between| 区间查询(between)  | 传入数据会强转为数组| 
-| not_between| 不在区间查询(not between)  | 传入数据会强转为数组| 
-| not between| 不在区间查询(not between)  | 传入数据会强转为数组| 
-| like   | 模糊查询包含(like)  | 会自动判断添加 % 模糊查询；传入数据会强转为字符串 | 
-| not_like   | 模糊查询不包含(not like)  | 会自动判断添加 % 模糊查询；传入数据会强转为字符串 | 
-| not like   | 模糊查询不包含(not like)  | 会自动判断添加 % 模糊查询；传入数据会强转为字符串 | 
-| rlike      | 模糊查询包含(rlike)   |  | 
-| <>         | 不等于(<>)            |  | 
+| 表达式      | 含义                      | 特别说明                                          |
+| :---------- | :------------------------ | :------------------------------------------------ |
+| eq          | 等于(=)                   |                                                   |
+| neq         | 不等于(!=)                |                                                   |
+| ne          | 不等于(!=)                |                                                   |
+| gt          | 大于(>)                   |                                                   |
+| egt         | 大于等于(>=)              |                                                   |
+| gte         | 大于等于(>=)              |                                                   |
+| ge          | 大于等于(>=)              |                                                   |
+| lt          | 小于(<)                   |                                                   |
+| le          | 小于等于(<=)              |                                                   |
+| lte         | 小于等于(<=)              |                                                   |
+| elt         | 小于等于(<=)              |                                                   |
+| in          | IN 查询                   | 传入数据会强转为数组                              |
+| not in      | NOT IN 查询               | 传入数据会强转为数组                              |
+| not_in      | NOT IN 查询               | 传入数据会强转为数组                              |
+| between     | 区间查询(between)         | 传入数据会强转为数组                              |
+| not_between | 不在区间查询(not between) | 传入数据会强转为数组                              |
+| not between | 不在区间查询(not between) | 传入数据会强转为数组                              |
+| like        | 模糊查询包含(like)        | 会自动判断添加 % 模糊查询；传入数据会强转为字符串 |
+| not_like    | 模糊查询不包含(not like)  | 会自动判断添加 % 模糊查询；传入数据会强转为字符串 |
+| not like    | 模糊查询不包含(not like)  | 会自动判断添加 % 模糊查询；传入数据会强转为字符串 |
+| rlike       | 模糊查询包含(rlike)       |                                                   |
+| <>          | 不等于(<>)                |                                                   |
 
 #### 关于 `like`, `not_like` 查询说明
 
@@ -184,32 +224,265 @@ $this->repository->findAll(['username:like' => 'test']);
 
 // 添加了前缀或者后缀模糊查询，那么不处理 username like 'test%'
 $this->repository->findAll(['username:like' => 'test%']);
+
+// 如果上述like的查询不满足你的需求，可以使用原生SQL查询
+$this->repository->findAll(['username' => DB::raw("like 'username'")]);
 ```
 ### 5.3 使用预定义字段查询
 
+有些预定义的 key 是做特殊查询用的
+
+```php
+$this->repository->findAll([
+    'limit' => 10,                        // 限制查询10条
+    'order' => 'id desc, created_at asc', // 指定排序条件
+    'group' => 'id',                      // 通过 id 分组
+])
+```
+
 #### 预定义的字段
 
-|字段名称|字段值类型|说明|
-|-------|---------|----|
-|`force`|`string`|强制走指定索引|
-|`order`|`string or array`|指定排序条件|
-|`limit`|`int`|指定查询条数|
-|`offset`|`int`|指定跳转位置|
-|`group`|`string`|指定分组字段|
-|`groupBy`|`string`|指定分组字段|
-|`join`|`array`|查询join的参数，多个二维数组|
-|`leftJoin`|`array`|查询`leftJoin`的参数、多个二维数组|
-|`rightJoin`|`array`|查询`rightJoin`的参数、多个二维数组|
-|`joinWith`|`string or array`| 通过关联关系对应join查询|
-|`leftJoinWith`|`string or array`| 通过关联关系对应leftJoin查询|
-|`rightJoinWith`|`string or array`| 通过关联关系对应rightJoin查询|
+| 字段名称        | 字段值类型        | 说明                                |
+| --------------- | ----------------- | ----------------------------------- |
+| `force`         | `string`          | 强制走指定索引                      |
+| `order`         | `string or array` | 指定排序条件                        |
+| `limit`         | `int`             | 指定查询条数                        |
+| `offset`        | `int`             | 指定跳转位置                        |
+| `group`         | `string`          | 指定分组字段                        |
+| `groupBy`       | `string`          | 指定分组字段                        |
+| `join`          | `array`           | 查询join的参数，多个二维数组        |
+| `leftJoin`      | `array`           | 查询`leftJoin`的参数、多个二维数组  |
+| `rightJoin`     | `array`           | 查询`rightJoin`的参数、多个二维数组 |
+| `joinWith`      | `string or array` | 通过关联关系对应join查询            |
+| `leftJoinWith`  | `string or array` | 通过关联关系对应leftJoin查询        |
+| `rightJoinWith` | `string or array` | 通过关联关系对应rightJoin查询       |
 
 ### 5.4 为关联添加查询条件
 ### 5.5 使用关联关系join查询
-### 5.6 使用join查询
-### 5.7 使用model定义scope查询
-### 5.8 使用原生SQL查询
-### 5.9 总结
+
+>前提是你的model定义了表的关联
+
+例如下面：
+
+用户Model
+```php
+<?php
+
+use Illuminate\Database\Eloquent\Model;
+
+class User extends Model
+{
+    public function ext()
+    {
+        return $this->hasOne(UserExt::class, 'user_id', 'user_id');
+    }
+}
+```
+
+用户扩展信息Model
+
+```php
+<?php
+
+use Illuminate\Database\Eloquent\Model;
+
+class UserExt extends Model
+{
+    public function user()
+    {
+        return $this->hasOne(User::class, 'user_id', 'user_id');
+    }
+}
+```
+
+那么你在查询的时候可以通过关联关系进行join 查询(通过定义关联的关系，自动处理你的join)
+
+```php
+
+// userRepository  
+UserRepostiory::instance()->findAll([
+    'status'   => 1,
+    'joinWith' => 'ext', // ext 表示关联方法名称， 多个需要使用数组 ['ext', 'children']
+]);
+
+```
+执行的SQL: 
+```SQL
+select `users`.* from `users` inner join `user_ext` on (`users`.`user_id` = `user_ext`.`user_id`) where `users`.`status` = 1
+```
+
+```php
+// userExtRepository 
+UserExtRepository::instance()->findAll([
+    'status'   => 1,
+    'joinWith' => 'user',
+]);
+```
+
+执行的SQL: 
+```SQL
+select `user_ext`.* from `user_ext` inner join `users` on (`users`.`user_id` = `user_ext`.`user_id`) where `user_ext`.`status` = 1
+```
+
+##### leftJoinWith 和 rightJoinWith
+
+>如果需要使用 `leftJoin` 或者 `rightJoin` 的使用 `leftJoinWith` 或者 `rightJoinWith` 就好了
+
+##### 给join查询添加查询条件
+
+通过：`['表名字.字段' => '查询值']`
+
+```php
+UserRepostiory::instance()->findAll([
+    'status'                 => 1,
+    'joinWith'               => 'ext',
+    'user_ext.status:neq'    => 1,
+    'user_ext.created_at:gt' => date('Y-m-d H:i:s')
+]);
+```
+执行的SQL: 
+```SQL: 
+select `users`.* from `users` inner join `user_ext` on (`users`.`user_id` = `user_ext`.`user_id`) where `users`.`status` = 1 and `user_ext`.`status` != 1 and `user_ext`.`created_at` > '2020-04-29 22:31:00'
+```
+
+##### 给join表名别名
+
+通过： `['别名' => '关联方法名']`
+
+```php
+
+UserRepostiory::instance()->findAll([
+    'status'           => 1,
+    'joinWith'         => ['t1' => 'ext'],
+    't1.status:neq'    => 1,
+    't1.created_at:gt' => date('Y-m-d H:i:s')
+]);
+```
+
+执行的SQL: 
+```SQL
+select `users`.* from `users` inner join `user_ext` AS `t1` on (`users`.`user_id` = `t1`.`user_id`) where `users`.`status` = 1 and `t1`.`status` != 1 and `t1`.`created_at` > '2020-04-29 22:31:00'
+```
+
+### 5.6 为关联查询添加条件
+
+**切记关联查询不是join查询** 关联查询是主表查询完成后，通过定义的关联然后再去查询关联表，是执行了两条SQL
+
+定义方式： `['rel.关联方法名称.关联表字段' => '查询的值']`
+
+Model 使用 5.5 定义的model
+
+```php
+UserRepostiory::instance()->find([
+    'user_id'        => 1,
+    'rel.ext.status' => 1, // 为关联表查询添加条件
+    'rel.ext.type'   => 2, // 为关联表查询添加条件
+], ['*', 'ext' => ['*']]);
+
+```
+
+最终执行的SQL
+
+1. 主表查询
+```SQL
+select `users`.* from `users` where `users`.`user_id` = 1
+```
+
+2. 关联表查询
+```SQL
+select `user_ext`.* from `user_ext` where `user_id` in (1) and `user_ext`.`status` = 1 and `user_ext`.`type` = 1
+```
+
+### 5.7 使用join查询
+
+使用 join 查询
+
+```php
+UserRepostiory::instance()->findAll([
+    'status'                 => 1,
+    'join'                   => ['user_ext', 'users.user_id', '=', 'user_ext.user_id'],
+    'user_ext.status:neq'    => 1,
+    'user_ext.created_at:gt' => date('Y-m-d H:i:s')
+]);
+```
+
+执行SQL: 
+```SQL
+select `users`.* from `users` inner join `user_ext` on (`users`.`user_id` = `user_ext`.`user_id`) where `users`.`status` = 1 and `user_ext`.`status` != 1 and `user_ext`.`created_at` > '2020-04-29 22:31:00'
+```
+
+##### leftJoin 和 rightJoin
+
+>直接使用 `leftJoin` 或者 `rightJoin` 就好了
+
+#### 一次存在多个join
+
+需要将join定义为二维数组
+
+```php
+UserRepostiory::instance()->findAll([
+    'join'=> [
+        ['user_ext', 'users.user_id', '=', 'user_ext.user_id'],
+        ['users as t1', 'users.user_id' '=', 't1.user_id']
+    ],
+]);
+```
+
+执行SQL: 
+```SQL
+select `users`.* from `users` inner join `user_ext` on (`users`.`user_id` = `user_ext`.`user_id`) inner join `users` as `t1` on (`users`.`user_id` = `t1`.`user_id`)
+```
+### 5.8 使用model定义scope查询
+
+需要 model 定义了 scope 查询方法
+
+```php
+<?php
+
+use Illuminate\Database\Eloquent\Model;
+
+class User extends Model
+{
+    public function scopeUsername($query, $username)
+    {
+        return $query->where('name', 'like', $username);
+    }
+
+    public function scopeJoinExt($query, $status)
+    {
+        return $query->join('user_ext', 'users.user_id', '=', 'user_ext.user_id')->where('user_ext.status', $status);
+    }
+}
+```
+
+定义方式：`['去掉scope方法名称' => '需要的参数']`
+
+```php 
+UserRepostiory::instance()->findAll([
+    'username' => 'test',
+    'joinExt'  => 1,
+]);
+```
+
+执行的SQL:
+```SQL
+select `users`.* from `users` inner join `user_ext` on (`users`.`user_id` = `user_ext`.`user_id`) where `name` like 'test' and `user_ext`.`status` = 1
+```
+
+### 5.9 使用原生SQL查询
+
+> 慎用；存在SQL注入风险
+
+使用：DB::raw() 函数包裹查询条件
+
+```php 
+UserRepostiory::instance()->findAll([
+    DB::raw("user_id = 1 and status = 1"),
+    'name' => DB::raw('like "_test"'),
+]);
+```
+
+### 总结
 ```php
 $conditions = [
     // 表中字段精准查询
@@ -235,27 +508,95 @@ $conditions = [
     'created_at:between' => ['2019-01-02 00:00:00', '2019-01-03 23:59:59'], // 区间查询
     'id:ge'              => 12, // id > 12
     
-    // relation 关联查询,查询条件只对当前relation关联查询限制
-    'extInfo.address:like'   => '北京',
-    'extInfo.created_at:gte' => '2019-01-01 00:00:00',
+    // relation 关联查询,查询条件只对当前relation关联查询限制 
+    'rel.ext.address:like'   => '北京',
+    'rel.ext.created_at:gte' => '2019-01-01 00:00:00',
     
     // 通过 relation 关联关系，添加join 查询
-    'joinWith'     => ['extInfo'],
+    'joinWith'     => ['ext'],
     // 关联表定义别名 alias, 如果没有别名，关联表和主表同名，使用自定义别名 `t1`, 多个同名以此地址 `t2`、`t3`
     'leftJoinWith' => ['alias' => 'children'], 
+
+    // 为join连表查询添加条件 
+    'user_ext.status' => 1,
+    'users.status'    => 1,
     
     // scope 自定义查询
     'address'  => '北京',      // 查找`scopeAddress($query, $address)`方法
     'children' => [1, 2, 3],  // 查找`scopeChildren($query, $childrenIds)`方法
 ];
 ```
+
+>如果查询字段匹配不到上述的9种方式，那么会将查询字段转为方法名称，查询值为参数直接调用`Illuminate\Database\Eloquent\Builder`的方法（**如果字段方法不存在、程序抛错**, 这一点有别于 1.0.* 版本） 例如：
+
+```php
+UserRepostiory::instance()->findAll([
+    'with'        => ['ext', 'children'],
+    'orderByDesc' => 'id',
+    'limit'       => 10,
+]);
+
+// 内部实际调用
+$query->with(['ext', 'children'])->orderByDesc('id')->limit(10);
+```
+
 ## 六、查询字段说明
 
+对查询字段 `$columns` 说明, 就是 select 的字段
+
 ### 6.1 查询本表字段
+
+本表的字段直接写
+
+```php
+// select `user_id`, `name` from `users` where `user_id` = 1
+$this->userRepostiory->find(1, ['user_id', 'name']);
+```
+
 ### 6.2 查询关联表字段
+
+>model 需要定义的关联关系
+
+通过： `['关联方法' => ['字段信息']]`
+
+```php
+$this->userRepostiory->find(1, ['user_id', 'name'， 'ext' => ['status', 'avatar', 'auth_id']]);
+```
+
 ### 6.3 查询关联表统计
+
+>model 需要定义的关联关系
+
+通过： `['关联方法名称_count']`
+
+```php
+$this->userRepostiory->find(1, ['user_id', 'name'，'ext_count']]);
+```
+// 使用的是`model`的`withCount()` 方法
+```php
+`model` 的写法
+User::select(['user_id', 'name'])->withCount('ext')->where('user_id', 1)->first()->toArray();
+```
 ### 6.4 查询join表字段
+
+```php
+$this->userRepostiory->find([
+    'joinWith' => 'ext',
+], ['user_id', 'name', 'user_ext.status']);
+```
+
 ### 6.5 查询原生SQL字段
+
+```php
+$this->userRepostiory->find([
+    'status' => 1,
+], [
+    DB::raw('COUNT(*) AS `count_number`'),
+    DB::raw('MAX(`user_id`) AS `max_user_id`'),
+    DB::raw('AVG(`age`) AS `avg_age`'),
+]);
+```
+
 ### 6.6 总结
 
 ```php
@@ -283,474 +624,6 @@ $columns = [
 ];
 ```
 
-#### 1.5.2 使用 `model` 的 `scope` 查询
-
->举个🌰栗子,你有一张用户表 users, 用户表的扩展信息存在 user_ext 里;
-现在你想查询用户地址在指定位置信息的所有用户信息, 那么就需要使用`scope` 查询了
-
-要求model定义了`scope`查询
-
-##### 1. model 
-
-```php
-
-class User extends Model
-{
-    protected $table      = 'users';
-    protected $primaryKey = 'user_id';
-    public    $columns    = [
-        'user_id',
-        'username',
-        //...
-        'created_at',
-        'updated_at',
-    ];
- 
-  
-    /**
-     * 定义关联扩展信息
-     * 
-     * return Illuminate\Database\Eloquent\Relations\HasOne
-     */
-    public function extInfo()
-    {
-      return $this->hasOne(UserExt::class, 'user_id', 'user_id');
-    }
- 
-
-    /**
-     * 根据地址查询
-     *
-     * @param \Illuminate\Database\Eloquent\Builder $query   查询对象
-     * @param string                                $address 地址信息
-     * @return \Illuminate\Database\Eloquent\Builder
-     */
-    public function scopeAddress($query, $address)
-    {
-        return $query->leftJoin('user_ext', 'user_ext.user_id', '=', 'users.user_id')
-            ->where('user_ext.address', '=', $address);
-    }
-}   
-
-```
-
-##### 2. 使用 `repository` 查询
-
-```php
-
-$this->userRepositoy->findAll([
-    'status'  => 1,
-    'address' => '北京'
-]);
-
-```
-
-##### 3. 查询的SQL
-
-```sql
-
-select 
-    * 
-from 
-    `users` 
-left join 
-    `user_ext` on (`user_ext`.`user_id` = `users`.`user_id`) 
-where 
-    `users.status` = 1 and `user_ext`.`address` = '北京'
-    
-```
-##### 4 使用说明
-
-从上面的SQL和容易发现一个问题，没有指定查询字段，默认查询的 `*` 所有字段，如果`users`表和`user_ext`
-表的字段没有冲突，那么没有什么问题，但如果有冲突，那么查询出来的数据可能和你想象的不一样，特别在还有
-关联查询的时候，这个问题更容易凸显出来，所以建议在有连表查询的时候，最好有加上你需要查询的字段信息
-
-```php
-$this->userRepository->findAll([
-    'status'  => 1,
-    'address' => '北京',
-], ['users.*'])
-```
-
-#### 1.5.4 获取 `model` 的 `relation` 关联数据信息
-
-当我们查询数据时候，也想把关联数据查询出来的时候，就会用到关联查询
-
-使用的是`model`的`with`方法
-
->举个🌰栗子,你有一张用户表users,用户表的扩展信息存在user_ext里 
-也许你想查询用户信息的时候同时查出用户的扩展信息
-
-要求`model`定义了关联
-
-`model` 使用上面定义的 [`User`](#152-使用-model-的-scope-查询)
-
-1. 使用 `repository` 获取关联数据信息, 通过查询字段，自动处理关联
-
-    查询字段中添加 `关联关系` => [`关联查询的字段信息`]
-    
-    ```php
-        $users = $this->repository->findAll(['status' => 1], ['*', 'extInfo' => ['*']]);
-    ```
-
-2. 查询SQL 
-
-    [这里使用预加载数据](https://learnku.com/docs/laravel/5.5/eloquent-relationships/1333#012e7e), 避免N+1问题
-
-    ```sql
-    select * from `users` where `users`.`status` = 1
-    
-    select * from `user_ext` where `user_id` in (1, 2, 3, 4)
-    ```
-
-3. 数据信息
-
-    ![关联的数据](https://wanchaochao.github.io/laravel-repository/docs/images/relation.png '关联的数据')
-
-##### 1.5.4.1
-    
-1. 上面有个小的问题，`model`定义的关联名称为`extInfo`, 但是出来数组对应的字段信息为
- `ext_info` , 并且查询指定字段信息也是为`extInfo` (`'extInfo' => ['*']`), 查询
- 出来的数据是`laravel` `model` 的 `toArray()` 方法处理的结果,会将`小驼峰`命名的
- 关联信息转为`蛇形`命名字段，`repository`查询字段支持`小驼峰`和`蛇形`命名，例如：
-     
-     ```php
-        $users = $this->repository->findAll(['status' => 1], ['*', 'ext_info' => ['*]])
-     ``` 
-       
-     和上面的结果是一致的，为了更好的一致性，建议`model`在定义联查询命名的时候，使用单个单词的单复数形式比较好
-
-2. 在查询时候指定字段，并且指定查询关联查询字段
-
-    ```php
-    $users = $this->userRepository->findAll(['status' => 1], ['username', 'extInfo' => ['address']]);
-    ```    
-   
-   上面查询指定了查询的字段，但有一个问题，没有指定出关联表查询需要的字段 `user_id` 字段信息，会导致关联信息关联不上的问题
-   **但`repository`解决了这个问题，会自动加上关联查询需要的字段信息**，所以最终查询的SQL和数据如下:
-   
-   ![关联的数据](https://wanchaochao.github.io/laravel-repository/docs/images/relation-1.png '关联的数据')
-   
-   >这可能会让人认为我明明只查询了`username`字段，怎么还查出了其他字段信息
-   
-   **只有在关联查询的时候，没有指定查询关联字段，才会自动加上关联字段**
-   
-#### 1.5.5 获取 `model` 的 `relation` 关联统计数据信息
-
-这个功能比较适合一对多的时候，我想知道关联的其他信息有多少
-
-只要定义了`model`的关联信息，就可以直接使用了，其实就是 `model` 的 `withCount`
-
->`model`定义的`关联方法名称_count`
-
-`model` 使用上面定义的 [`User`](#152-使用-model-的-scope-查询)
-
-```php
-$user = $this->repositoy->find(['status' => 1], ['id', 'username', 'extInfo_count']);
-```
-
-执行SQL以及数据
-
-![关联的数据](https://wanchaochao.github.io/laravel-repository/docs/images/relation-2.png '关联的数据')
-
-#### 1.5.6 给 `model` 的 `relation` 关联查询动态添加查询条件
-
-查询条件中添加 `model定义关联方法名称.字段` => '查询的值'
-
-`model` 使用上面定义的 [`User`](#152-使用-model-的-scope-查询)
-
-例如：
-
-```php
-
-$users = $this->repository->findAll([
-    'status'                => 1,
-    'extInfo.address'       => '北京',
-    'extInfo.created_at:gt' => '2019-02-01 00:00:00', // 同样支持表达式查询
-], ['extInfo' => ['*']])
-
-```
-执行的SQL：
-```sql
-select * from `users` where `users`.`status` = 1
-
-select * from `user_ext` where 
-    `user_ext`.`address` = '北京' and 
-    `user_ext`.`created_at` > '2019-02-01 00:00:00' and 
-    `user_ext`.`user_id` in (1, 2, 3, 4)
-```
-
-##### 1.5.6.1 model 也可以定义默认关联的查询条件
-
-需要在`model`里面定义 `关联方法名称Filters` 的属性信息
-
-```php
-    class User extends Model
-    {
-        protected $table      = 'users';
-        protected $primaryKey = 'user_id';
-        public    $columns    = [
-            'user_id',
-            'username',
-            //...
-            'created_at',
-            'updated_at',
-        ];
-        
-        /**
-         * 为关联定义默认查询条件
-         *
-         * @var array
-         */
-        public $extInfoFilters = [
-            'address' => '北京', 
-            // 'ddress:like' => '北京', // 允许使用表达式方式
-        ];
-     
-        /**
-         * 定义关联扩展信息
-         * 
-         * return Illuminate\Database\Eloquent\Relations\HasOne
-         */
-        public function extInfo()
-        {
-          return $this->hasOne(UserExt::class, 'user_id', 'user_id');
-        }
-     
-    
-        /**
-         * 根据地址查询
-         *
-         * @param \Illuminate\Database\Eloquent\Builder $query   查询对象
-         * @param string                                $address 地址信息
-         * @return \Illuminate\Database\Eloquent\Builder
-         */
-        public function scopeAddress($query, $address)
-        {
-            return $query->leftJoin('user_ext', 'user_ext.user_id', '=', 'users.user_id')
-                ->where('user_ext.address', '=', $address);
-        }
-    }   
-```
-  
-说明： 关联查询、统计查询都会添加默认关联查询条件
-
-使用定义了默认关联查询条件进行查询
-
-```php
-$users = $this->repository->findAll(['status' => 1], ['extInfo' => ['*']])
-```
-
-执行的SQL：
-
-```sql
-select * from `users` where `users`.`status` = 1
-
-select * from `user_ext` where 
-    `user_ext`.`address` = '北京' 
-    `user_ext`.`user_id` in (1, 2, 3, 4)
-```
-
-**默认关联查询条件和动态关联查询条件是叠加的**
-
-#### 1.5.7 过滤空值查询
-
-**空字符串、空数组、null会被认为空值**
-
-1. 查询单个 filterFind($conditions, $columns = [])
-
-    ```php
-    $item = $this->repositpry->filterFind([
-        'username:like' => request()->input('username'),
-        'status'        => request()->input('status')
-    ]);
-    ```
-
-2. 查询多个 filterFindAll($conditions, $columns = [])
-
-    ```php
-    $items = $this->repositpry->filterFindAll([
-        'username:like' => request()->input('username'),
-        'status'        => request()->input('status')
-    ]);
-    ```
-3. 获取过滤空值查询的model getFilterModel($conditions, $columns = [])
-
-    ```php
-    $model = $this->repositpry->getFilterModel([
-        'username:like' => request()->input('username'),
-        'status'        => request()->input('status')
-    ]);
-    ```
-    
->这几个方法，相当于 [when 条件查询](https://learnku.com/docs/laravel/5.5/queries/1327#conditional-clauses)
-在和前端交互时，不确定前端是否传递值来进行查询时候，比较方便
-
-```php
-// 平时写法
-$conditions = [];
-
-if ($username = request()->input('username')) {
-    $conditions['username:like'] = $username;
-}
-
-if ($status = request()->input('status')) {
-    $conditions['status'] = $status;
-}
-
-$items = $this->repository->findAll($conditions);
-
-// 使用 filter 过滤查询
-$items = $this->repositpry->filterFindAll([
-    'username:like' => request()->input('username'),
-    'status'        => request()->input('status')
-]);
-```
-
-#### 1.5.8 使用 `findWhere` 构建复杂查询
-
-> `findWhere(array $where, $array $columns = [])`
-
-```php
-$this->userRespository->findWhere([
-    'and',
-    ['username' => 1, 'name:like' => '%test%'],
-    ['or', ['level' => 10, 'level:eq' => 5]],
-    ['and', ['status' => 1, 'age' => 1]],   
-])->get();
-
-```
-
-执行的SQL
-
-```sql
-select * from `users` where 
-    (`username` = 1 and `name` like '%test%') and 
-    (`level` = 10 or `level` = 5) and 
-    (`status` = 1 and `age` = 1)
-```
-
-`where`查询条件说明
-
-数组第一个元素定义查询条件连接方式(后面数组的查询条件怎么连接`or` 或者 `and`)，如果是`and`连接
-可以忽略不写,一定要是多维数组
-
-第一个`and`忽略不写
-```php
-$where = [
-['status' => 1]，
-['name' => 2]
-];
-
-// where `status` = 1 and `name` = 2 
-```
-
-使用 `or` 连接
-```php
-$where = [
-    // or 定义 后面的查询条件 通过 or 连接
-    'or',
-    ['status' => 1],
-    ['age' => 1],
-    
-    // and 定义数组里面后面的查询条件使用 and 连接
-    ['and', ['name', '=', 123], ['username', 'like', 'test']],
-];
-
-// where `status` = 1 or `age` = 1 or (`name` = 123 and `username` like 'test')
-```
-
-#### 1.5.9 使用 `join` 查询
-
->`leftJoin` 和 `rightJoin` 和 `join` 使用一致
-
-##### 1. 简单`join`
-
-```php
-$this->repository->findAll([
-    'join' => ['users', 'users.school_id', '=', 'school.id']
-]);
-
-```
-
-```sql
-select `school`.* from `school` inner join `users` on (`users`.`school_id` = `school`.`id`)
-```
-
-##### 2. 一次多个`join`
-```php
-$this->repository->findAll([
-    'join' => [
-        ['users', 'users.school_id', '=', 'school.id'],
-        ['school as s1', 's1.parent_id', '=', 'school.id']
-    ]
-]);
-
-```
-
-```sql
-select 
-    `school`.* 
-from 
-    `school` 
-inner join `users` on (`users`.`school_id` = `school`.`id`) 
-inner join `school` as `s1` on (`s1`.`parent_id` = `school`.`id`)
-```
-
-##### 3. 使用关联关系对应join
-
-`model` 使用上面定义的 [`User`](#152-使用-model-的-scope-查询)
-
-```php
-$users = $this->repository->findAll(['status' => 1, 'joinWith' => 'extInfo']);
-```
-
-```sql
-select 
-    `users`.* 
-from 
-    `users` 
-inner join `user_ext` on `user_ext`.`user_id` = `users`.`user_id`
-where `users`.`status` = 1
-```
-
-##### 4. 使用关联关系对应join并设置别名
-
->['别名' => '关联方法名称']
-
-```php
-$users = $this->repository->findAll(['status' => 1, 'joinWith' => ['ext' => 'extInfo']]);
-```
-
-```sql
-select 
-    `users`.* 
-from 
-    `users` 
-inner join `user_ext` as `ext` on `ext`.`user_id` = `users`.`user_id` 
-where `users`.`status` = 1
-```
-
-##### 5. 为`join`添加查询条件
-
->通过 ['__join表名称.字段' => '对应的值'], 目前没有比较直观的方式处理、因为 `order.user_id` 方式被关联关系的附加条件占用了
-
-```php
-$users = $this->repository->findAll([
-    'status'        => 1, 
-    'joinWith'      => ['ext' => 'extInfo']，
-    '__ext.user_id' => 1,
-]);
-```
-
-```sql
-select 
-    `users`.* 
-from 
-    `users` 
-inner join `user_ext` as `ext` on `ext`.`user_id` = `users`.`user_id`
-where `users`.`status` = 1 and `ext`.`user_id` = 1
-```
 ## 七、增删改的事件方法
 
 子类定义了这些方法，才会执行，如果想阻止主方法执行，并能让主方法返回错误信息，直接抛出错误就可以
@@ -763,10 +636,10 @@ where `users`.`status` = 1 and `ext`.`user_id` = 1
 
 #### 7.1.1 参数说明
 
-|参数名称    |参数类型| 参数说明 |
-|---------------|-------------|----------|
-|`$data`|`array`|过滤掉干扰数据(非表中字段的数据)的数组|
-|`$news`|`array`|新增成功调用 `model->toArray()` 数组|
+| 参数名称 | 参数类型 | 参数说明                               |
+| -------- | -------- | -------------------------------------- |
+| `$data`  | `array`  | 过滤掉干扰数据(非表中字段的数据)的数组 |
+| `$news`  | `array`  | 新增成功调用 `model->toArray()` 数组   |
 
 ### 7.2 修改的事件 在`update($conditions, array $data)` 执行的时候触发
 
@@ -776,11 +649,11 @@ where `users`.`status` = 1 and `ext`.`user_id` = 1
 
 #### 7.2.1 参数说明
 
-|参数名称    |参数类型| 参数说明 |
-|---------------|-------------|----------|
-|`$conditions`|`array`|处理了主键查询后的查询条件数组|
-|`$data`|`array`|过滤掉干扰数据(非表中字段的数据)的数组|
-|`$row`|`int`|修改受影响的行数|
+| 参数名称      | 参数类型 | 参数说明                               |
+| ------------- | -------- | -------------------------------------- |
+| `$conditions` | `array`  | 处理了主键查询后的查询条件数组         |
+| `$data`       | `array`  | 过滤掉干扰数据(非表中字段的数据)的数组 |
+| `$row`        | `int`    | 修改受影响的行数                       |
 
 ### 7.3 删除的事件 在`delete($conditions)` 执行的时候触发
 
@@ -790,10 +663,10 @@ where `users`.`status` = 1 and `ext`.`user_id` = 1
 
 #### 7.3.1 参数说明
 
-|参数名称    |参数类型| 参数说明 |
-|---------------|-------------|----------|
-|`$conditions`|`array`|处理了主键查询后的查询条件数组|
-|`$row`       |`int`  |删除受影响的行数|
+| 参数名称      | 参数类型 | 参数说明                       |
+| ------------- | -------- | ------------------------------ |
+| `$conditions` | `array`  | 处理了主键查询后的查询条件数组 |
+| `$row`        | `int`    | 删除受影响的行数               |
 
 ### 7.4 关于`$conditions` 处理为主键查询
 
