@@ -167,8 +167,8 @@ $users = $this->repositpory->findAll([
 
 通过定义的表达式、或者操作符查询
 
-1. 表达式定义方式：['查询字段:表达式' => '查询值']
-2. 操作符定义方式：['查询字段:操作符' => '查询值']
+1. 表达式定义方式：`['查询字段:表达式' => '查询值']`
+2. 操作符定义方式：`['查询字段:操作符' => '查询值']`
 
 ```php
 // 使用表达式
@@ -237,7 +237,7 @@ $this->repository->findAll([
     'limit' => 10,                        // 限制查询10条
     'order' => 'id desc, created_at asc', // 指定排序条件
     'group' => 'id',                      // 通过 id 分组
-])
+]);
 ```
 
 #### 预定义的字段
@@ -423,7 +423,7 @@ select `users`.* from `users` inner join `user_ext` on (`users`.`user_id` = `use
 UserRepostiory::instance()->findAll([
     'join'=> [
         ['user_ext', 'users.user_id', '=', 'user_ext.user_id'],
-        ['users as t1', 'users.user_id' '=', 't1.user_id']
+        ['users as t1', 'users.user_id', '=', 't1.user_id']
     ],
 ]);
 ```
@@ -537,7 +537,7 @@ UserRepostiory::instance()->findAll([
 ]);
 
 // 内部实际调用
-$query->with(['ext', 'children'])->orderByDesc('id')->limit(10);
+// $query->with(['ext', 'children'])->orderByDesc('id')->limit(10);
 ```
 
 ## 六、查询字段说明
@@ -560,7 +560,7 @@ $this->userRepostiory->find(1, ['user_id', 'name']);
 通过： `['关联方法' => ['字段信息']]`
 
 ```php
-$this->userRepostiory->find(1, ['user_id', 'name'， 'ext' => ['status', 'avatar', 'auth_id']]);
+$this->userRepostiory->find(1, ['user_id', 'name', 'ext' => ['status', 'avatar', 'auth_id']]);
 ```
 
 ### 6.3 查询关联表统计
@@ -570,11 +570,11 @@ $this->userRepostiory->find(1, ['user_id', 'name'， 'ext' => ['status', 'avatar
 通过： `['关联方法名称_count']`
 
 ```php
-$this->userRepostiory->find(1, ['user_id', 'name'，'ext_count']]);
+$this->userRepostiory->find(1, ['user_id', 'name','ext_count']);
 ```
 // 使用的是`model`的`withCount()` 方法
 ```php
-`model` 的写法
+// `model` 的写法
 User::select(['user_id', 'name'])->withCount('ext')->where('user_id', 1)->first()->toArray();
 ```
 ### 6.4 查询join表字段
