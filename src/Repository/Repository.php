@@ -431,7 +431,7 @@ abstract class Repository
         }
 
         foreach ($conditions as $key => $value) {
-            if (strtolower($key) === 'or') {
+            if (in_array(strtolower($key), ['or', 'and'], true)) {
                 $conditions[$key] = $this->filterCondition($value);
             }
 

@@ -2,7 +2,6 @@
 
 namespace Littlebug\Repository\Tests;
 
-use Illuminate\Pagination\LengthAwarePaginator;
 use Littlebug\Repository\Tests\Stubs\UserModel;
 use Littlebug\Repository\Tests\Stubs\UserRepository;
 
@@ -115,6 +114,7 @@ class UserRepositoryTest extends AbstractRepositoryTest
     {
         $pagination = UserRepository::instance()->paginate();
         $this->assertArrayHasKey('items', $pagination);
+        $this->assertArrayHasKey('pager', $pagination);
     }
 
     public function testFilterCondition()
@@ -128,6 +128,11 @@ class UserRepositoryTest extends AbstractRepositoryTest
                 'name'      => '',
                 'age'       => ' ',
                 'name:like' => '123',
+                'and'       => [
+                    'status'    => 1,
+                    'age'       => null,
+                    'name:like' => 'test',
+                ],
             ],
         ]);
 
