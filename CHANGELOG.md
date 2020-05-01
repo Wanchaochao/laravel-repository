@@ -9,11 +9,6 @@ v1.0.17 2020-04-05
     ```php
     \Littlebug\Repository\Repository::instance()->find(['status' => 1]);
     ```
-    
-    - 添加 `__callStatic` 静态方法转发调用，model 自身的方法都可以通过静态方法调用
-    ```php
-    \Littlebug\Repository\Repository::first(['status' => 1]);
-    ```
 - refactor: 代码优化
     - 删除类方法 `handleExtraQuery` 中拦截的 `offset`、`limit` 字段
     - 删除类方法 `conditionQuery` 中 `scope` 自定义方法的处理
