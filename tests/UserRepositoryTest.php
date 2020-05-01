@@ -130,6 +130,11 @@ class UserRepositoryTest extends AbstractRepositoryTest
                 'name'      => '',
                 'age'       => ' ',
                 'name:like' => '123',
+                'and'       => [
+                    'status'    => null,
+                    'age'       => 1,
+                    'status:in' => [1, 2, 3],
+                ],
             ],
         ]);
 
