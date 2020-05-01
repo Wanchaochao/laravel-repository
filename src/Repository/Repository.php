@@ -4,7 +4,6 @@ namespace Littlebug\Repository;
 
 use Closure;
 use Exception;
-use ReflectionClass;
 use Illuminate\Support\Str;
 use Illuminate\Support\Arr;
 use Littlebug\Helpers\Helper;
@@ -361,7 +360,6 @@ abstract class Repository
      */
     public function find($conditions = [], $columns = [])
     {
-        /* @var $item Model|object|static|null */
         if ($item = $this->findCondition($conditions, $columns)->first()) {
             return $item->toArray();
         }
@@ -380,10 +378,7 @@ abstract class Repository
      */
     public function findBy($conditions, $column)
     {
-        // 如果误传数组的话 取数组第一个值
-        $column = $this->firstKey($column);
-        $item   = $this->find($conditions, $this->firstField($column));
-        return Arr::get($item, $column, false);
+        return Arr::get($this->find($conditions, $this->getFieldArray($column)), $column);
     }
 
     /**
@@ -410,9 +405,7 @@ abstract class Repository
      */
     public function findAllBy($conditions, $column)
     {
-        // 如果误传数组的话 取数组第一个值
-        $column = $this->firstKey($column);
-        if (!$data = $this->findAll($conditions, $this->firstField($column))) {
+        if (!$data = $this->findAll($conditions, $this->getFieldArray($column))) {
             return [];
         }
 
@@ -422,19 +415,6 @@ abstract class Repository
         }
 
         return $columns;
-    }
-
-    /**
-     * 获取过滤查询条件查询的 model
-     *
-     * @param array|mixed $conditions 查询条件
-     * @param array       $columns    查询的字段
-     *
-     * @return Model|mixed
-     */
-    public function getFilterModel($conditions, $columns = [])
-    {
-        return $this->findCondition($this->filterCondition($conditions), $columns);
     }
 
     /**
@@ -629,9 +609,9 @@ abstract class Repository
         }
 
         // 处理数据
-        $isNotSelectAll = $this->isNotSelectAll($selectColumns, $table);
-        $with           = $withCount = [];
-        $findModel      = $model->getModel();
+        $notSelectAll = $this->notSelectAll($selectColumns, $table);
+        $with         = $withCount = [];
+        $findModel    = $model->getModel();
 
         // 开始解析关联关系
         foreach ($relations as $relation => $value) {
@@ -639,8 +619,7 @@ abstract class Repository
             if (method_exists($findModel, $relation)) {
 
                 // 获取默认查询条件
-                $defaultConditions   = $this->getRelationDefaultFilters($model, $relation);
-                $value['conditions'] = array_merge($defaultConditions, Arr::get($value, 'conditions', []));
+                $value['conditions'] = Arr::get($value, 'conditions', []);
 
                 if (Arr::get($value, 'with')) {
 
@@ -648,7 +627,7 @@ abstract class Repository
                     list($localKey, $foreignKey) = $this->getRelationKeys($findModel->$relation());
 
                     // 防止关联查询，主键没有添加上去
-                    if ($localKey && $isNotSelectAll && !in_array($localKey, $selectColumns)) {
+                    if ($localKey && $notSelectAll && !in_array($localKey, $selectColumns)) {
                         array_push($selectColumns, $localKey);
                     }
 
@@ -803,10 +782,14 @@ abstract class Repository
             }
 
             // or 查询
-            if (strtolower($column) === 'or' && is_array($bindValue) && $bindValue) {
-                $query = $query->where(function ($query) use ($bindValue, $table, $columns) {
-                    $this->conditionQuery($bindValue, $query, $table, $columns, true);
-                });
+            if (in_array(strtolower($column), ['or', 'and'], true)) {
+                // 数据存在才处理
+                if (is_array($bindValue) && $bindValue) {
+                    $method = $or ? 'orWhere' : 'where';
+                    $query  = $query->{$method}(function ($query) use ($bindValue, $table, $columns, $column) {
+                        $this->conditionQuery($bindValue, $query, $table, $columns, strtolower($column) === 'or');
+                    });
+                }
 
                 continue;
             }
@@ -1067,36 +1050,6 @@ abstract class Repository
     }
 
     /**
-     * 获取关联查询的默认查询条件
-     *
-     * @param model  $model        查询的model
-     * @param string $relationName 关联查询字段
-     *
-     * @return array
-     */
-    public function getRelationDefaultFilters($model, $relationName)
-    {
-        // 添加relation的默认条件，默认条件数组为 “$relationFilters" 的 public 属性
-        $attribute = $relationName . 'Filters';
-        if (isset($model->{$attribute}) && is_array($model->{$attribute})) {
-            return $model->{$attribute};
-        }
-
-        // 不是 public 属性，可能是 protected 属性，通过反射获取
-        $conditions = [];
-        try {
-            $properties = (new ReflectionClass($model))->getDefaultProperties();
-            $value      = Arr::get($properties, $attribute, Arr::get($properties, strtolower($attribute)));
-            if ($value && is_array($value)) {
-                $conditions = $value;
-            }
-        } catch (Exception $e) {
-        }
-
-        return $conditions;
-    }
-
-    /**
      * 添加关联查询
      *
      * @param array $relations 关联查询的条件和字段信息
@@ -1128,7 +1081,7 @@ abstract class Repository
             $hasRelations = $this->getRelations($conditionRelations, $fieldRelations);
 
             // 添加关联的外键，防止关联不上
-            if ($foreignKey && $this->isNotSelectAll($selectColumns, $table) && !in_array($foreignKey, $selectColumns)) {
+            if ($foreignKey && $this->notSelectAll($selectColumns, $table) && !in_array($foreignKey, $selectColumns)) {
                 $selectColumns[] = $foreignKey;
             }
 
@@ -1198,29 +1151,13 @@ abstract class Repository
     }
 
     /**
-     * 获取传入的单个字段信息
-     *
-     * @param $mixedValue
-     *
-     * @return string
-     */
-    public function firstKey($mixedValue)
-    {
-        if (is_array($mixedValue)) {
-            $mixedValue = Arr::get(array_values($mixedValue), 0);
-        }
-
-        return (string)$mixedValue;
-    }
-
-    /**
      * 获取查询单个字段数据信息
      *
      * @param string $column 查询的字段 （支持 parent.name ）
      *
      * @return array
      */
-    public function firstField($column)
+    public function getFieldArray($column)
     {
         $index = strpos($column, '.');
         if ($index === false) {
@@ -1230,18 +1167,18 @@ abstract class Repository
         $columnName  = substr($column, 0, $index);
         $columnValue = substr($column, $index + 1);
 
-        return [$columnName => $this->firstField($columnValue)];
+        return [$columnName => $this->getFieldArray($columnValue)];
     }
 
     /**
-     * 是否没有查询全部字段
+     * 没有查询全部字段
      *
      * @param array  $columns 查询的字段信息
      * @param string $table   表名称
      *
      * @return bool
      */
-    public function isNotSelectAll($columns, $table)
+    public function notSelectAll($columns, $table)
     {
         return !empty($columns) && !in_array('*', $columns) && !in_array($table . '.*', $columns);
     }
@@ -1297,97 +1234,6 @@ abstract class Repository
     }
 
     /**
-     * 通过数组查询
-     *
-     * @param array $where   查询的条件
-     *
-     * @param array $columns 查询的字段信息
-     *
-     * @return Model|QueryBuilder
-     */
-    public function findWhere(array $where, array $columns = [])
-    {
-        $model = $this->model->newModelInstance();
-
-        // 查询条件为空，直接返回
-        if (empty($where) && empty($columns)) {
-            return $model;
-        }
-
-        $table        = $model->getTable();
-        $tableColumns = $this->getTableColumns();
-
-        list($fieldRelations, $selectColumns) = $this->parseColumnRelations($columns, $table, $tableColumns);
-
-        // 处理关联信息查询
-        $relations = $this->getRelations([], $fieldRelations);
-        $model     = $this->getRelationModel($model, $relations, $selectColumns, $table);
-
-        // 返回处理 $where 查询条件的 model
-        return $this->getWhereQuery($model, $where, $table, $tableColumns);
-    }
-
-    /**
-     * 处理 where 添加查询
-     *
-     * @param Model|QueryBuilder $model   查询的model
-     * @param array              $where   查询的条件
-     * @param string             $table   查询的表
-     * @param array              $columns 查询的字段信息
-     * @param bool               $or      是否or查询
-     *
-     * @return Model|QueryBuilder
-     */
-    public function getWhereQuery($model, array $where, $table, $columns, $or = false)
-    {
-        // 没有查询条件直接返回
-        if (empty($where)) {
-            return $model;
-        }
-
-        // 第一步：获取第一个元素 是否指定连接方式
-        $firstWhere = array_shift($where);
-        if (is_string($firstWhere)) {
-            return $this->getWhereQuery($model, $where, $table, $columns, strtolower($firstWhere) == 'or');
-        }
-
-        // 第二步：第一个元素不是连接方式，那么就是查询条件了，需要添加上去
-        array_unshift($where, $firstWhere);
-        $method = $or ? 'orWhere' : 'where';
-        foreach ($where as $value) {
-
-            // 关联数组处理 ['name' => 2, 'age' => 1] or ['name:like' => 'test', 'age' => 2]
-            if (Helper::isAssociative($value)) {
-                $model = $this->handleConditionQuery($value, $model, $table, $columns, $or);
-                continue;
-            }
-
-            // ['and', ['name' => 1], ['age' => 2]] or [['name' => 1], ['age' => 2]] 循环处理
-            list($column) = $value;
-            if (is_array($column) || (is_string($column) && in_array(strtolower($column), ['or', 'and']))) {
-                $model = $model->{$method}(function ($q) use ($value, $table, $columns) {
-                    return $this->getWhereQuery($q, $value, $table, $columns);
-                });
-
-                continue;
-            }
-
-            // 只有 ['name', '=', 1] 才处理
-            if (count($value) === 3) {
-                // 字段查询条件表名称
-                if (isset($columns[$column])) {
-                    $value[0] = $table . '.' . $column;
-                }
-
-                // 处理表达式查询
-                $model = $this->handleExpressionConditionQuery($model, $value, $or);
-            }
-        }
-
-        return $model;
-    }
-
-    /**
      * 调用 model 的方法
      *
      * @param string $method 调用model 自己的方法
@@ -1426,19 +1272,6 @@ abstract class Repository
         }
 
         return $this->findCondition($conditions, $columns)->{$method}(...$arguments);
-    }
-
-    /**
-     * 静态方法调用
-     *
-     * @param string $name      调用的方法名称
-     * @param array  $arguments 调用参数
-     *
-     * @return mixed
-     */
-    public static function __callStatic($name, $arguments)
-    {
-        return static::instance()->{$name}(...$arguments);
     }
 
     /**
