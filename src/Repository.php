@@ -494,13 +494,9 @@ abstract class Repository
         // 解析查询条件
         foreach ($conditions as $field => $value) {
             // 第一步：检查关联查询
-            $index = strpos($field, '.');
-            if ($index === false) {
-                $findConditions[$field] = $value;
-            } elseif (Str::startsWith($field, '__')) {
-                // 查询条件为 __ 开头的表示连表查询
-                $findConditions[ltrim($field, '__')] = $value;
-            } else {
+            if (Str::startsWith($field, 'rel.')) {
+                $field = Str::replaceFirst('rel.', '', $field);
+                $index = strpos($field, '.');
                 // 处理关联名称
                 $relationName = substr($field, 0, $index);
                 $fieldName    = substr($field, $index + 1);
@@ -510,6 +506,8 @@ abstract class Repository
                 }
 
                 $relations[$relationName][$fieldName] = $value;
+            } else {
+                $findConditions[$field] = $value;
             }
         }
 
@@ -1155,97 +1153,6 @@ abstract class Repository
         unset($columns[$primary]);
 
         return Arr::only($data, $columns);
-    }
-
-    /**
-     * 通过数组查询
-     *
-     * @param array $where   查询的条件
-     *
-     * @param array $columns 查询的字段信息
-     *
-     * @return Model|QueryBuilder|Builder
-     */
-    public function findWhere(array $where, array $columns = [])
-    {
-        $model = $this->model->newModelInstance();
-
-        // 查询条件为空，直接返回
-        if (empty($where) && empty($columns)) {
-            return $model;
-        }
-
-        $table        = $model->getTable();
-        $tableColumns = $this->getTableColumns();
-
-        list($fieldRelations, $selectColumns) = $this->parseColumnRelations($columns, $table, $tableColumns);
-
-        // 处理关联信息查询
-        $relations = $this->getRelations([], $fieldRelations);
-        $model     = $this->getRelationModel($model, $relations, $selectColumns, $table);
-
-        // 返回处理 $where 查询条件的 model
-        return $this->getWhereQuery($model, $where, $table, $tableColumns);
-    }
-
-    /**
-     * 处理 where 添加查询
-     *
-     * @param Model|QueryBuilder|Builder $model   查询的model
-     * @param array                      $where   查询的条件
-     * @param string                     $table   查询的表
-     * @param array                      $columns 查询的字段信息
-     * @param bool                       $or      是否or查询
-     *
-     * @return Model|QueryBuilder|Builder
-     */
-    public function getWhereQuery($model, array $where, $table, $columns, $or = false)
-    {
-        // 没有查询条件直接返回
-        if (empty($where)) {
-            return $model;
-        }
-
-        // 第一步：获取第一个元素 是否指定连接方式
-        $firstWhere = array_shift($where);
-        if (is_string($firstWhere)) {
-            return $this->getWhereQuery($model, $where, $table, $columns, strtolower($firstWhere) == 'or');
-        }
-
-        // 第二步：第一个元素不是连接方式，那么就是查询条件了，需要添加上去
-        array_unshift($where, $firstWhere);
-        $method = $or ? 'orWhere' : 'where';
-        foreach ($where as $value) {
-
-            // 关联数组处理 ['name' => 2, 'age' => 1] or ['name:like' => 'test', 'age' => 2]
-            if (Helper::isAssociative($value)) {
-                $model = $this->handleConditionQuery($value, $model, $table, $columns, $or);
-                continue;
-            }
-
-            // ['and', ['name' => 1], ['age' => 2]] or [['name' => 1], ['age' => 2]] 循环处理
-            list($column) = $value;
-            if (is_array($column) || (is_string($column) && in_array(strtolower($column), ['or', 'and']))) {
-                $model = $model->{$method}(function ($q) use ($value, $table, $columns) {
-                    return $this->getWhereQuery($q, $value, $table, $columns);
-                });
-
-                continue;
-            }
-
-            // 只有 ['name', '=', 1] 才处理
-            if (count($value) === 3) {
-                // 字段查询条件表名称
-                if (isset($columns[$column])) {
-                    $value[0] = $table . '.' . $column;
-                }
-
-                // 处理表达式查询
-                $model = $this->handleExpressionConditionQuery($model, $value, $or);
-            }
-        }
-
-        return $model;
     }
 
     /**

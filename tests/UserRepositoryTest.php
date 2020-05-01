@@ -140,16 +140,6 @@ class UserRepositoryTest extends AbstractRepositoryTest
         $this->assertArrayHasKey('age:eq', $conditions);
     }
 
-    public function testFindWhere()
-    {
-        $user = UserRepository::instance()->findWhere([
-            'and',
-            ['user_id', '=', 1],
-            ['status', '=', 2],
-        ])->first();
-        $this->assertEquals(null, $user);
-    }
-
     public function testGetTableColumns()
     {
         $columns = UserRepository::instance()->getTableColumns();
@@ -292,5 +282,28 @@ class UserRepositoryTest extends AbstractRepositoryTest
         $users = UserRepository::instance()->pluck(['status' => 1], 'name');
         dump($users);
         $this->assertCount(4, $users);
+    }
+
+    public function testParseConditionRelations()
+    {
+        list($relations, $conditions) = UserRepository::instance()->parseConditionRelations([
+            'status'           => 1,
+            'rel.posts.status' => 1,
+            'rel.posts.limit'  => 1,
+            'joinWith'         => 'posts',
+            'posts.status'     => 1,
+        ]);
+
+        dump($relations, $conditions);
+        $this->assertArrayHasKey('posts', $relations);
+        $this->assertArrayHasKey('status', $conditions);
+
+        dump(UserRepository::instance()->toSql([
+            'status'           => 1,
+            'rel.posts.status' => 1,
+            'rel.posts.limit'  => 1,
+            'joinWith'         => 'posts',
+            'posts.status'     => 1,
+        ]));
     }
 }
