@@ -429,7 +429,7 @@ abstract class Repository
         }
 
         foreach ($conditions as $key => &$value) {
-            if (strtolower($key) === 'or') {
+            if (in_array(strtolower($key), ['or', 'and'], true)) {
                 $value = $this->filterCondition($value);
             }
 
@@ -766,11 +766,17 @@ abstract class Repository
                 continue;
             }
 
-            // or 查询
-            if (strtolower($column) === 'or' && is_array($bindValue) && $bindValue) {
-                $query = $query->where(function ($query) use ($bindValue, $table, $columns) {
-                    $this->conditionQuery($bindValue, $query, $table, $columns, true);
-                });
+            // or 、and 查询
+            if (in_array(strtolower($column), ['or', 'and'], true)) {
+
+                // 存在值才去查询
+                if (is_array($bindValue) && $bindValue) {
+                    $column = strtolower($column);
+                    $method = $or ? 'orWhere' : 'where';
+                    $query  = $query->{$method}(function ($query) use ($bindValue, $table, $columns, $column) {
+                        $this->conditionQuery($bindValue, $query, $table, $columns, $column === 'or');
+                    });
+                }
 
                 continue;
             }

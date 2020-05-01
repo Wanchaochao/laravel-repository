@@ -306,4 +306,21 @@ class UserRepositoryTest extends AbstractRepositoryTest
             'posts.status'     => 1,
         ]));
     }
+
+    public function testOrAndFind()
+    {
+        $sql = UserRepository::instance()->toSql([
+            'or' => [
+                'status'  => 1,
+                'age:gte' => 26,
+                'and'     => [
+                    'status'  => 1,
+                    'age:neq' => 24,
+                ],
+            ],
+        ]);
+
+        dump($sql);
+        $this->assertStringStartsWith("select", $sql);
+    }
 }
