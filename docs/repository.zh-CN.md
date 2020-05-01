@@ -4,8 +4,19 @@ Repository 基本使用
 [TOC]
 
 ## 一、新增数据
-
 使用 `create(array $data)` 方法, 返回的 `model->toArray()` 数组
+
+```
+public function create(array $data);
+```
+
+#### 参数
+- `$data` 添加的数据(会自动过滤掉非表中字段信息，不允许为空)
+
+#### 返回值
+- `array` 返回数组
+
+#### 示例
 
 ```php
 $user = $this->repository->create([
@@ -21,8 +32,18 @@ $user = UserRepository::instance()->create(request()->all());
 
 ## 二、修改数据
 
-使用 `update($conditions, array $update_data)` 方法、返回受影响行数
+```
+public function update($conditions, array $updateValues);
+```
 
+#### 参数
+- `$conditions` 修改的条件;[支持多种方式查询](/?page=repository#五、查询条件说明)
+- `$updateValues` 修改的数据(会自动过滤掉非表中字段信息，不允许为空)
+
+#### 返回值
+- `int` 受影响的行数
+
+#### 示例
 ```php
 // 主键单个修改
 $row = $this->repository->update(1, ['user_name' => 'Tony', 'status' => 2]);
@@ -41,7 +62,17 @@ $row = $this->repository->update([
 
 ## 三、删除数据
 
-使用 `delete($conditions)` 方法、返回受影响行数
+删除数据、返回受影响行数
+
+```
+public function update($conditions, array $updateValues);
+```
+
+#### 参数
+- `$conditions` 删除的条件;[支持多种方式查询](/?page=repository#五、查询条件说明)
+
+#### 返回值
+- `int` 受影响的行数
 
 ```php
 // 主键单个删除
@@ -103,7 +134,7 @@ $names = $this->repository->findAllBy([1, 2, 3, 4], 'username');
 $pagination = $this->repository->paginate(['status' => 1], ['id', 'name', 'age', 'status']);
 ```
 
-### 4.4 filter系列过滤空值查询
+### 4.4 filter过滤空值查询
 
 在我们业务场景中，经常会根据请求参数来判断是否添加指定条件；例如常见的后台搜索列表业务中：
 
@@ -146,9 +177,9 @@ $pagination = $this->repositpory->filterPaginate([
 
 对于查询条件 `$conditions` 说明,**包括修改和删除的查询条件**
 
-### 5.1 简单主键、数组查询
+### 5.1 主键、数组查询
 
-就是简单的 [key => value] 数组方式
+就是简单的 `[key => value]` 数组方式
 
 ```php
 // 简单主键查询
@@ -163,7 +194,7 @@ $users = $this->repositpory->findAll([
 ]);
 ```
 
-### 5.2 使用表达式查询
+### 5.2 表达式查询
 
 通过定义的表达式、或者操作符查询
 
@@ -216,7 +247,7 @@ $users = $this->repositpory->findAll([
 | rlike       | 模糊查询包含(rlike)       |                                                   |
 | <>          | 不等于(<>)                |                                                   |
 
-#### 关于 `like`, `not_like` 查询说明
+#### `like`, `not_like` 查询说明
 
 ```php
 // 没有添加前后模糊查询，会自动加上 username like '%test%'
@@ -228,7 +259,8 @@ $this->repository->findAll(['username:like' => 'test%']);
 // 如果上述like的查询不满足你的需求，可以使用原生SQL查询
 $this->repository->findAll(['username' => DB::raw("like 'username'")]);
 ```
-### 5.3 使用预定义字段查询
+
+### 5.3 预定义字段查询
 
 有些预定义的 key 是做特殊查询用的
 
@@ -244,6 +276,8 @@ $this->repository->findAll([
 
 | 字段名称        | 字段值类型        | 说明                                |
 | --------------- | ----------------- | ----------------------------------- |
+| `and`           | `array`           | 添加`and`查询条件; 只能传递一个数组 |
+| `or`            | `array`           | 添加`or`查询条件; 只能传递一个数组  |
 | `force`         | `string`          | 强制走指定索引                      |
 | `order`         | `string or array` | 指定排序条件                        |
 | `limit`         | `int`             | 指定查询条数                        |
@@ -257,8 +291,44 @@ $this->repository->findAll([
 | `leftJoinWith`  | `string or array` | 通过关联关系对应leftJoin查询        |
 | `rightJoinWith` | `string or array` | 通过关联关系对应rightJoin查询       |
 
-### 5.4 为关联添加查询条件
-### 5.5 使用关联关系join查询
+#### `and`, `or` 查询说明
+
+值必须为一个数组，里面支持`[key => value]` 和 [表达式查询方式](/?page=repository#5.2-表达式查询)的数组；表示数组里面的查询条件通过什么连接
+
+> 支持嵌套使用 `and` 和 `or`
+
+示例：
+
+```php
+$this->repository->findAll([
+    'status' => 1,
+    'or'     => [
+        'username:like' => 'test',
+        'age:gt'        => 10,
+        'and'           => [
+            'user_id' => [1, 2, 3],
+            'gener'   => 1,
+        ],
+    ]
+]);
+```
+
+执行SQL:
+
+```SQL
+select `users`.* 
+from `users` 
+where `users`.`status` = 1 and (
+    `users`.`username` like '%test%' or  
+    `users`.`age` > 10 or 
+    (
+        `users`.`user_id` in (1, 2, 3) and 
+        `users`.`gener` = 1
+    )
+)  
+```
+
+### 5.4 关联关系join查询
 
 >前提是你的model定义了表的关联
 
@@ -328,7 +398,7 @@ select `user_ext`.* from `user_ext` inner join `users` on (`users`.`user_id` = `
 
 >如果需要使用 `leftJoin` 或者 `rightJoin` 的使用 `leftJoinWith` 或者 `rightJoinWith` 就好了
 
-##### 给join查询添加查询条件
+##### 添加join查询查询条件
 
 通过：`['表名字.字段' => '查询值']`
 
@@ -345,7 +415,7 @@ UserRepostiory::instance()->findAll([
 select `users`.* from `users` inner join `user_ext` on (`users`.`user_id` = `user_ext`.`user_id`) where `users`.`status` = 1 and `user_ext`.`status` != 1 and `user_ext`.`created_at` > '2020-04-29 22:31:00'
 ```
 
-##### 给join表名别名
+##### 给join表命别名
 
 通过： `['别名' => '关联方法名']`
 
@@ -364,13 +434,13 @@ UserRepostiory::instance()->findAll([
 select `users`.* from `users` inner join `user_ext` AS `t1` on (`users`.`user_id` = `t1`.`user_id`) where `users`.`status` = 1 and `t1`.`status` != 1 and `t1`.`created_at` > '2020-04-29 22:31:00'
 ```
 
-### 5.6 为关联查询添加条件
+### 5.5 关联查询附加条件
 
 **切记关联查询不是join查询** 关联查询是主表查询完成后，通过定义的关联然后再去查询关联表，是执行了两条SQL
 
 定义方式： `['rel.关联方法名称.关联表字段' => '查询的值']`
 
-Model 使用 5.5 定义的model
+[Model 使用 5.4 定义的model](/?page=repository#5.4-使用关联关系join查询)
 
 ```php
 UserRepostiory::instance()->find([
@@ -393,7 +463,7 @@ select `users`.* from `users` where `users`.`user_id` = 1
 select `user_ext`.* from `user_ext` where `user_id` in (1) and `user_ext`.`status` = 1 and `user_ext`.`type` = 1
 ```
 
-### 5.7 使用join查询
+### 5.6 join 查询
 
 使用 join 查询
 
@@ -432,9 +502,9 @@ UserRepostiory::instance()->findAll([
 ```SQL
 select `users`.* from `users` inner join `user_ext` on (`users`.`user_id` = `user_ext`.`user_id`) inner join `users` as `t1` on (`users`.`user_id` = `t1`.`user_id`)
 ```
-### 5.8 使用model定义scope查询
+### 5.7 scope 查询
 
-需要 model 定义了 scope 查询方法
+需要 `Model` 定义了 `scope` 前缀的查询方法
 
 ```php
 <?php
@@ -455,7 +525,7 @@ class User extends Model
 }
 ```
 
-定义方式：`['去掉scope方法名称' => '需要的参数']`
+定义方式：`['去掉scope前缀方法名称' => '需要的参数']`
 
 ```php 
 UserRepostiory::instance()->findAll([
@@ -469,7 +539,7 @@ UserRepostiory::instance()->findAll([
 select `users`.* from `users` inner join `user_ext` on (`users`.`user_id` = `user_ext`.`user_id`) where `name` like 'test' and `user_ext`.`status` = 1
 ```
 
-### 5.9 使用原生SQL查询
+### 5.8 原生SQL查询
 
 > 慎用；存在SQL注入风险
 

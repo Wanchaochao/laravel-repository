@@ -408,67 +408,6 @@ $user = $this->userRepostiory->newBuilder([
 ], ['*', 'ext' => ['*']])->get();
 ```
 
-### findWhere()
-
-通过数组查询获取到`Illuminate\Database\Query\Builder` 或者 `Illuminate\Database\Eloquent\Builder` 对象
-
->支持比较复杂的多`and`和多`or`的情况
-
-```
-public function findWhere(array $where, $columns = [])
-```
-
-#### 参数说明
-- `$where` 查询条件数组
-- `$columns` 查询字段；[支持字段指定](/?page=repository#六、查询字段说明)
-#### 示例
-
-```php
-$users = $this->userRepostiory->findWhere([
-    'and',
-    ['status', 'in' , [1, 2, 3]],
-    ['created_at', 'between', [date('Y-m-d 00:00:00'), date('Y-m-d H:i:s')]],
-    [
-        'or',
-        ['age', '>=', 35],
-        ['age', '<=', 15],
-        ['and', ['name', 'like', 'test%'], ['name', 'like', '%test']]
-    ]
-])->get();
-```
-
-执行的SQL:
-```SQL
-select 
-    `users`.* 
-from 
-    `users` 
-where (
-    (
-        `users`.`status` in (1, 2, 3) and 
-        `users`.`created_at` between '2020-02-02 00:00:00' and '2020-02-02 12:34:56'
-    ) and (
-        `users`.`age` >= 35 or
-        `users`.`age` <= 15 or
-        (
-            `users`.`name` like 'test%' and `users`.`name` like '%test'
-        )
-    )
-)
-```
-
-#### 使用说明
-
-数组的第一个元素，确定后续的查询条件使用什么方式连接 `and` or `or`; 如果是 `and` 可以忽略不写
-
-```php
-// where `username` like '%test%' and `age` >= 20
-$where = [
-    ['username', 'like', 'test'], 
-    ['age', '>=', 20]
-];
-```
-
 ### filterCondition()
 
 过滤查询条件中的空值，`filte`系列的方式，查询条件使用该方法处理
