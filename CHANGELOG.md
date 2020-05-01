@@ -5,7 +5,11 @@ v1.0.18 2020-05-01
 ------------------
 
 - feat: 添加 `and` 和 `or` 的查询方式
-- delete: 删除 `findWhere` 方法； 上述 `and` 和 `or` 完全可以代替
+- factor: 代码重构
+    - `firstField` 方法重命名为 `getFieldArray`
+- delete: 删除方法
+    - 删除 `findWhere` 方法； 上述 `and` 和 `or` 完全可以代替
+    - 删除 `firstKey` 方法， `findBy` 和 `findAllBy` 字段参数不兼容数组，必须传递字符串
 - test: 添加测试用例
 
 v1.0.17 2020-04-05

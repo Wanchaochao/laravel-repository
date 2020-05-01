@@ -1198,13 +1198,7 @@ abstract class Repository
         $primary = $primary ?: $this->model->getKeyName();
         // 过滤非法字段，禁止更新主键
         Arr::pull($data, $primary);
-        foreach ($data as $k => $v) {
-            if (!isset($columns[$k])) {
-                unset($data[$k]);
-            }
-        }
-
-        return $data;
+        return Arr::only($data, $columns);
     }
 
     /**

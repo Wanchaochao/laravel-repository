@@ -12,32 +12,33 @@ class PostRepositoryTest extends AbstractRepositoryTest
      */
     public function testCreate()
     {
-        $posts = PostRepository::instance()->create([
+        list($ok, $msg, $posts) = PostRepository::instance()->create([
             'user_id'   => 1,
             'parent_id' => 0,
             'name'      => '测试文章01',
             'status'    => 1,
         ]);
-        dump($posts);
+        dump($posts, $msg, $ok);
+        $this->assertEquals(true, $ok);
         $this->assertArrayHasKey('post_id', $posts);
     }
 
     /**
      * 测试修改数据
      *
-     * @throws Exception
      */
     public function testUpdate()
     {
-        $row = PostRepository::instance()->update(4, [
+        list($ok, $msg, $row) = PostRepository::instance()->update(4, [
             'status' => 2,
             'name'   => 'test2',
         ]);
 
         $posts = PostRepository::instance()->find(4);
-        dump($row, $posts);
+        dump($row, $ok, $msg, $posts);
 
         $this->assertEquals(1, $row);
+        $this->assertEquals(true, $ok);
         $this->assertEquals(2, $posts['status']);
         $this->assertEquals('test2', $posts['name']);
     }
@@ -45,14 +46,14 @@ class PostRepositoryTest extends AbstractRepositoryTest
     /**
      * 测试删除数据
      *
-     * @throws Exception
      */
     public function testDelete()
     {
-        $row   = PostRepository::instance()->delete(4);
+        list($ok, $msg, $row)   = PostRepository::instance()->delete(4);
         $posts = PostRepository::instance()->find(4);
-        dump($row, $posts);
+        dump($row, $ok, $msg, $posts);
         $this->assertEquals(1, $row);
+        $this->assertEquals(true, $ok);
         $this->assertEquals(null, $posts);
     }
 
