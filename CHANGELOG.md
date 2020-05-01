@@ -8,6 +8,7 @@ v2.0.1 2020-05-01
 - refactor: 
     - `posts.name` 查询改为添加`join`查询条件 而不是关联查询条件 
     - `rel.posts.name` 给关联查询添加附加添加 
+- delete: 删除 `findWhere` 方法； 上述 `and` 和 `or` 完全可以代替
 
 v2.0.0 2020-04-20
 -----------------
@@ -25,6 +26,17 @@ v2.0.0 2020-04-20
     4. `getError` 方法
     5. `firstKey` 方法
 - refactor: 命名空间修改为 `Littlebug\Repository`
+
+v1.0.18 2020-05-01
+------------------
+
+- feat: 添加 `and` 和 `or` 的查询方式
+- factor: 代码重构
+    - `firstField` 方法重命名为 `getFieldArray`
+- delete: 删除方法
+    - 删除 `findWhere` 方法； 上述 `and` 和 `or` 完全可以代替
+    - 删除 `firstKey` 方法， `findBy` 和 `findAllBy` 字段参数不兼容数组，必须传递字符串
+- test: 添加测试用例
 
 v1.0.17 2020-04-05
 ------------------
