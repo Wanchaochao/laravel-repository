@@ -750,7 +750,7 @@ abstract class Repository
      * 查询处理
      *
      * @param array                      $condition 查询条件
-     * @param Model|Builder|QueryBuilder $query     查询对象
+     * @param Builder|Model|QueryBuilder $query     查询对象
      * @param string                     $table     查询表名称
      * @param array                      $columns   查询的字段
      * @param bool                       $or        是否是or 查询默认false
