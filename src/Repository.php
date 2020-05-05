@@ -1174,7 +1174,10 @@ abstract class Repository
         // 直接使用 model, 不需要查询条件的数据
         if (in_array($method, $this->passThru)) {
             return (new $this->model)->{$method}(...$arguments);
-        } else if (Str::startsWith($method, 'filter')) {
+        }
+
+        // filter 系列函数
+        if (Str::startsWith($method, 'filter')) {
             // 过滤方法查询
             $method       = lcfirst(substr($method, 6));
             $arguments[0] = $this->filterCondition(Arr::get($arguments, 0, []));
