@@ -1196,8 +1196,10 @@ abstract class Repository
     {
         $columns = $columns ?: $this->getTableColumns();
         $primary = $primary ?: $this->model->getKeyName();
-        // 过滤非法字段，禁止更新主键
-        Arr::pull($data, $primary);
+
+        // 不管是新增还是修改、不允许操作主键字段
+        unset($columns[$primary]);
+
         return Arr::only($data, $columns);
     }
 
