@@ -1,11 +1,24 @@
-Repository 基本使用
+Repository The basic use
 ==================
 
 [TOC]
 
-## 一、新增数据
+## 1、Create
 
-使用 `create(array $data)` 方法, 返回的 `model->toArray()` 数组
+New data
+
+```
+public function create(array $data);
+```
+
+#### parameter
+- `$data` Added data (will automatically filter out non-table field information and is not allowed to be null)
+
+#### return value
+
+- `array` 
+
+#### example
 
 ```php
 $user = $this->repository->create([
@@ -15,97 +28,122 @@ $user = $this->repository->create([
     'address'    => 'America'
 ]);
 
-// create 方法能够过滤非model字段的数据、所以你可以直接使用request()->all();
+// create Method filters data from non-model fields, so you can use it directly: request()->all();
 $user = UserRepository::instance()->create(request()->all());
 ```
 
-## 二、修改数据
+## 2、Update
 
-使用 `update($conditions, array $update_data)` 方法、返回受影响行数
+```
+public function update($conditions, array $updateValues);
+```
 
+#### parameter
+- `$conditions` Modified conditions[Support for multiple types of queries](/?page=repository#五、查询条件说明)
+- `$updateValues` Modified data (non-table field information is automatically filtered out, and is not allowed to be null)
+
+#### return value
+- `int` affected rows
+
+#### example
 ```php
-// 主键单个修改
+// A single modification of the primary key
 $row = $this->repository->update(1, ['user_name' => 'Tony', 'status' => 2]);
 
-// 主键多个修改
+// Primary key multiple modifications
 $row = $this->repository->update([1, 2, 3, 4], ['user_name' => 'Tony', 'status' => 2]);
 
-// 表达式查询修改
+// Expression query modification
 $row = $this->repository->update([
     'id:gt'  => 2,
     'status' => 1,
 ], ['user_name' => 'Tony', 'status' => 2]);
 ```
-> 使用的是批量修改方式，但**能够使用模型的修改器**
-> `$conditions` 修改条件支持，主键、数组、表达式
+> Batch modification is used, **But you can use the modifier of the model**
+> `$conditions` Modify conditional support, primary keys, arrays, expressions
 
-## 三、删除数据
+## 3、Delete
 
-使用 `delete($conditions)` 方法、返回受影响行数
+Deletes data and returns the number of affected rows
+
+```
+public function update($conditions, array $updateValues);
+```
+
+#### parameter
+- `$conditions` Conditions for deletion [Support for multiple types of queries](/?page=repository#五、查询条件说明)
+
+#### return value
+- `int` affected rows
 
 ```php
-// 主键单个删除
+// Primary key single delete
 $row = $this->repository->delete(1);
 
-// 主键多个删除
+// Primary key multiple deletes
 $row = $this->repository->delete([1, 2, 3, 4, 5]);
 
-// 表达式数组删除
+// Expression array delete
 $row = $this->repository->delete(['id:gt' => 2, 'status' => 1]);
 ```
 
-## 四、查询数据
+## 4、Query
 
-所有查询方法中 `$conditions` 表示查询条件， `$columns` 表示查询字段
+In all query methods, `$conditions` represents the query condition and  `$columns` represents the query field
 
-### 4.1 find 查询单个
+### 4.1 find Query a single
 
-> `find($conditions, $columns = [])` 查询单条数据
+> `find($conditions, $columns = [])` 
 
 ```php
-// 主键查询
+// The primary key query
 $item = $this->repository->find(1);
 
-// 表达式数组查询
+// Expression array query
 $item = $this->repository->find(['status' => 1, 'age:gt' => 2]);
 ```
 
-> `findBy($conditions, $column)` 查询单个字段
+> `findBy($conditions, $column)` Querying a single field
 
 ```php
 $name = $this->repository->findBy(1, 'username');
 ```
 
-### 4.2 findAll 查询多个
+### 4.2 findAll Query multiple
 
-> `findAll($conditions, $columns = [])` 查询多条数据
+> `findAll($conditions, $columns = [])` Query multiple
 
 ```php
-// 主键查询
+// The primary key query
 $item = $this->repository->findAll([1, 2, 3, 4, 5]);
 
-// 表达式数组查询
+// Expression array query
 $item = $this->repository->findAll(['status' => 1, 'age:gt' => 2, 'id' => [1, 2, 3, 4]]);
 ```
 
-> `findAllBy($conditions, $column)` 查询单个字段
+> `findAllBy($conditions, $column)` Querying a single field
 
 ```php
 $names = $this->repository->findAllBy([1, 2, 3, 4], 'username');
 ```
 
-### 4.3 paginate 分页查询
+### 4.3 paginate Paging query
 
-> `paginate($conditions, $columns = [], $size = 10, $current = null)` 分页查询， 返回分页对象
-> `$size` 表示每页多少条 `$current` 表示当前页(不传自动获取请求参数的 `page` 的值)
+> `paginate($conditions, $columns = [], $size = 10, $current = null)` Paging queries that return paging objects
+
+#### parameter
+- `$conditions` Query conditions
+- `$columns`    Query field
+- `$size`       Represents the number of rows per page
+- `$current` Represents the current page (does not automatically get the `page` value of the request parameter)
 
 ```php
 $pagination = $this->repository->paginate(['status' => 1], ['id', 'name', 'age', 'status']);
 ```
 
-### 4.4 filter系列过滤空值查询
+### 4.4 Filter null value queries
 
-在我们业务场景中，经常会根据请求参数来判断是否添加指定条件；例如常见的后台搜索列表业务中：
+In our business scenarios, we often judge whether to add a specified condition based on the request parameters. For example, common background search list business：
 
 ```php
 $conditions = [];
@@ -124,8 +162,8 @@ if ($age = request()->input('age')) {
 $pagination = $this->repositpory->paginate($conditions);
 ```
 
-使用 `filter` 系列方法可以简化我们的代码， `filter` 系列方法会自动过滤掉查询条件中的空值；上述代码使用 `filterPaginate`写法
-> 空字符，null, 空数组、' ' 会被认为是空值
+Use `filter` The serial approach simplifies our code， `filter` Series methods automatically filter out null values in query conditions; The above code is written using `filterPaginate`
+> Null characters, null, empty array, ' ' are considered null values
 
 ```php
 $pagination = $this->repositpory->filterPaginate([
@@ -135,43 +173,43 @@ $pagination = $this->repositpory->filterPaginate([
 ]);
 ```
 
-其他`filter`系列方法:
+Other `filter` Methods:
 
-#### filterFind($conditions, $columns = []) 查询单条数据
-#### filterFindBy($conditions, $column) 查询单个字段
-#### filterFindAll($conditions, $columns = []) 查询多条数据
-#### filterFindAllBy($conditions, $column) 查询单个字段数组
+#### filterFind($conditions, $columns = []) Query a single piece of data
+#### filterFindBy($conditions, $column) Querying a single field
+#### filterFindAll($conditions, $columns = []) Query multiple data
+#### filterFindAllBy($conditions, $column) Query an array of individual fields
 
-## 五、查询条件说明
+## 5、Description of query conditions
 
-对于查询条件 `$conditions` 说明,**包括修改和删除的查询条件**
+For query conditions `$conditions` instructions,**includes modified and deleted query conditions**
 
-### 5.1 简单主键、数组查询
+### 5.1 Primary key, array query
 
-就是简单的 [key => value] 数组方式
+Define the way: `[key => value]` 
 
 ```php
-// 简单主键查询
+// Simple primary key query
 $user = $this->repositpory->find(1);
-// 数组主键查询
+// Array primary key query
 $users = $this->repositpory->findAll([1, 2, 3]);
-// 简单[key => value]查询
+// [key => value] query
 $users = $this->repositpory->findAll([
     'status' => 1,
     'name'   => 'test',
-    'type'   => [1, 2, 3], // 会自动转为 in 查询
+    'type'   => [1, 2, 3], // This will be automatically converted to an in query
 ]);
 ```
 
-### 5.2 使用表达式查询
+### 5.2 Expression query
 
-通过定义的表达式、或者操作符查询
+Queries by defined expressions, or operators
 
-1. 表达式定义方式：`['查询字段:表达式' => '查询值']`
-2. 操作符定义方式：`['查询字段:操作符' => '查询值']`
+1. Expression definition: `['field:expression' => 'value']`
+2. Operator definition: `['field:operator' => 'value']`
 
 ```php
-// 使用表达式
+// Using expressions
 $user = $this->repositpory->findAll([
     'parent_id:eq'       => 0,         // =
     'status:in'          => [1, 2, 3], // in
@@ -180,7 +218,7 @@ $user = $this->repositpory->findAll([
     'created_at:between' => [date('Y-m-d 00:00:00'), date('Y-m-d 23:59:59')],
 ]);
 
-// 使用操作符
+// Use operator
 $users = $this->repositpory->findAll([
     'status:in'          => [1, 2, 3], // in
     'id:>='              => 100,       // >
@@ -189,46 +227,47 @@ $users = $this->repositpory->findAll([
 ]);
 ```
 
-#### 目前支持的表达式：
+#### Currently supported expressions:
 
-| 表达式      | 含义                      | 特别说明                                          |
-| :---------- | :------------------------ | :------------------------------------------------ |
-| eq          | 等于(=)                   |                                                   |
-| neq         | 不等于(!=)                |                                                   |
-| ne          | 不等于(!=)                |                                                   |
-| gt          | 大于(>)                   |                                                   |
-| egt         | 大于等于(>=)              |                                                   |
-| gte         | 大于等于(>=)              |                                                   |
-| ge          | 大于等于(>=)              |                                                   |
-| lt          | 小于(<)                   |                                                   |
-| le          | 小于等于(<=)              |                                                   |
-| lte         | 小于等于(<=)              |                                                   |
-| elt         | 小于等于(<=)              |                                                   |
-| in          | IN 查询                   | 传入数据会强转为数组                              |
-| not in      | NOT IN 查询               | 传入数据会强转为数组                              |
-| not_in      | NOT IN 查询               | 传入数据会强转为数组                              |
-| between     | 区间查询(between)         | 传入数据会强转为数组                              |
-| not_between | 不在区间查询(not between) | 传入数据会强转为数组                              |
-| not between | 不在区间查询(not between) | 传入数据会强转为数组                              |
-| like        | 模糊查询包含(like)        | 会自动判断添加 % 模糊查询；传入数据会强转为字符串 |
-| not_like    | 模糊查询不包含(not like)  | 会自动判断添加 % 模糊查询；传入数据会强转为字符串 |
-| not like    | 模糊查询不包含(not like)  | 会自动判断添加 % 模糊查询；传入数据会强转为字符串 |
-| rlike       | 模糊查询包含(rlike)       |                                                   |
-| <>          | 不等于(<>)                |                                                   |
+| expression  | meaning                                  | Special instructions                                                                                        |
+| :---------- | :--------------------------------------- | :---------------------------------------------------------------------------------------------------------- |
+| eq          | equal(=)                                 |                                                                                                             |
+| neq         | not equal(!=)                            |                                                                                                             |
+| ne          | not equal(!=)                            |                                                                                                             |
+| gt          | greater(>)                               |                                                                                                             |
+| egt         | Greater than or equal to(>=)             |                                                                                                             |
+| gte         | Greater than or equal to(>=)             |                                                                                                             |
+| ge          | Greater than or equal to(>=)             |                                                                                                             |
+| lt          | less(<)                                  |                                                                                                             |
+| le          | Less than or equal to(<=)                |                                                                                                             |
+| lte         | Less than or equal to(<=)                |                                                                                                             |
+| elt         | Less than or equal to(<=)                |                                                                                                             |
+| in          | IN                                       | Incoming data is strongly converted to an array                                                             |
+| not in      | NOT IN                                   | Incoming data is strongly converted to an array                                                             |
+| not_in      | NOT IN                                   | Incoming data is strongly converted to an array                                                             |
+| between     | Range queries(between)                   | Incoming data is strongly converted to an array                                                             |
+| not_between | Non-interval query(not between)          | Incoming data is strongly converted to an array                                                             |
+| not between | Non-interval query(not between)          | Incoming data is strongly converted to an array                                                             |
+| like        | No fuzzy queries contain queries(like)   | Will automatically determine the addition of % fuzzy query; Incoming data is strongly converted to a string |
+| not_like    | Fuzzy queries are not included(not like) | Will automatically determine the addition of % fuzzy query; Incoming data is strongly converted to a string |
+| not like    | Fuzzy queries are not included(not like) | Will automatically determine the addition of % fuzzy query; Incoming data is strongly converted to a string |
+| rlike       | No fuzzy queries contain queries(rlike)  |                                                                                                             |
+| <>          | not equal(<>)                            |                                                                                                             |
 
-#### 关于 `like`, `not_like` 查询说明
+#### `like`, `not like` The query specification
 
 ```php
-// 没有添加前后模糊查询，会自动加上 username like '%test%'
+// Fuzzy queries before and after are not added, they are added automatically username like '%test%'
 $this->repository->findAll(['username:like' => 'test']);
 
-// 添加了前缀或者后缀模糊查询，那么不处理 username like 'test%'
+// Fuzzy queries with prefixes or suffixes are added, then not processed username like 'test%'
 $this->repository->findAll(['username:like' => 'test%']);
 
-// 如果上述like的查询不满足你的需求，可以使用原生SQL查询
+// If the above like queries do not meet your needs, you can use native SQL queries
 $this->repository->findAll(['username' => DB::raw("like 'username'")]);
 ```
-### 5.3 使用预定义字段查询
+
+### 5.3 预定义字段查询
 
 有些预定义的 key 是做特殊查询用的
 
@@ -244,6 +283,8 @@ $this->repository->findAll([
 
 | 字段名称        | 字段值类型        | 说明                                |
 | --------------- | ----------------- | ----------------------------------- |
+| `and`           | `array`           | 添加`and`查询条件; 只能传递一个数组 |
+| `or`            | `array`           | 添加`or`查询条件; 只能传递一个数组  |
 | `force`         | `string`          | 强制走指定索引                      |
 | `order`         | `string or array` | 指定排序条件                        |
 | `limit`         | `int`             | 指定查询条数                        |
@@ -257,8 +298,44 @@ $this->repository->findAll([
 | `leftJoinWith`  | `string or array` | 通过关联关系对应leftJoin查询        |
 | `rightJoinWith` | `string or array` | 通过关联关系对应rightJoin查询       |
 
-### 5.4 为关联添加查询条件
-### 5.5 使用关联关系join查询
+#### `and`, `or` 查询说明
+
+值必须为一个数组，里面支持`[key => value]` 和 [表达式查询方式](/?page=repository#5.2-表达式查询)的数组；表示数组里面的查询条件通过什么连接
+
+> 支持嵌套使用 `and` 和 `or`
+
+示例：
+
+```php
+$this->repository->findAll([
+    'status' => 1,
+    'or'     => [
+        'username:like' => 'test',
+        'age:gt'        => 10,
+        'and'           => [
+            'user_id' => [1, 2, 3],
+            'gener'   => 1,
+        ],
+    ]
+]);
+```
+
+执行SQL:
+
+```SQL
+select `users`.*
+from `users`
+where `users`.`status` = 1 and (
+    `users`.`username` like '%test%' or
+    `users`.`age` > 10 or
+    (
+        `users`.`user_id` in (1, 2, 3) and
+        `users`.`gener` = 1
+    )
+)
+```
+
+### 5.4 关联关系join查询
 
 >前提是你的model定义了表的关联
 
@@ -328,7 +405,7 @@ select `user_ext`.* from `user_ext` inner join `users` on (`users`.`user_id` = `
 
 >如果需要使用 `leftJoin` 或者 `rightJoin` 的使用 `leftJoinWith` 或者 `rightJoinWith` 就好了
 
-##### 给join查询添加查询条件
+##### 添加join查询查询条件
 
 通过：`['表名字.字段' => '查询值']`
 
@@ -345,7 +422,7 @@ UserRepostiory::instance()->findAll([
 select `users`.* from `users` inner join `user_ext` on (`users`.`user_id` = `user_ext`.`user_id`) where `users`.`status` = 1 and `user_ext`.`status` != 1 and `user_ext`.`created_at` > '2020-04-29 22:31:00'
 ```
 
-##### 给join表名别名
+##### 给join表命别名
 
 通过： `['别名' => '关联方法名']`
 
@@ -364,13 +441,13 @@ UserRepostiory::instance()->findAll([
 select `users`.* from `users` inner join `user_ext` AS `t1` on (`users`.`user_id` = `t1`.`user_id`) where `users`.`status` = 1 and `t1`.`status` != 1 and `t1`.`created_at` > '2020-04-29 22:31:00'
 ```
 
-### 5.6 为关联查询添加条件
+### 5.5 关联查询附加条件
 
 **切记关联查询不是join查询** 关联查询是主表查询完成后，通过定义的关联然后再去查询关联表，是执行了两条SQL
 
 定义方式： `['rel.关联方法名称.关联表字段' => '查询的值']`
 
-Model 使用 5.5 定义的model
+[Model 使用 5.4 定义的model](/?page=repository#5.4-使用关联关系join查询)
 
 ```php
 UserRepostiory::instance()->find([
@@ -393,7 +470,7 @@ select `users`.* from `users` where `users`.`user_id` = 1
 select `user_ext`.* from `user_ext` where `user_id` in (1) and `user_ext`.`status` = 1 and `user_ext`.`type` = 1
 ```
 
-### 5.7 使用join查询
+### 5.6 join 查询
 
 使用 join 查询
 
@@ -432,9 +509,9 @@ UserRepostiory::instance()->findAll([
 ```SQL
 select `users`.* from `users` inner join `user_ext` on (`users`.`user_id` = `user_ext`.`user_id`) inner join `users` as `t1` on (`users`.`user_id` = `t1`.`user_id`)
 ```
-### 5.8 使用model定义scope查询
+### 5.7 scope 查询
 
-需要 model 定义了 scope 查询方法
+需要 `Model` 定义了 `scope` 前缀的查询方法
 
 ```php
 <?php
@@ -455,7 +532,7 @@ class User extends Model
 }
 ```
 
-定义方式：`['去掉scope方法名称' => '需要的参数']`
+定义方式：`['去掉scope前缀方法名称' => '需要的参数']`
 
 ```php
 UserRepostiory::instance()->findAll([
@@ -469,7 +546,7 @@ UserRepostiory::instance()->findAll([
 select `users`.* from `users` inner join `user_ext` on (`users`.`user_id` = `user_ext`.`user_id`) where `name` like 'test' and `user_ext`.`status` = 1
 ```
 
-### 5.9 使用原生SQL查询
+### 5.8 原生SQL查询
 
 > 慎用；存在SQL注入风险
 
