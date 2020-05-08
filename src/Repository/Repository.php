@@ -962,9 +962,12 @@ abstract class Repository
                 // 关联表的名称
                 $joinTable = $relationObject->getQuery()->getModel()->getTable();
 
-                // 表重名的话、使用t1、t2代替
-                if ($joinTable === $table) {
-                    $aliasTable = is_string($key) ? $key : 't' . $number;
+                // 命了别名、需要使用别名
+                if (is_string($key)) {
+                    $aliasTable = $key;
+                } else if ($joinTable === $table) {
+                    // 表名重复的话、使用t1、t2代替
+                    $aliasTable = 't' . $number;
                     $number++;
                 } else {
                     $aliasTable = '';

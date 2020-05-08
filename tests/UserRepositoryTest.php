@@ -302,11 +302,10 @@ class UserRepositoryTest extends AbstractRepositoryTest
         $this->assertArrayHasKey('status', $conditions);
 
         dump(UserRepository::instance()->toSql([
-            'status'           => 1,
-            'rel.posts.status' => 1,
-            'rel.posts.limit'  => 1,
-            'joinWith'         => 'posts',
-            'posts.status'     => 1,
+            'status'         => 1,
+            'joinWith'       => ['t1' => 'posts'],
+            '__posts.status' => 1,
+            '__posts.name'   => 2,
         ]));
     }
 
