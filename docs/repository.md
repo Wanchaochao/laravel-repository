@@ -39,7 +39,7 @@ public function update($conditions, array $updateValues);
 ```
 
 #### parameter
-- `$conditions` Modified conditions[Support for multiple types of queries](/?page=repository#五、查询条件说明)
+- `$conditions` Modified conditions[Support for multiple types of queries](/?page=repository#5、description-of%20query%20conditions)
 - `$updateValues` Modified data (non-table field information is automatically filtered out, and is not allowed to be null)
 
 #### return value
@@ -71,7 +71,7 @@ public function update($conditions, array $updateValues);
 ```
 
 #### parameter
-- `$conditions` Conditions for deletion [Support for multiple types of queries](/?page=repository#五、查询条件说明)
+- `$conditions` Conditions for deletion [Support for multiple types of queries](/?page=repository#5、description-of%20query%20conditions)
 
 #### return value
 - `int` affected rows
@@ -757,7 +757,7 @@ $conditions = '1';          // ['id' => 1]
 $conditions = [1, 2, 3];    // ['id' => [1, 2, 3, 4]]
 ```
 
-## 8、其他说明
+## 8、Other instructions
 
 ### 8.1 Other instructions
 
