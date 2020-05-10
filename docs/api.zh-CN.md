@@ -16,7 +16,7 @@ public function first($conditions, $columns = []);
 #### 示例
 
 ```php
-$user = $this->userRepostiory->first([
+$user = $this->userRepository->first([
     'status:in'      => [1, 2, 3],
     'username:like'  => 'test',
 ], ['*', 'ext' => ['*']]);
@@ -35,7 +35,7 @@ public function firstOrFail($conditions, $columns = []);
 #### 示例
 
 ```php
-$user = $this->userRepostiory->firstOrFail([
+$user = $this->userRepository->firstOrFail([
     'status:in'      => [1, 2, 3],
     'username:like'  => 'test',
 ], ['*', 'ext' => ['*']]);
@@ -54,7 +54,7 @@ public function get($conditions, $columns = []);
 #### 示例
 
 ```php
-$users = $this->userRepostiory->get([
+$users = $this->userRepository->get([
     'status:in'      => [1, 2, 3],
     'username:like'  => 'test',
 ], ['*', 'ext' => ['*']]);
@@ -72,13 +72,13 @@ public function pluck($conditions, $column, $key = null);
 #### 示例
 
 ```php
-$user_ids = $this->userRepostiory->pluck([
+$user_ids = $this->userRepository->pluck([
     'status:in'      => [1, 2, 3],
     'username:like'  => 'test',
 ], 'user_id');
 
 // 指定字段作为key
-$ages = $this->userRepostiory->pluck([
+$ages = $this->userRepository->pluck([
     'status:in'      => [1, 2, 3],
     'username:like'  => 'test',
 ], 'age', 'user_id');
@@ -98,7 +98,7 @@ public function count($conditions, $column = '*');
 #### 示例
 
 ```php
-$count = $this->userRepostiory->count([
+$count = $this->userRepository->count([
     'status:in'      => [1, 2, 3],
     'username:like'  => 'test',
 ]);
@@ -117,7 +117,7 @@ public function max($conditions, $column);
 #### 示例
 
 ```php
-$max_age = $this->userRepostiory->max([
+$max_age = $this->userRepository->max([
     'status:in'      => [1, 2, 3],
     'username:like'  => 'test',
 ], 'age');
@@ -136,7 +136,7 @@ public function min($conditions, $column);
 #### 示例
 
 ```php
-$min_age = $this->userRepostiory->min([
+$min_age = $this->userRepository->min([
     'status:in'      => [1, 2, 3],
     'username:like'  => 'test',
 ], 'age');
@@ -155,7 +155,7 @@ public function avg($conditions, $column);
 #### 示例
 
 ```php
-$avg_age = $this->userRepostiory->avg([
+$avg_age = $this->userRepository->avg([
     'status:in'      => [1, 2, 3],
     'username:like'  => 'test',
 ]);
@@ -174,7 +174,7 @@ public function sum($conditions, $column);
 #### 示例
 
 ```php
-$sum_age = $this->userRepostiory->sum([
+$sum_age = $this->userRepository->sum([
     'status:in'      => [1, 2, 3],
     'username:like'  => 'test',
 ], 'age');
@@ -197,7 +197,7 @@ public function increment($conditions, $column, $amount = 1, $extra = []);
 
 ```php
 // 年龄加1、状态改为1
-$ok = $this->userRepostiory->increment([
+$ok = $this->userRepository->increment([
     'status:in'      => [1, 2, 3],
     'username:like'  => 'test',
 ], 'age', 1, ['status' => 1]);
@@ -216,7 +216,7 @@ public function decrement($conditions, $column, $amount = 1, $extra = []);
 
 ```php
 // 年龄减1，状态改为1
-$ok = $this->userRepostiory->decrement([
+$ok = $this->userRepository->decrement([
     'status:in'      => [1, 2, 3],
     'username:like'  => 'test',
 ], 'age', 1, ['status' => 1]);
@@ -236,8 +236,7 @@ public function insert(array $values);
 #### 示例
 
 ```php
-// 年龄减1，状态改为1
-$ok = $this->userRepostiory->insert([
+$ok = $this->userRepository->insert([
     'name'       => '123456',
     'age'        => 20,
     'status'     => 1,
@@ -248,7 +247,7 @@ $ok = $this->userRepostiory->insert([
 
 #### 可以批量添加数据
 ```php
-$ok = $this->userRepostiory->insert([
+$ok = $this->userRepository->insert([
     [
         'name'       => '123456',
         'age'        => 20,
@@ -278,8 +277,7 @@ public function insertGetId(array $values);
 #### 示例
 
 ```php
-// 年龄减1，状态改为1
-$user_id = $this->userRepostiory->insertGetId([
+$user_id = $this->userRepository->insertGetId([
     'name'       => '123456',
     'age'        => 20,
     'status'     => 1,
@@ -302,7 +300,7 @@ public function firstOrCreate(array $attribute, array $values);
 
 ```php
 // 查询名称为123456，没有那么创建, 存在不处理
-$user = $this->userRepostiory->firstOrCreate(['name' => '123456'], [
+$user = $this->userRepository->firstOrCreate(['name' => '123456'], [
     'status' => 1,
     'age'    => 20,
 ]);
@@ -322,7 +320,7 @@ public function firstOrNew(array $attribute, array $values);
 
 ```php
 // 查询名称为123456，没有那么New对象
-$user = $this->userRepostiory->firstOrNew(['name' => '123456'], [
+$user = $this->userRepository->firstOrNew(['name' => '123456'], [
     'status' => 1,
     'age'    => 20,
 ]);
@@ -345,7 +343,7 @@ public function UpdateOrCreate(array $attribute, array $values);
 
 ```php
 // 查询名称为123456，存在那么修改状态为 1 年龄为 20, 没有那么创建数据
-$user = $this->userRepostiory->UpdateOrCreate(['name' => '123456'], [
+$user = $this->userRepository->UpdateOrCreate(['name' => '123456'], [
     'status' => 1,
     'age'    => 20,
 ]);
@@ -365,7 +363,7 @@ public function updateOrInsert(array $attribute, array $values);
 
 ```php
 // 查询名称为123456，存在那么修改状态为 1 年龄为 20, 没有那么实例化对象
-$user = $this->userRepostiory->updateOrInsert(['name' => '123456'], [
+$user = $this->userRepository->updateOrInsert(['name' => '123456'], [
     'status' => 1,
     'age'    => 20,
 ]);
@@ -390,19 +388,19 @@ public function newBuilder($conditions, $columns = [])
 
 ```php
 // 获取 builder
-$builder = $this->userRepostiory->newBuilder([
+$builder = $this->userRepository->newBuilder([
     'status:in'      => [1, 2, 3],
     'username:like'  => 'test',
 ], ['*', 'ext' => ['*']]);
 
 // 查询 单个数据
-$user = $this->userRepostiory->newBuilder([
+$user = $this->userRepository->newBuilder([
     'status:in'      => [1, 2, 3],
     'username:like'  => 'test',
 ], ['*', 'ext' => ['*']])->first();
 
 // 查询 多个数据
-$user = $this->userRepostiory->newBuilder([
+$user = $this->userRepository->newBuilder([
     'status:in'      => [1, 2, 3],
     'username:like'  => 'test',
 ], ['*', 'ext' => ['*']])->get();
@@ -424,7 +422,7 @@ public function filterCondition($conditions)
 
 ```php
 // 获取查询条件
-$conditions = $this->userRepostiory->filterCondition([
+$conditions = $this->userRepository->filterCondition([
     'status:in'      => request()->input('status'),
     'username:like'  => request()->input('username'),
 ]);
