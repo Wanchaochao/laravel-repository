@@ -658,7 +658,7 @@ $this->userRepostiory->find([
 ### 6.5 查询原生SQL字段
 
 ```php
-$this->userRepostiory->find([
+$this->userRepository->find([
     'status' => 1,
 ], [
     DB::raw('COUNT(*) AS `count_number`'),

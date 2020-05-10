@@ -267,44 +267,45 @@ $this->repository->findAll(['username:like' => 'test%']);
 $this->repository->findAll(['username' => DB::raw("like 'username'")]);
 ```
 
-### 5.3 预定义字段查询
+### 5.3 Predefined field query
 
-有些预定义的 key 是做特殊查询用的
+Some of the predefined keys are for special queries
 
 ```php
 $this->repository->findAll([
-    'limit' => 10,                        // 限制查询10条
-    'order' => 'id desc, created_at asc', // 指定排序条件
-    'group' => 'id',                      // 通过 id 分组
+    'limit' => 10,                        // Limit queries to 10
+    'order' => 'id desc, created_at asc', // Specify sort conditions
+    'group' => 'id',                      // Specify grouping information
 ]);
 ```
 
-#### 预定义的字段
+#### Predefined fields
 
-| 字段名称        | 字段值类型        | 说明                                |
+| Field names        | Type       | Instructions                                |
 | --------------- | ----------------- | ----------------------------------- |
-| `and`           | `array`           | 添加`and`查询条件; 只能传递一个数组 |
-| `or`            | `array`           | 添加`or`查询条件; 只能传递一个数组  |
-| `force`         | `string`          | 强制走指定索引                      |
-| `order`         | `string or array` | 指定排序条件                        |
-| `limit`         | `int`             | 指定查询条数                        |
-| `offset`        | `int`             | 指定跳转位置                        |
-| `group`         | `string`          | 指定分组字段                        |
-| `groupBy`       | `string`          | 指定分组字段                        |
-| `join`          | `array`           | 查询join的参数，多个二维数组        |
-| `leftJoin`      | `array`           | 查询`leftJoin`的参数、多个二维数组  |
-| `rightJoin`     | `array`           | 查询`rightJoin`的参数、多个二维数组 |
-| `joinWith`      | `string or array` | 通过关联关系对应join查询            |
-| `leftJoinWith`  | `string or array` | 通过关联关系对应leftJoin查询        |
-| `rightJoinWith` | `string or array` | 通过关联关系对应rightJoin查询       |
+| `and`           | `array`           | Add `and` query conditions; You can only pass one array |
+| `or`            | `array`           | Add `or` query conditions; You can only pass one array  |
+| `force`         | `string`          | Specify the index                      |
+| `order`         | `string or array` | Specify sort conditions                        |
+| `limit`         | `int`             | Specifies the number of query bars                        |
+| `offset`        | `int`             | Specify jump location                        |
+| `group`         | `string`          | Specify grouping fields                        |
+| `groupBy`       | `string`          | Specify grouping fields                        |
+| `join`          | `array`           | Query the parameters of `join`, multiple two-dimensional arrays       |
+| `leftJoin`      | `array`           | Query the parameters of `left join`, multiple two-dimensional arrays  |
+| `rightJoin`     | `array`           | Query the parameters of `right join`, multiple two-dimensional arrays |
+| `joinWith`      | `string or array` | `join` queries are matched by association relationships            |
+| `leftJoinWith`  | `string or array` | `left join` queries are matched by association relationships        |
+| `rightJoinWith` | `string or array` | `right join` queries are matched by association relationships       |
 
-#### `and`, `or` 查询说明
+#### `and`, `or` The query specification
 
-值必须为一个数组，里面支持`[key => value]` 和 [表达式查询方式](/?page=repository#5.2-表达式查询)的数组；表示数组里面的查询条件通过什么连接
+The value must be an array, which is supported `[key => value]` 和 [表达式查询方式](/?page=repository#5.2-表达式查询) The array;
+What joins represent the query criteria in the array
 
-> 支持嵌套使用 `and` 和 `or`
+> Support for nesting `and` and `or`
 
-示例：
+example：
 
 ```php
 $this->repository->findAll([
@@ -320,7 +321,7 @@ $this->repository->findAll([
 ]);
 ```
 
-执行SQL:
+Execute SQL:
 
 ```SQL
 select `users`.*
@@ -335,13 +336,14 @@ where `users`.`status` = 1 and (
 )
 ```
 
-### 5.4 关联关系join查询
+### 5.4 Association relation join query
 
->前提是你的model定义了表的关联
+>The premise is that your model defines the relationships of the tables
 
-例如下面：
+For example, the following：
 
-用户Model
+User Model
+
 ```php
 <?php
 
@@ -356,7 +358,7 @@ class User extends Model
 }
 ```
 
-用户扩展信息Model
+User Ext Model
 
 ```php
 <?php
@@ -372,14 +374,14 @@ class UserExt extends Model
 }
 ```
 
-那么你在查询的时候可以通过关联关系进行join 查询(通过定义关联的关系，自动处理你的join)
+Then when you query, you can join query by association relation (by defining the association relation, you can automatically process your join).
 
 ```php
 
 // userRepository
-UserRepostiory::instance()->findAll([
+UserRepository::instance()->findAll([
     'status'   => 1,
-    'joinWith' => 'ext', // ext 表示关联方法名称， 多个需要使用数组 ['ext', 'children']
+    'joinWith' => 'ext', // ext Represents the name of the associated method, multiple of which require an array ['ext', 'children']
 ]);
 
 ```
@@ -396,39 +398,39 @@ UserExtRepository::instance()->findAll([
 ]);
 ```
 
-执行的SQL:
+Execute SQL:
 ```SQL
 select `user_ext`.* from `user_ext` inner join `users` on (`users`.`user_id` = `user_ext`.`user_id`) where `user_ext`.`status` = 1
 ```
 
 ##### leftJoinWith 和 rightJoinWith
 
->如果需要使用 `leftJoin` 或者 `rightJoin` 的使用 `leftJoinWith` 或者 `rightJoinWith` 就好了
+>If you want to use `left join` or `right join` you can just use `leftJoinWith` or `rightJoinWith`
 
-##### 添加join查询查询条件
+##### Add join queries to query conditions
 
-通过：`['表名字.字段' => '查询值']`
+through：`['table name.field' => 'value']`
 
 ```php
-UserRepostiory::instance()->findAll([
+UserRepository::instance()->findAll([
     'status'                 => 1,
     'joinWith'               => 'ext',
     'user_ext.status:neq'    => 1,
     'user_ext.created_at:gt' => date('Y-m-d H:i:s')
 ]);
 ```
-执行的SQL:
+Execute SQL:
 ```SQL:
 select `users`.* from `users` inner join `user_ext` on (`users`.`user_id` = `user_ext`.`user_id`) where `users`.`status` = 1 and `user_ext`.`status` != 1 and `user_ext`.`created_at` > '2020-04-29 22:31:00'
 ```
 
-##### 给join表命别名
+##### Alias the join table
 
-通过： `['别名' => '关联方法名']`
+through： `['alias' => 'Related party method name']`
 
 ```php
 
-UserRepostiory::instance()->findAll([
+UserRepository::instance()->findAll([
     'status'           => 1,
     'joinWith'         => ['t1' => 'ext'],
     't1.status:neq'    => 1,
@@ -436,46 +438,44 @@ UserRepostiory::instance()->findAll([
 ]);
 ```
 
-执行的SQL:
+Execute SQL:
 ```SQL
 select `users`.* from `users` inner join `user_ext` AS `t1` on (`users`.`user_id` = `t1`.`user_id`) where `users`.`status` = 1 and `t1`.`status` != 1 and `t1`.`created_at` > '2020-04-29 22:31:00'
 ```
 
-### 5.5 关联查询附加条件
+### 5.5 Associative query additional conditions
 
-**切记关联查询不是join查询** 关联查询是主表查询完成后，通过定义的关联然后再去查询关联表，是执行了两条SQL
+**Remember that an associated query is not a join query** an associated query is a query for the main table after the completion of the query, through the definition of the association and then to query the associated table, is the execution of two SQL
 
-定义方式： `['rel.关联方法名称.关联表字段' => '查询的值']`
-
-[Model 使用 5.4 定义的model](/?page=repository#5.4-使用关联关系join查询)
+Define the way： `['rel.Associate method name.field' => 'value']`
 
 ```php
-UserRepostiory::instance()->find([
+UserRepository::instance()->find([
     'user_id'        => 1,
-    'rel.ext.status' => 1, // 为关联表查询添加条件
-    'rel.ext.type'   => 2, // 为关联表查询添加条件
+    'rel.ext.status' => 1, // Add a condition for the associated table query
+    'rel.ext.type'   => 2, // Add a condition for the associated table query
 ], ['*', 'ext' => ['*']]);
 
 ```
 
-最终执行的SQL
+Execute SQL
 
-1. 主表查询
+1. The main query
 ```SQL
 select `users`.* from `users` where `users`.`user_id` = 1
 ```
 
-2. 关联表查询
+2. Associative table query
 ```SQL
 select `user_ext`.* from `user_ext` where `user_id` in (1) and `user_ext`.`status` = 1 and `user_ext`.`type` = 1
 ```
 
-### 5.6 join 查询
+### 5.6 join query
 
-使用 join 查询
+use join query
 
 ```php
-UserRepostiory::instance()->findAll([
+UserRepository::instance()->findAll([
     'status'                 => 1,
     'join'                   => ['user_ext', 'users.user_id', '=', 'user_ext.user_id'],
     'user_ext.status:neq'    => 1,
@@ -483,21 +483,21 @@ UserRepostiory::instance()->findAll([
 ]);
 ```
 
-执行SQL:
+Execute SQL:
 ```SQL
 select `users`.* from `users` inner join `user_ext` on (`users`.`user_id` = `user_ext`.`user_id`) where `users`.`status` = 1 and `user_ext`.`status` != 1 and `user_ext`.`created_at` > '2020-04-29 22:31:00'
 ```
 
-##### leftJoin 和 rightJoin
+##### leftJoin and rightJoin
 
->直接使用 `leftJoin` 或者 `rightJoin` 就好了
+>Just use `leftJoin` or `rightJoin`
 
-#### 一次存在多个join
+#### Multiple joins exist at once
 
-需要将join定义为二维数组
+You need to define the join as a two-dimensional array
 
 ```php
-UserRepostiory::instance()->findAll([
+UserRepository::instance()->findAll([
     'join'=> [
         ['user_ext', 'users.user_id', '=', 'user_ext.user_id'],
         ['users as t1', 'users.user_id', '=', 't1.user_id']
@@ -505,13 +505,13 @@ UserRepostiory::instance()->findAll([
 ]);
 ```
 
-执行SQL:
+Execute SQL:
 ```SQL
 select `users`.* from `users` inner join `user_ext` on (`users`.`user_id` = `user_ext`.`user_id`) inner join `users` as `t1` on (`users`.`user_id` = `t1`.`user_id`)
 ```
-### 5.7 scope 查询
+### 5.7 scope query
 
-需要 `Model` 定义了 `scope` 前缀的查询方法
+You need a query method where `Model` defines the `scope` prefix
 
 ```php
 <?php
@@ -532,140 +532,141 @@ class User extends Model
 }
 ```
 
-定义方式：`['去掉scope前缀方法名称' => '需要的参数']`
+Define the way：`['Remove the scope prefix from the method name' => 'Required parameters']`
 
 ```php
-UserRepostiory::instance()->findAll([
+UserRepository::instance()->findAll([
     'username' => 'test',
     'joinExt'  => 1,
 ]);
 ```
 
-执行的SQL:
+Execute SQL:
 ```SQL
 select `users`.* from `users` inner join `user_ext` on (`users`.`user_id` = `user_ext`.`user_id`) where `name` like 'test' and `user_ext`.`status` = 1
 ```
 
-### 5.8 原生SQL查询
+### 5.8 Native SQL query
 
-> 慎用；存在SQL注入风险
+> Careful; There are SQL injection risks
 
-使用：DB::raw() 函数包裹查询条件
+Wrap the query condition with the: `DB::raw()` function
 
 ```php
-UserRepostiory::instance()->findAll([
+UserRepository::instance()->findAll([
     DB::raw("user_id = 1 and status = 1"),
     'name' => DB::raw('like "_test"'),
 ]);
 ```
 
-### 总结
+### conclusion
 ```php
 $conditions = [
-    // 表中字段精准查询
+    // The fields in the table are precisely queried
     'status' => 1,
-    'id'     => [1, 2, 3, 4], // 值为数组会自动转为in查询 `id` in (1, 2, 3, 4)
+    'id'     => [1, 2, 3, 4], // An array value is automatically converted to an in query `id` in (1, 2, 3, 4)
 
-    // 预定义字段查询
-    'order' => 'id desc', // 指定排序字段和方式
-    'limit' => 10,        // 限制查询条件
-    'group' => 'id',      // 指定分组条件
-    'force' => 'name',    // 指定使用的索引
+    // Predefined field query
+    'order' => 'id desc', // Specify the sort field and how
+    'limit' => 10,        // Restrict query conditions
+    'group' => 'id',      // Specify grouping conditions
+    'force' => 'name',    // Specify the index to use
 
-    // join 关联查询
+    // join Associated query
     'join'     => ['users', 'users.user_id', '=', 'orders.user_id'],
     'leftJoin' => [
-        // 多个leftJoin
+        // multiple leftJoin
         ['users as u1', 'u1.user_id', '=', 'orders.user_id'],
         ['user_image', 'users_image.user_id', '=', 'users.user_id'],
     ],
 
-    // 表达式查询
-    'username:like'      => 'test',                                         // 模糊查询
-    'created_at:between' => ['2019-01-02 00:00:00', '2019-01-03 23:59:59'], // 区间查询
+    // Expression query
+    'username:like'      => 'test',
+    'created_at:between' => ['2019-01-02 00:00:00', '2019-01-03 23:59:59'],
     'id:ge'              => 12, // id > 12
 
-    // relation 关联查询,查询条件只对当前relation关联查询限制
+    // relation The query condition restricts only the current relation association query
     'rel.ext.address:like'   => '北京',
     'rel.ext.created_at:gte' => '2019-01-01 00:00:00',
 
-    // 通过 relation 关联关系，添加join 查询
+    // Add join queries through a relation relation
     'joinWith'     => ['ext'],
-    // 关联表定义别名 alias, 如果没有别名，关联表和主表同名，使用自定义别名 `t1`, 多个同名以此地址 `t2`、`t3`
+    // The associative table defines the alias, if there is no alias, the associative table and the main table have the same name, use the custom alias' t1 ', multiple homonyms with this address 't2', 't3'
     'leftJoinWith' => ['alias' => 'children'],
 
-    // 为join连表查询添加条件
+    // Add a condition to the join table query
     'user_ext.status' => 1,
     'users.status'    => 1,
 
-    // scope 自定义查询
-    'address'  => '北京',      // 查找`scopeAddress($query, $address)`方法
-    'children' => [1, 2, 3],  // 查找`scopeChildren($query, $childrenIds)`方法
+    // scope Custom query
+    'address'  => '北京',      // search `scopeAddress($query, $address)` method
+    'children' => [1, 2, 3],  // search `scopeChildren($query, $childrenIds)` method
 ];
 ```
 
->如果查询字段匹配不到上述的9种方式，那么会将查询字段转为方法名称，查询值为参数直接调用`Illuminate\Database\Eloquent\Builder`的方法（**如果字段方法不存在、程序抛错**, 这一点有别于 1.0.* 版本） 例如：
+>If the query field in > does not match the nine methods described above, the query field is converted to the method name, and the query value is a parameter that directly calls the method 'Illuminate, Database, Eloquent Builder'
+ (** if the field method does not exist and the program throws incorrectly **, this is different from version 1.0.*) for example:
 
 ```php
-UserRepostiory::instance()->findAll([
+UserRepository::instance()->findAll([
     'with'        => ['ext', 'children'],
     'orderByDesc' => 'id',
     'limit'       => 10,
 ]);
 
-// 内部实际调用
+// Internal actual call
 // $query->with(['ext', 'children'])->orderByDesc('id')->limit(10);
 ```
 
-## 六、查询字段说明
+## 6、Query field description
 
-对查询字段 `$columns` 说明, 就是 select 的字段
+Query field `$columns`, is the field of select
 
-### 6.1 查询本表字段
+### 6.1 Query the fields in this table
 
-本表的字段直接写
+The fields in this table are written directly
 
 ```php
 // select `user_id`, `name` from `users` where `user_id` = 1
-$this->userRepostiory->find(1, ['user_id', 'name']);
+$this->userRepository->find(1, ['user_id', 'name']);
 ```
 
-### 6.2 查询关联表字段
+### 6.2 Query the associated table fields
 
->model 需要定义的关联关系
+>`model` The association relationships that need to be defined
 
-通过： `['关联方法' => ['字段信息']]`
+through： `['Correlation method' => ['Field information']]`
 
 ```php
-$this->userRepostiory->find(1, ['user_id', 'name', 'ext' => ['status', 'avatar', 'auth_id']]);
+$this->userRepository->find(1, ['user_id', 'name', 'ext' => ['status', 'avatar', 'auth_id']]);
 ```
 
-### 6.3 查询关联表统计
+### 6.3 Query associated table statistics
 
->model 需要定义的关联关系
+>`model` The association relationships that need to be defined
 
-通过： `['关联方法名称_count']`
+through： `['Correlation method_count']`
 
 ```php
-$this->userRepostiory->find(1, ['user_id', 'name','ext_count']);
+$this->userRepository->find(1, ['user_id', 'name','ext_count']);
 ```
-// 使用的是`model`的`withCount()` 方法
+// We're using the `withCount()` method of `model`
 ```php
-// `model` 的写法
+// `model`
 User::select(['user_id', 'name'])->withCount('ext')->where('user_id', 1)->first()->toArray();
 ```
-### 6.4 查询join表字段
+### 6.4 Query the join table field
 
 ```php
-$this->userRepostiory->find([
+$this->userRepository->find([
     'joinWith' => 'ext',
 ], ['user_id', 'name', 'user_ext.status']);
 ```
 
-### 6.5 查询原生SQL字段
+### 6.5 Query native SQL fields
 
 ```php
-$this->userRepostiory->find([
+$this->userRepository->find([
     'status' => 1,
 ], [
     DB::raw('COUNT(*) AS `count_number`'),
@@ -674,111 +675,114 @@ $this->userRepostiory->find([
 ]);
 ```
 
-### 6.6 总结
+### 6.6 conclusion
 
 ```php
 $columns = [
 
-    // 本表的字段查询
+    // Field queries for this table
     'id',
     'username',
 
-    // 关联表字段查询
-    'ext'      => ['*'], // 对应`model`定义的 ext 关联
-    'children' => ['*'], // 对应`model`定义的 children 关联
+    // Associate a table field query
+    'ext'      => ['*'], // The `ext` association that corresponds to the `model` definition
+    'children' => ['*'], // The `children` association that corresponds to the `model` definition
 
-    // 关联表统计字段查询
-    'ext_count',      // 对应`model`定义的 ext 关联
-    'children_count', // 对应`model`定义的 children 关联
+    // Correlate table statistics field queries
+    'ext_count',      // The `ext` association that corresponds to the `model` definition
+    'children_count', // The `children` association that corresponds to the `model` definition
 
-    // join表字段
+    // The join table field
     'users.username',
     'users.age',
 
-    // 原生SQL字段
+    // Native SQL field
     DB::raw('SUM(`users`.`age`) AS `sum_age`'),
     DB::raw('COUNT(*) AS `total_count`'),
 ];
 ```
 
-## 七、增删改的事件方法
+## 7、Create, delete and modify the event method
 
-子类定义了这些方法，才会执行，如果想阻止主方法执行，并能让主方法返回错误信息，直接抛出错误就可以
+If you want to prevent the main method from executing and have the main method return an error, just throw the error
 
-### 7.1 新增的事件 在`create($data)` 执行的时候触发
+### 7.1 The new event is triggered when `create($data)` is executed
 
-1. `beforeCreate($data)` 新增之前
+1. `beforeCreate($data)` Before the new
 
-2. `afterCreate($data, $news)`  新增之后
+2. `afterCreate($data, $news)`  After the new
 
-#### 7.1.1 参数说明
+#### 7.1.1 Parameters
 
-| 参数名称 | 参数类型 | 参数说明                               |
+| Parameter name| Type | Instructions                               |
 | -------- | -------- | -------------------------------------- |
-| `$data`  | `array`  | 过滤掉干扰数据(非表中字段的数据)的数组 |
-| `$news`  | `array`  | 新增成功调用 `model->toArray()` 数组   |
+| `$data`  | `array`  | Filters out arrays that interfere with data (data that is not a field in a table) |
+| `$news`  | `array`  | New successful call to `model->toArray()` array   |
 
-### 7.2 修改的事件 在`update($conditions, array $data)` 执行的时候触发
+### 7.2 The modified event is triggered when `update($conditions, array $data)` executes
 
-1. `beforeUpdate($conditions, $data)` 修改之前
+1. `beforeUpdate($conditions, $data)` Before the update
 
-2. `afterUpdate($conditions, $data, $row)` 修改之后
+2. `afterUpdate($conditions, $data, $row)` After the update
 
-#### 7.2.1 参数说明
+#### 7.2.1 Parameters
 
-| 参数名称      | 参数类型 | 参数说明                               |
+| Parameter name| Type | Instructions                               |
 | ------------- | -------- | -------------------------------------- |
-| `$conditions` | `array`  | 处理了主键查询后的查询条件数组         |
-| `$data`       | `array`  | 过滤掉干扰数据(非表中字段的数据)的数组 |
-| `$row`        | `int`    | 修改受影响的行数                       |
+| `$conditions` | `array`  | The query condition array after the primary key query is processed         |
+| `$data`       | `array`  | Filters out arrays that interfere with data (data that is not a field in a table) |
+| `$row`        | `int`    | Number of affected rows                       |
 
-### 7.3 删除的事件 在`delete($conditions)` 执行的时候触发
+### 7.3 The deleted event is triggered when `delete($conditions)` is executed
 
-1. `beforeDelete($conditions)` 删除之前
+1. `beforeDelete($conditions)` Before the delete
 
-2. `afterDelete($conditions, $row)` 删除之后
+2. `afterDelete($conditions, $row)` After the delete
 
-#### 7.3.1 参数说明
+#### 7.3.1 Parameters
 
-| 参数名称      | 参数类型 | 参数说明                       |
+| Parameter name| Type | Instructions                               |
 | ------------- | -------- | ------------------------------ |
-| `$conditions` | `array`  | 处理了主键查询后的查询条件数组 |
-| `$row`        | `int`    | 删除受影响的行数               |
+| `$conditions` | `array`  | The query condition array after the primary key query is processed |
+| `$row`        | `int`    | Number of affected rows               |
 
-### 7.4 关于`$conditions` 处理为主键查询
+### 7.4 Processing of primary key queries about `$conditions`
 
-不为空的 字符串、整数、浮点数、索引数组 都会被转为主键查询
+Non-empty strings, integers, floating point Numbers, and indexed arrays are all turned into primary key queries
 
 ```php
-// 假设表的主键为id
-$conditions = 1;            // 会被转为 ['id' => 1]
-$conditions = '1';          // 会被转为 ['id' => '1']
-$conditions = [1, 2, 3];    // 会被转为 ['id' => [1, 2, 3, 4]]
+// Assume that the primary key name of the table is id
+$conditions = 1;            // ['id' => 1]
+$conditions = '1';          // ['id' => 1]
+$conditions = [1, 2, 3];    // ['id' => [1, 2, 3, 4]]
 ```
 
-## 八、其他说明
+## 8、其他说明
 
-### 8.1 查询返回说明
+### 8.1 Other instructions
 
-#### 8.1.1 查询返回数组的方法
-返回的是model->toArray()
+#### 8.1.1 Query the method that returns the array
+
+>So we're going to return `model->toArray()`
 
 ##### create(array $data)
 ##### find($conditions, $columns = [])
 ##### findAll($conditions, $columns = [])
 
-#### 8.1.2 返回的是对象的方法
-返回的model对象或者集合
+#### 8.1.2 Returns the method of the object
+>Returns a model object or collection
+
 ##### first($conditions, $columns = [])
 ##### firstOrFail($conditions, $columns = [])
 ##### firstOrCreate($attributes, $values)
 ##### updateOrCreate($attributes, $values)
 ##### get($conditions, $columns = [])
+##### pluck($conditions, $column, $key = null)
 
-### 8.2 对于`model`的要求
+### 8.2 Requirements for `model`
 
-1. `create` 和 `update` 都是批量赋值，需要`model`定义批量赋值的白名单`$fillable` 或者 黑名单 `$guarded`
-2. 需要定义 `$columns` 字段信息，表示表中都有哪些字段
+1. `create` and ` update ` are batch assignment, need a `model` define batch assignment whitelist `$fillable` or blacklist `$guarded`
+2. Need to define the `$columns` field information to indicate which fields are in the table
 
 ```php
 class Posts extends \Illuminate\Database\Eloquent\Model
@@ -796,4 +800,4 @@ class Posts extends \Illuminate\Database\Eloquent\Model
 
 ```
 
->虽然这一步是非必须的，但定义了`$columns`会减少一次`SQL`查询的代价
+>Although this step is not required, defining `$columns` will reduce the cost of a `SQL` query
