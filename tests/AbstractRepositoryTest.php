@@ -131,7 +131,7 @@ abstract class AbstractRepositoryTest extends TestCase
      *
      * @return void
      */
-    protected function tearDown(): void
+    protected function tearDown()
     {
         $this->schema()->drop('users');
         $this->schema()->drop('posts');
