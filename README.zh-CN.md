@@ -85,7 +85,19 @@ class UsersController extends Controller
         $paginate = $this->userRepository->paginate([
             'name:like' => 'test', 
             'status'    => [1, 2], // 自动转换为 in 查询
-        ]);
+        ], [
+           'user_id',
+           'username',
+           
+           // 关联统计字段查询, 前提是model 定义了关联 posts() 方法。 相当于 withCount
+           'posts_count',      
+
+           // 关联表字段查询，前提是model 定义了关联 ext() 方法。相当于 with
+           'ext' => [
+               'user_id',
+               'ext_avatar', 
+           ],
+       ]);
         
         return view('users.index', compact('paginate'));
     }

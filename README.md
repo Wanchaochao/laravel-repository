@@ -87,6 +87,18 @@ class UsersController extends Controller
         $paginate = $this->userRepository->paginate([
             'name:like' => 'test', 
             'status'    => [1, 2], // Automatically converts to an in query
+        ], [
+            'user_id',
+            'username',
+            
+            // Statistical associated data; withCount  
+            'posts_count',      
+
+            // Query the field information for the association table if the model defines the association relationship
+            'ext' => [
+                'user_id',
+                'ext_avatar', 
+            ],
         ]);
         
         return view('users.index', compact('paginate'));
