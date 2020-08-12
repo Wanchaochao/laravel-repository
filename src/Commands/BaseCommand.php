@@ -116,7 +116,7 @@ abstract class BaseCommand extends Command
     protected function render($file_name, $params, $render_view = '')
     {
         $dir_name = dirname($file_name);
-        if (!function_exists($dir_name)) {
+        if (!file_exists($dir_name)) {
             @mkdir($dir_name, 0755, true);
         }
 
