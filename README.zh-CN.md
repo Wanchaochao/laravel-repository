@@ -85,6 +85,17 @@ class UsersController extends Controller
         $paginate = $this->userRepository->paginate([
             'name:like' => 'test', 
             'status'    => [1, 2], // 自动转换为 in 查询
+            
+            // 添加复杂查询，生成SQL如: ("users"."status" = ? or "users"."age" >= ? or ("users"."status" = ? and "users"."age" != ?))
+            // 更多使用说明：https://wanchaochao.github.io/laravel-repository/?page=repository#5.3-%E9%A2%84%E5%AE%9A%E4%B9%89%E5%AD%97%E6%AE%B5%E6%9F%A5%E8%AF%A2
+            'or' => [
+                'status'  => 1,
+                'age:gte' => 26,
+                'and'     => [
+                    'status'  => 1,
+                    'age:neq' => 24,
+                ],
+            ],
         ], [
            'user_id',
            'username',
