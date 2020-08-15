@@ -332,13 +332,12 @@ class UserRepositoryTest extends AbstractRepositoryTest
     public function testFindExpectColumns()
     {
         $sql = UserRepository::instance()->toSql([], [
-            'status',
             // 排除的字段
             'except' => ['status', 'age', 'name'],
             'posts'  => ['*'],
         ]);
-        dump($sql);
 
+        dump($sql);
         $this->assertStringStartsWith("select", $sql);
     }
 

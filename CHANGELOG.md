@@ -1,5 +1,19 @@
 更新记录
 =======
+
+v2.0.4 2020-08-15
+-----------------
+
+在写接口的时候，返回数据需要过滤掉敏感信息；所以在查询字段中添加 `except` 用来过滤指定字段
+其实就是将 `select * ` 修改为 `select table.field1, table.field2 ` 的形式
+
+- feat: 查询字段添加 `except` 用来指定需要排除查询的字段
+```php
+ \Littlebug\Repository\Repository::instance()->find([
+    'status' => 1
+], ['except' => ['age', 'status', 'created_at', 'updated_at']]);
+```
+
 v2.0.3 2020-08-12
 -----------------
 
