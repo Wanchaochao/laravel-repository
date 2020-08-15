@@ -328,4 +328,31 @@ class UserRepositoryTest extends AbstractRepositoryTest
         dump($sql);
         $this->assertStringStartsWith("select", $sql);
     }
+
+    public function testFindExpectColumns()
+    {
+        $sql = UserRepository::instance()->toSql([], [
+            'status',
+            // 排除的字段
+            'except' => ['status', 'age', 'name'],
+            'posts'  => ['*'],
+        ]);
+        dump($sql);
+
+        $this->assertStringStartsWith("select", $sql);
+    }
+
+    public function testFindExpect()
+    {
+        $array = UserRepository::instance()->find([], [
+            'except' => ['status', 'age', 'name', 'user_id'], // 排除的字段(user_id 字段不能排除，因为posts关联需要)
+            'posts'  => [
+                'except' => ['status', 'created_at', 'updated_at'], // 字段排除
+            ],
+        ]);
+
+        dump($array);
+        $this->assertArrayHasKey('user_id', $array);
+        $this->assertArrayNotHasKey('age', $array);
+    }
 }

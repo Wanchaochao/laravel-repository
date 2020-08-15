@@ -29,7 +29,7 @@ use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
  * @method int|mixed min($conditions, $column) 统计求最小值
  * @method int|mixed avg($conditions, $column) 统计求平均值
  * @method int|mixed sum($conditions, $column) 统计求和
- * @method string toSql($conditions = []) 获取执行的SQL
+ * @method string toSql($conditions = [], $columns = []) 获取执行的SQL
  * @method array|mixed getBindings($conditions = []) 获取绑定的值
  * @method int increment($conditions, $column, $amount = 1, $extra = []) 按查询条件指定字段递增指定值(默认递增1)
  * @method int decrement($conditions, $column, $amount = 1, $extra = []) 按查询条件指定字段递减指定值(默认递减1)
@@ -71,7 +71,7 @@ abstract class Repository
     /**
      * @var array 需要处理columns字段的原生方法
      */
-    protected $columnMethods = ['first', 'firstOrFail', 'get'];
+    protected $columnMethods = ['first', 'firstOrFail', 'get', 'toSql'];
 
     /**
      * @var array 支持查询的表达式
@@ -548,6 +548,21 @@ abstract class Repository
                     $selectColumns[] = $field;
                 }
             } elseif (!is_int($k) && is_string($k)) { // 如果是key => value 格式 那么认为是 关联查询
+                // edit by jinxing.liu 2020-08-15 添加可以排除查询的字段 start:
+                if ($k === 'except') {
+                    // 比较表中的字段、进行排除处理
+                    $diffColumns = array_values(array_diff($tableColumns, (array)$field));
+                    foreach ($diffColumns as $diffColumn) {
+                        $tableColumn = $table . '.' . $diffColumn;
+                        if (!in_array($tableColumn, $selectColumns)) {
+                            $selectColumns[] = $tableColumn;
+                        }
+                    }
+
+                    continue;
+                }
+                // end
+
                 $relationName = Str::camel($k);
                 if (!isset($relations[$relationName])) {
                     $relations[$relationName] = ['withCount' => false, 'columns' => [], 'with' => true];

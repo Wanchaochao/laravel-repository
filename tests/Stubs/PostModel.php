@@ -42,6 +42,12 @@ class PostModel extends Model
      */
     protected $guarded = ['post_id'];
 
+    protected $casts = [
+        'user_id'   => 'integer',
+        'status'    => 'integer',
+        'parent_id' => 'integer',
+    ];
+
     /**
      * 用户信息
      *
