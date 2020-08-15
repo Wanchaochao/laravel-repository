@@ -284,7 +284,7 @@ abstract class Repository
      * @param mixed|array $conditions 删除的条件
      *
      * @return array
-     * @throws Exception
+     * @throws \Exception
      */
     final public function delete($conditions)
     {
