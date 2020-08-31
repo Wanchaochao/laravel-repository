@@ -37,6 +37,7 @@ class UserModel extends Model
         'email',
         'age',
         'status',
+        'config',
         'created_at',
         'updated_at',
     ];

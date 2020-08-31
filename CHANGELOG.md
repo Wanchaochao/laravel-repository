@@ -1,6 +1,18 @@
 更新记录
 =======
 
+v2.0.5 2020-08-31
+-----------------
+
+- feat: 支持json字段 `config->merchant` 的查询方式
+
+```php
+\Littlebug\Repository\Repository::instance()->find([
+    'status'           => 1,
+    'config->merchant' => true,
+]);
+```
+
 v2.0.4 2020-08-15
 -----------------
 

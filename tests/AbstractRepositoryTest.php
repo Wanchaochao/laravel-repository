@@ -52,6 +52,7 @@ abstract class AbstractRepositoryTest extends TestCase
             $table->string('name');
             $table->string('email');
             $table->integer('age');
+            $table->json('config');
             $table->integer('status')->default(1);
             $table->timestamps();
         });
@@ -82,27 +83,31 @@ abstract class AbstractRepositoryTest extends TestCase
     protected function seed()
     {
         $evsign = UserModel::create([
-            'name'  => 'evsign',
-            'email' => 'evsign.alex@gmail.com',
-            'age'   => '25',
+            'name'   => 'evsign',
+            'email'  => 'evsign.alex@gmail.com',
+            'age'    => '25',
+            'config' => '{"merchant":true,"age":25}',
         ]);
 
         $omranic = UserModel::create([
-            'name'  => 'omranic',
-            'email' => 'me@omranic.com',
-            'age'   => '26',
+            'name'   => 'omranic',
+            'email'  => 'me@omranic.com',
+            'age'    => '26',
+            'config' => '{"merchant":false,"age":26}',
         ]);
 
         $ionut = UserModel::create([
-            'name'  => 'ionut',
-            'email' => 'ionutz2k@gmail.com',
-            'age'   => '24',
+            'name'   => 'ionut',
+            'email'  => 'ionutz2k@gmail.com',
+            'age'    => '24',
+            'config' => '{"merchant":true,"age":24}',
         ]);
 
         $anotherIonut = UserModel::create([
-            'name'  => 'ionut',
-            'email' => 'ionut@example.com',
-            'age'   => '28',
+            'name'   => 'ionut',
+            'email'  => 'ionut@example.com',
+            'age'    => '28',
+            'config' => '{"merchant":false,"age":28}',
         ]);
 
         $evsign->posts()->saveMany([

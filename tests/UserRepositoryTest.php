@@ -354,4 +354,15 @@ class UserRepositoryTest extends AbstractRepositoryTest
         $this->assertArrayHasKey('user_id', $array);
         $this->assertArrayNotHasKey('age', $array);
     }
+
+    public function testFindJson()
+    {
+        $sql = UserRepository::instance()->toSql([
+            'config->merchant' => true,
+            'config->age:gt'   => 10,
+        ]);
+
+        dump($sql);
+        $this->assertStringStartsWith("select", $sql);
+    }
 }

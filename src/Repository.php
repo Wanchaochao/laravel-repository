@@ -810,8 +810,8 @@ abstract class Repository
                 continue;
             }
 
-            // join 表的查询 goods.name = 1
-            if (strrpos($column, '.') !== false) {
+            // join 表的查询 goods.name = 1 或者 config->merchant = true 的查询
+            if (strrpos($column, '.') !== false || strrpos($column, '->') !== false) {
                 $query = $this->handleFieldQuery($query, $column, $bindValue, $or);
                 continue;
             }
