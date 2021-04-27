@@ -65,7 +65,7 @@ $row = $this->repository->update([
 删除数据、返回受影响行数
 
 ```
-public function update($conditions, array $updateValues);
+public function delete($conditions, array $updateValues);
 ```
 
 #### 参数
