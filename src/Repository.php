@@ -781,8 +781,11 @@ abstract class Repository
                 continue;
             }
 
-            // or 、and 查询
-            if (in_array(strtolower($column), ['or', 'and'], true)) {
+            // or 、and 查询 || 允许数组查询 ['or' => [['status' => 1, 'age' => 2], ['status' => 2, 'age' => 5]]
+            if (
+                in_array(strtolower($column), ['or', 'and'], true) ||
+                (is_int($column) && Helper::isAssociative($bindValue))
+            ) {
 
                 // 存在值才去查询
                 if (is_array($bindValue) && $bindValue) {
