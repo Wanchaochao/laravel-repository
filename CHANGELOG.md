@@ -2,7 +2,24 @@
 =======
 v2.0.6 2021-04-28
 -----------------
-- feat: `or` 查询支持嵌套
+- feat: `or` and `and` 查询支持数组嵌套
+
+SQL:
+```sql
+select 
+    `users`.* 
+from 
+    `users` 
+where 
+    `users`.`status` = 1 and 
+    (
+        (`users`.`status` = 1 and `users`.`age` = 2) 
+        or 
+        (`users`.`status` = 2 and `users`.`age` = 5) 
+    );
+```
+
+PHP:
 ```php
 // SQL: select `users`.* from `users` where `users`.`status` = 1 and ((`users`.`status` = 1 and `users`.`age` = 2) or (`users`.`status` = 2 and `users`.`age` = 5))
 \Littlebug\Repository\Repository::instance()->find([
