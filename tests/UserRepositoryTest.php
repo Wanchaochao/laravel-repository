@@ -365,4 +365,42 @@ class UserRepositoryTest extends AbstractRepositoryTest
         dump($sql);
         $this->assertStringStartsWith("select", $sql);
     }
+
+    public function testOrAndFind2()
+    {
+        $sql = UserRepository::instance()->toSql([
+            'status' => 1,
+            'or'     => [
+                [
+                    'status' => 2,
+                    'age:gt' => 24,
+                ],
+                'and' => [
+                    'status'  => 1,
+                    'age:neq' => 24,
+                ],
+            ],
+        ]);
+
+        $this->assertEquals('select "users".* from "users" where "users"."status" = ? and (("users"."status" = ? and "users"."age" > ?) or ("users"."status" = ? and "users"."age" != ?))', $sql);
+        $this->assertStringStartsWith("select", $sql);
+
+        $sql2 = UserRepository::instance()->toSql([
+            'status' => 1,
+            'and'    => [
+                [
+                    'status' => 2,
+                    'age:gt' => 24,
+                ],
+                'or' => [
+                    'status'  => 1,
+                    'age:neq' => 24,
+                    ['age' => 1, 'status' => 2],
+                ],
+            ],
+        ]);
+
+        dump($sql2);
+        $this->assertEquals('select "users".* from "users" where "users"."status" = ? and (("users"."status" = ? and "users"."age" > ?) and ("users"."status" = ? or "users"."age" != ? or ("users"."age" = ? and "users"."status" = ?)))', $sql2);
+    }
 }
