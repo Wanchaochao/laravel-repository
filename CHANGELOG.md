@@ -1,9 +1,18 @@
 更新记录
 =======
-
-v2.0.6 2020-09-24
+v2.0.6 2021-04-28
 -----------------
-
+- feat: `or` 查询支持嵌套
+```php
+// SQL: select `users`.* from `users` where `users`.`status` = 1 and ((`users`.`status` = 1 and `users`.`age` = 2) or (`users`.`status` = 2 and `users`.`age` = 5))
+\Littlebug\Repository\Repository::instance()->find([
+    'status' => 1,
+    'or'     => [
+        ['status' => 1, 'age' => 2],
+        ['status' => 2, 'age' => 5],
+    ],
+]);
+```
 - feat: `core:model` 添加 `--fix` 属性，更新数据库字段信息
 
 v2.0.5 2020-08-31
