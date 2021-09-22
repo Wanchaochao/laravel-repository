@@ -37,7 +37,6 @@ class PostRepositoryTest extends AbstractRepositoryTest
         ]);
 
         $posts = PostRepository::instance()->find(4);
-        dump($row, $posts);
 
         $this->assertEquals(1, $row);
         $this->assertEquals(2, $posts['status']);
@@ -48,12 +47,13 @@ class PostRepositoryTest extends AbstractRepositoryTest
      * 测试删除数据
      *
      * @throws Exception
+     * @throws \Exception
      */
     public function testDelete()
     {
         $row   = PostRepository::instance()->delete(4);
         $posts = PostRepository::instance()->find(4);
-        dump($row, $posts);
+
         $this->assertEquals(1, $row);
         $this->assertEquals(null, $posts);
     }

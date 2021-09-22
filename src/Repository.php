@@ -249,7 +249,7 @@ abstract class Repository
      * @param array|mixed $conditions 修改的查询条件
      * @param array       $data       修改的数据
      *
-     * @return array
+     * @return integer
      * @throws Exception
      */
     final public function update($conditions, array $data)
@@ -283,7 +283,7 @@ abstract class Repository
      *
      * @param mixed|array $conditions 删除的条件
      *
-     * @return array
+     * @return integer
      * @throws \Exception
      */
     final public function delete($conditions)
