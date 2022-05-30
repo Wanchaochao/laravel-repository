@@ -640,7 +640,7 @@ abstract class Repository
 
                     // 防止关联查询，主键没有添加上去
                     if ($localKey && $notSelectAll && !in_array($localKey, $selectColumns)) {
-                        array_push($selectColumns, $localKey);
+                        $selectColumns[] = $localKey;
                     }
 
                     // 标记外键,防止查询的时候漏掉该字段
@@ -870,7 +870,7 @@ abstract class Repository
 
             // 自动添加模糊查询
             if (in_array($expression, ['like', 'not like'], true) && strpos($value, '%') === false) {
-                $value = "%{$value}%";
+                $value = "%$value%";
             }
         }
 
@@ -973,7 +973,7 @@ abstract class Repository
                     $aliasTable ? $joinTable . ' as ' . $aliasTable : $joinTable,
                     $localKey,
                     '=',
-                    ($aliasTable ? $aliasTable : $joinTable) . '.' . Str::replaceFirst($joinTable . '.', '', $foreignKey),
+                    ($aliasTable ?: $joinTable) . '.' . Str::replaceFirst($joinTable . '.', '', $foreignKey),
                 ], $method);
             }
         }

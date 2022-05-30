@@ -20,6 +20,7 @@ class UserRepositoryTest extends AbstractRepositoryTest
             'email'  => 'mytest@qq.com',
             'age'    => 27,
             'status' => 1,
+            'config' => '{}',
         ]);
         dump($user);
         $this->assertArrayHasKey('user_id', $user);
@@ -48,7 +49,7 @@ class UserRepositoryTest extends AbstractRepositoryTest
     /**
      * 测试删除数据
      *
-     * @throws \Littlebug\Repository\Exception
+     * @throws \Littlebug\Repository\Exception|\Exception
      */
     public function testDelete()
     {
@@ -261,6 +262,7 @@ class UserRepositoryTest extends AbstractRepositoryTest
             'email'      => 'test123@gamil.com',
             'age'        => 1,
             'status'     => 1,
+            'config'     => '{}',
             'created_at' => date('Y-m-d H:i:s'),
             'updated_at' => date('Y-m-d H:i:s'),
         ]);
@@ -275,6 +277,7 @@ class UserRepositoryTest extends AbstractRepositoryTest
             'email'      => 'test123@gamil.com',
             'age'        => 1,
             'status'     => 1,
+            'config'     => '{}',
             'created_at' => date('Y-m-d H:i:s'),
             'updated_at' => date('Y-m-d H:i:s'),
         ]);
