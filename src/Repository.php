@@ -326,7 +326,7 @@ abstract class Repository
         // 执行后置函数
         $afterMethod = 'after' . $method;
         if (method_exists($this, $afterMethod)) {
-            array_push($args, $result);
+            $args[] = $result;
             $this->{$afterMethod}(...$args);
         }
 
@@ -540,14 +540,14 @@ abstract class Repository
                     $relationName = Str::replaceLast('_count', '', $field);
                     $relationName = Str::camel($relationName);
                     if (!isset($relations[$relationName])) {
-                        $relations[$relationName] = ['withCount' => true, 'columns' => [], 'with' => false];
+                        $relations[$relationName] = ['columns' => [], 'with' => false];
                     }
 
                     $relations[$relationName]['withCount'] = true;
                 } else {
                     $selectColumns[] = $field;
                 }
-            } elseif (!is_int($k) && is_string($k)) { // 如果是key => value 格式 那么认为是 关联查询
+            } elseif (is_string($k)) { // 如果是key => value 格式 那么认为是 关联查询
                 // edit by jinxing.liu 2020-08-15 添加可以排除查询的字段 start:
                 if ($k === 'except') {
                     // 比较表中的字段、进行排除处理
@@ -565,7 +565,7 @@ abstract class Repository
 
                 $relationName = Str::camel($k);
                 if (!isset($relations[$relationName])) {
-                    $relations[$relationName] = ['withCount' => false, 'columns' => [], 'with' => true];
+                    $relations[$relationName] = ['withCount' => false];
                 }
 
                 $relations[$relationName]['columns'] = $field;
